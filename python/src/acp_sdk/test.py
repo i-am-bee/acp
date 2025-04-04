@@ -2,6 +2,7 @@ import asyncio
 from typing import AsyncGenerator
 import uuid
 from acp_sdk.models import (
+    ImageMessagePart,
     Message,
     Await,
     AwaitResume,
@@ -20,7 +21,7 @@ from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
 from acp_sdk.server.context import Context
 
 
-# from acp_sdk.client import create_client
+from acp_sdk.client.client import create_client
 
 
 class EchoAgent(Agent):
@@ -30,7 +31,7 @@ class EchoAgent(Agent):
 
 class LazyEchoAgent(Agent):
     async def run(self, input: Message, *, context: Context):
-        await asyncio.sleep(100)
+        await asyncio.sleep(60)
         yield input
 
 
@@ -122,14 +123,13 @@ def test_server():
     )
 
 
-# async def client():
-#     async with create_client("http://localhost:8000") as client:
-#         output = await client.run(RunInput(text="Howdy"))
-#         print(output)
+async def client():
+    async with create_client("http://localhost:8000") as client:
+        run = await client.run_sync(
+            agent="EchoAgent", input=Message(TextMessagePart(content="Howdy!"))
+        )
+        print(run.output)
 
-#         async for output in client.run_stream(RunInput(text="Howdy again")):
-#             print(output)
 
-
-# def test_client():
-#     asyncio.run(client())
+def test_client():
+    asyncio.run(client())
