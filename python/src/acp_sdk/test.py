@@ -125,10 +125,23 @@ def test_server():
 
 async def client():
     async with create_client("http://localhost:8000") as client:
+        print("## Agents")
+        print([x async for x in client.agents()])
+
+        print("## Run sync")
         run = await client.run_sync(
             agent="EchoAgent", input=Message(TextMessagePart(content="Howdy!"))
         )
         print(run.output)
+
+        async for event in client.run_stream(
+            agent="StreamingEchoAgent",
+            input=Message(
+                TextMessagePart(content="Howdy!"),
+                TextMessagePart(content=" How are ya?"),
+            ),
+        ):
+            print(event)
 
 
 def test_client():

@@ -10,6 +10,7 @@ from acp_sdk.models import (
     AgentReadResponse,
     AgentsListResponse,
     AwaitResume,
+    CompletedEvent,
     Message,
     RunCancelResponse,
     RunCreateRequest,
@@ -21,6 +22,7 @@ from acp_sdk.models import (
     RunResumeRequest,
     RunResumeResponse,
 )
+from pydantic import TypeAdapter
 
 
 class Client:
@@ -68,9 +70,10 @@ class Client:
             ).model_dump(),
         ) as event_source:
             async for event in event_source:
-                event = RunEvent.model_validate_json(event.data)
+                print(event.data)
+                event = TypeAdapter(RunEvent).validate_json(event.data)
                 yield event
-                if event.type == "end":
+                if isinstance(event, CompletedEvent):
                     await event_source.close()
                     break
 
@@ -108,7 +111,7 @@ class Client:
             async for event in event_source:
                 event = RunEvent.model_validate_json(event.data)
                 yield event
-                if event.type == "end":
+                if isinstance(event, CompletedEvent):
                     await event_source.close()
                     break
 

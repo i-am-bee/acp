@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, Union
+from typing import Annotated, Literal, Union
 import uuid
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel
@@ -8,6 +8,10 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel
 class ACPError(BaseModel):
     code: str
     message: str
+
+
+class AnyModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
 
 class MessagePartBase(BaseModel):
@@ -139,10 +143,15 @@ class AwaitEvent(Event):
 
 class GenericEvent(Event):
     type: Literal["generic"] = "generic"
-    generic: BaseModel
+    generic: AnyModel
 
 
-RunEvent = Union[MessageEvent, AwaitEvent, GenericEvent]
+class CompletedEvent(Event):
+    type: Literal["completed"] = "completed"
+    run: Run
+
+
+RunEvent = Union[MessageEvent, AwaitEvent, GenericEvent, CompletedEvent]
 
 
 class RunCreateRequest(BaseModel):
