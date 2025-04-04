@@ -25,17 +25,41 @@ from acp_sdk.client.client import create_client
 
 
 class EchoAgent(Agent):
+    @property
+    def name(self):
+        return "echo"
+
+    @property
+    def description(self):
+        return "Echoes everything"
+
     async def run(self, input: Message, *, context: Context):
         yield input
 
 
 class LazyEchoAgent(Agent):
+    @property
+    def name(self):
+        return "lazy_echo"
+
+    @property
+    def description(self):
+        return "Echoes everything with 1 minute delay"
+
     async def run(self, input: Message, *, context: Context):
         await asyncio.sleep(60)
         yield input
 
 
 class StreamingEchoAgent(Agent):
+    @property
+    def name(self):
+        return "streaming_echo"
+
+    @property
+    def description(self):
+        return "Echoes all message parts in a stream"
+
     async def run(self, input: Message, *, context: Context):
         for part in input:
             yield Message(part)
@@ -56,6 +80,14 @@ class BeeAIAgent(Agent):
             "ollama:llama3.1",
             ChatModelParameters(temperature=0),
         )
+
+    @property
+    def name(self):
+        return "beeai"
+
+    @property
+    def description(self):
+        return "Beeai agent powered by ollama and no tools"
 
     async def run(self, input: Message, *, context: Context):
         memory = TokenMemory(self.llm)
@@ -85,6 +117,14 @@ class BeeAIAgentAdvanced(Agent):
             DuckDuckGoSearchTool(),
         ]
         self.memories: dict[SessionId, TokenMemory] = dict()
+
+    @property
+    def name(self):
+        return "beeai_advanced"
+
+    @property
+    def description(self):
+        return "Beeai agent powered by ollama with tools and sessions"
 
     async def session(self, session_id: SessionId | None):
         if session_id and session_id not in self.memories:
@@ -126,22 +166,35 @@ def test_server():
 async def client():
     async with create_client("http://localhost:8000") as client:
         print("## Agents")
-        print([x async for x in client.agents()])
+        async for x in client.agents():
+            print(f"{x.name} | {x.description}")
+        print()
 
         print("## Run sync")
         run = await client.run_sync(
-            agent="EchoAgent", input=Message(TextMessagePart(content="Howdy!"))
+            agent="echo", input=Message(TextMessagePart(content="Howdy!"))
         )
         print(run.output)
+        print()
 
+        print("## Run stream")
         async for event in client.run_stream(
-            agent="StreamingEchoAgent",
+            agent="streaming_echo",
             input=Message(
                 TextMessagePart(content="Howdy!"),
                 TextMessagePart(content=" How are ya?"),
             ),
         ):
             print(event)
+        print()
+
+        print("## Run BeeAI")
+        run = await client.run_sync(
+            agent="beeai",
+            input=Message(TextMessagePart(content="Howdy!")),
+        )
+        print(run.output)
+        print()
 
 
 def test_client():

@@ -72,18 +72,8 @@ class Client:
                 agent_name=agent, input=input, mode=RunMode.STREAM
             ).model_dump(),
         ) as event_source:
-            async for event in event_source:
-                print(event.data)
-                event = TypeAdapter(RunEvent).validate_json(event.data)
+            async for event in self._validate_stream(event_source):
                 yield event
-                if (
-                    isinstance(event, CompletedEvent)
-                    or isinstance(event, FailedEvent)
-                    or isinstance(event, CancelledEvent)
-                    or isinstance(event, AwaitEvent)
-                ):
-                    await event_source.close()
-                    break
 
     async def run_status(self, *, run_id: RunId) -> Run:
         async with self._session.get(f"/runs/{run_id}") as resp:
@@ -116,17 +106,24 @@ class Client:
             option={"method": "POST"},
             json=RunResumeRequest(await_=await_, mode=RunMode.STREAM).model_dump(),
         ) as event_source:
-            async for event in event_source:
-                event = RunEvent.model_validate_json(event.data)
+            async for event in self._validate_stream(event_source):
                 yield event
-                if (
-                    isinstance(event, CompletedEvent)
-                    or isinstance(event, FailedEvent)
-                    or isinstance(event, CancelledEvent)
-                    or isinstance(event, AwaitEvent)
-                ):
-                    await event_source.close()
-                    break
+
+    async def _validate_stream(
+        self,
+        event_source: aiohttp_sse_client.client.EventSource,
+    ) -> AsyncIterator[RunEvent]:
+        async for event in event_source:
+            event = TypeAdapter(RunEvent).validate_json(event.data)
+            yield event
+            if (
+                isinstance(event, CompletedEvent)
+                or isinstance(event, FailedEvent)
+                or isinstance(event, CancelledEvent)
+                or isinstance(event, AwaitEvent)
+            ):
+                await event_source.close()
+                break
 
 
 @asynccontextmanager
