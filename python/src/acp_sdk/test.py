@@ -62,10 +62,19 @@ class StreamingEchoAgent(Agent):
 
     async def run(self, input: Message, *, context: Context):
         for part in input:
+            yield {"thought": "nothing really"}
             yield Message(part)
 
 
 class AwaitingAgent(Agent):
+    @property
+    def name(self):
+        return "awaiting"
+
+    @property
+    def description(self):
+        return "Greets and awaits for more data"
+
     async def run(
         self, input: Message, *, context: Context
     ) -> AsyncGenerator[Message | Await, AwaitResume]:

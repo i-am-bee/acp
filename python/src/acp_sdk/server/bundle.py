@@ -11,6 +11,7 @@ from acp_sdk.models import (
     CreatedEvent,
     FailedEvent,
     GenericEvent,
+    InProgressEvent,
     Message,
     MessageEvent,
     Run,
@@ -19,7 +20,7 @@ from acp_sdk.models import (
     RunStatus,
 )
 from acp_sdk.server.context import Context
-from pydantic import BaseModel
+from pydantic import ValidationError
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -78,13 +79,15 @@ class RunBundle:
             )
             run_logger.info("Run started")
 
+            self.run.status = RunStatus.IN_PROGRESS
+            await self.emit(InProgressEvent(run=self.run))
+
             await_resume = None
             while True:
-                self.run.status = RunStatus.IN_PROGRESS
                 next = await generator.asend(await_resume)
                 if isinstance(next, Message):
                     self.composed_message += next
-                    await self.emit(MessageEvent(run_id=self.run.run_id, message=next))
+                    await self.emit(MessageEvent(message=next))
                 elif isinstance(next, Await):
                     self.run.await_ = next
                     self.run.status = RunStatus.AWAITING
@@ -99,11 +102,15 @@ class RunBundle:
                     )
                     run_logger.info("Run awaited")
                     await_resume = await self.await_()
+                    self.run.status = RunStatus.IN_PROGRESS
+                    await self.emit(InProgressEvent(run=self.run))
                     run_logger.info("Run resumed")
-                elif isinstance(next, AnyModel):
-                    await self.emit(GenericEvent(run_id=self.run.run_id, generic=next))
                 else:
-                    raise TypeError("Not a pydantic model")
+                    try:
+                        generic = AnyModel.model_validate(next)
+                        await self.emit(GenericEvent(generic=generic))
+                    except ValidationError:
+                        raise TypeError("Invalid yield")
         except StopAsyncIteration:
             self.run.output = self.composed_message
             self.run.status = RunStatus.COMPLETED
