@@ -3,8 +3,13 @@ import logging
 from acp_sdk.server.agent import Agent
 from acp_sdk.models import (
     ACPError,
+    AnyModel,
     Await,
     AwaitEvent,
+    CancelledEvent,
+    CompletedEvent,
+    CreatedEvent,
+    FailedEvent,
     GenericEvent,
     Message,
     MessageEvent,
@@ -26,7 +31,7 @@ class RunBundle:
         self.run = run
         self.task = task
 
-        self.stream_queue: asyncio.Queue[Message] = asyncio.Queue()
+        self.stream_queue: asyncio.Queue[RunEvent] = asyncio.Queue()
         self.composed_message = Message()
 
         self.await_queue: asyncio.Queue[AwaitResume] = asyncio.Queue(maxsize=1)
@@ -63,6 +68,7 @@ class RunBundle:
     async def execute(self, input: Message):
         run_logger = logging.LoggerAdapter(logger, {"run_id": self.run.run_id})
 
+        await self.emit(CreatedEvent(run=self.run))
         try:
             self.run.session_id = await self.agent.session(self.run.session_id)
             run_logger.info("Session loaded")
@@ -94,20 +100,23 @@ class RunBundle:
                     run_logger.info("Run awaited")
                     await_resume = await self.await_()
                     run_logger.info("Run resumed")
-                if isinstance(next, BaseModel):
+                elif isinstance(next, AnyModel):
                     await self.emit(GenericEvent(run_id=self.run.run_id, generic=next))
                 else:
                     raise TypeError("Not a pydantic model")
         except StopAsyncIteration:
             self.run.output = self.composed_message
             self.run.status = RunStatus.COMPLETED
+            await self.emit(CompletedEvent(run=self.run))
             run_logger.info("Run completed")
         except asyncio.CancelledError:
             self.run.status = RunStatus.CANCELLED
+            await self.emit(CancelledEvent(run=self.run))
             run_logger.info("Run cancelled")
         except Exception as e:
             self.run.error = ACPError(code="unspecified", message=str(e))
             self.run.status = RunStatus.FAILED
+            await self.emit(FailedEvent(run=self.run))
             run_logger.exception("Run failed")
         finally:
             self.await_or_terminate_event.set()

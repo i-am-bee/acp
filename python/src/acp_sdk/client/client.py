@@ -9,8 +9,11 @@ from acp_sdk.models import (
     AgentName,
     AgentReadResponse,
     AgentsListResponse,
+    AwaitEvent,
     AwaitResume,
+    CancelledEvent,
     CompletedEvent,
+    FailedEvent,
     Message,
     RunCancelResponse,
     RunCreateRequest,
@@ -73,7 +76,12 @@ class Client:
                 print(event.data)
                 event = TypeAdapter(RunEvent).validate_json(event.data)
                 yield event
-                if isinstance(event, CompletedEvent):
+                if (
+                    isinstance(event, CompletedEvent)
+                    or isinstance(event, FailedEvent)
+                    or isinstance(event, CancelledEvent)
+                    or isinstance(event, AwaitEvent)
+                ):
                     await event_source.close()
                     break
 
@@ -111,7 +119,12 @@ class Client:
             async for event in event_source:
                 event = RunEvent.model_validate_json(event.data)
                 yield event
-                if isinstance(event, CompletedEvent):
+                if (
+                    isinstance(event, CompletedEvent)
+                    or isinstance(event, FailedEvent)
+                    or isinstance(event, CancelledEvent)
+                    or isinstance(event, AwaitEvent)
+                ):
                     await event_source.close()
                     break
 

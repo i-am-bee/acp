@@ -115,17 +115,12 @@ class Run(BaseModel):
         )
 
 
-class Event(BaseModel):
-    type: Literal["message", "await", "generic"]
-    run_id: RunId
-
-
-class MessageEvent(Event):
+class MessageEvent(BaseModel):
     type: Literal["message"] = "message"
     message: Message
 
 
-class AwaitEvent(Event):
+class AwaitEvent(BaseModel):
     type: Literal["await"] = "await"
     await_: Await | None = Field(alias="await")
 
@@ -141,17 +136,46 @@ class AwaitEvent(Event):
         )
 
 
-class GenericEvent(Event):
+class GenericEvent(BaseModel):
     type: Literal["generic"] = "generic"
     generic: AnyModel
 
 
-class CompletedEvent(Event):
+class CreatedEvent(BaseModel):
+    type: Literal["created"] = "created"
+    run: Run
+
+
+class InProgressEvent(BaseModel):
+    type: Literal["in-progress"] = "in-progress"
+    run: Run
+
+
+class FailedEvent(BaseModel):
+    type: Literal["failed"] = "failed"
+    run: Run
+
+
+class CancelledEvent(BaseModel):
+    type: Literal["cancelled"] = "cancelled"
+    run: Run
+
+
+class CompletedEvent(BaseModel):
     type: Literal["completed"] = "completed"
     run: Run
 
 
-RunEvent = Union[MessageEvent, AwaitEvent, GenericEvent, CompletedEvent]
+RunEvent = Union[
+    CreatedEvent,
+    InProgressEvent,
+    MessageEvent,
+    AwaitEvent,
+    GenericEvent,
+    CancelledEvent,
+    FailedEvent,
+    CompletedEvent,
+]
 
 
 class RunCreateRequest(BaseModel):
