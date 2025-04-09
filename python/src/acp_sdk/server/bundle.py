@@ -23,10 +23,10 @@ from acp_sdk.models import (
     RunEvent,
     RunStatus,
 )
+from acp_sdk.models.errors import ErrorCode
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.context import Context
-
-logger = logging.getLogger("uvicorn.error")
+from acp_sdk.server.logging import logger
 
 
 class RunBundle:
@@ -122,7 +122,7 @@ class RunBundle:
                 await self.emit(CancelledEvent(run=self.run))
                 run_logger.info("Run cancelled")
             except Exception as e:
-                self.run.error = Error(code="unspecified", message=str(e))
+                self.run.error = Error(code=ErrorCode.SERVER_ERROR, message=str(e))
                 self.run.status = RunStatus.FAILED
                 await self.emit(FailedEvent(run=self.run))
                 run_logger.exception("Run failed")

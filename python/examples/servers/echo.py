@@ -6,7 +6,7 @@ from acp_sdk.models import (
     AwaitResume,
     Message,
 )
-from acp_sdk.server import Agent, create_app
+from acp_sdk.server import Agent, serve
 from acp_sdk.server.context import Context
 
 
@@ -26,4 +26,4 @@ class EchoAgent(Agent):
             yield Message(part)
 
 
-app = create_app(EchoAgent())
+serve(EchoAgent())

@@ -6,9 +6,8 @@ from acp_sdk.models import (
     Message,
     TextMessagePart,
 )
-from acp_sdk.server import Agent
+from acp_sdk.server import Agent, serve
 from acp_sdk.server.context import Context
-from acp_sdk.server.server import create_app
 
 
 class AwaitingAgent(Agent):
@@ -26,4 +25,4 @@ class AwaitingAgent(Agent):
         yield Message(TextMessagePart(content=f"Thanks for {data}"))
 
 
-app = create_app(AwaitingAgent())
+serve(AwaitingAgent())

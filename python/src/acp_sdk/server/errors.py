@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -7,8 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from acp_sdk.models import Error, ErrorCode
 from acp_sdk.models.errors import ACPError
-
-logger = logging.getLogger("uvicorn.error")
+from acp_sdk.server.logging import logger
 
 
 def error_code_to_status_code(error_code: ErrorCode) -> int:
@@ -18,7 +15,7 @@ def error_code_to_status_code(error_code: ErrorCode) -> int:
         case ErrorCode.INVALID_INPUT:
             return status.HTTP_422_UNPROCESSABLE_ENTITY
         case _:
-            return 500
+            return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def status_code_to_error_code(status_code: int) -> ErrorCode:

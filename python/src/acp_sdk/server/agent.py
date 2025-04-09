@@ -8,6 +8,7 @@ from acp_sdk.models import (
     Message,
     SessionId,
 )
+from acp_sdk.models.models import Metadata
 from acp_sdk.server.context import Context
 
 
@@ -19,6 +20,10 @@ class Agent(abc.ABC):
     @property
     def description(self) -> str:
         return ""
+
+    @property
+    def metadata(self) -> Metadata:
+        return Metadata()
 
     @abc.abstractmethod
     def run(self, input: Message, *, context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:

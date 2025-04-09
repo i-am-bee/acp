@@ -1,9 +1,14 @@
 import logging
 from importlib.metadata import version
-from typing import Any
 
-from opentelemetry import trace
+from opentelemetry import metrics, trace
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import (
     SERVICE_NAME,
     SERVICE_NAMESPACE,
@@ -11,36 +16,37 @@ from opentelemetry.sdk.resources import (
     Resource,
 )
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanExportResult
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-logger = logging.getLogger("uvicorn.error")
-
-
-class SilentOTLPSpanExporter(OTLPSpanExporter):
-    def export(self, spans: Any) -> SpanExportResult:
-        try:
-            return super().export(spans)
-        except Exception as e:
-            logger.warning(f"OpenTelemetry Exporter failed silently: {e}")
-            return SpanExportResult.FAILURE
+root_logger = logging.getLogger()
 
 
 def configure_telemetry() -> None:
-    current_provider = trace.get_tracer_provider()
+    """Utility that configures opentelemetry with OTLP exporter"""
 
-    # Detect default provider and override
-    if isinstance(current_provider, trace.ProxyTracerProvider):
-        provider = TracerProvider(
-            resource=Resource(
-                attributes={
-                    SERVICE_NAME: "acp-server",
-                    SERVICE_NAMESPACE: "acp",
-                    SERVICE_VERSION: version("acp-sdk"),
-                }
-            )
-        )
+    resource = Resource(
+        attributes={
+            SERVICE_NAME: "acp-server",
+            SERVICE_NAMESPACE: "acp",
+            SERVICE_VERSION: version("acp-sdk"),
+        }
+    )
 
-        processor = BatchSpanProcessor(SilentOTLPSpanExporter())
-        provider.add_span_processor(processor)
+    # Traces
+    provider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(OTLPSpanExporter())
+    provider.add_span_processor(processor)
+    trace.set_tracer_provider(provider)
 
-        trace.set_tracer_provider(provider)
+    # Metrics
+    meter_provider = MeterProvider(
+        resource=resource,
+        metric_readers=[PeriodicExportingMetricReader(OTLPMetricExporter())],
+    )
+    metrics.set_meter_provider(meter_provider)
+
+    # Logs
+    logger_provider = LoggerProvider(resource=resource)
+    processor = BatchLogRecordProcessor(OTLPLogExporter())
+    logger_provider.add_log_record_processor(processor)
+    root_logger.addHandler(LoggingHandler(logger_provider=logger_provider))
