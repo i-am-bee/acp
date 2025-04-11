@@ -30,6 +30,7 @@ client = [
 ]
 server = [
     { name = "fastapi", extra = ["standard"] },
+    { name = "janus" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-instrumentation-fastapi" },
     { name = "opentelemetry-sdk" },
@@ -40,6 +41,7 @@ dev = [
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "httpx-sse" },
+    { name = "janus" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-instrumentation-fastapi" },
     { name = "opentelemetry-instrumentation-httpx" },
@@ -51,6 +53,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], marker = "extra == 'server'", specifier = ">=0.115.8" },
     { name = "httpx", marker = "extra == 'client'", specifier = ">=0.28.1" },
     { name = "httpx-sse", marker = "extra == 'client'", specifier = ">=0.4.0" },
+    { name = "janus", marker = "extra == 'server'", specifier = ">=2.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.31.1" },
     { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'server'", specifier = ">=1.31.1" },
     { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'server'", specifier = ">=0.52b1" },
@@ -64,6 +67,7 @@ dev = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.8" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx-sse", specifier = ">=0.4.0" },
+    { name = "janus", specifier = ">=2.0.0" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.31.1" },
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.52b1" },
     { name = "opentelemetry-instrumentation-httpx", specifier = ">=0.52b1" },
@@ -372,6 +376,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f2/97/ebf4da567aa6827c909642694d71c9fcf53e5b504f2d96afea02718862f3/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7", size = 4793 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760", size = 6050 },
+]
+
+[[package]]
+name = "janus"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/7f/69884b6618be4baf6ebcacc716ee8680a842428a19f403db6d1c0bb990aa/janus-2.0.0.tar.gz", hash = "sha256:0970f38e0e725400496c834a368a67ee551dc3b5ad0a257e132f5b46f2e77770", size = 22910 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/34/65604740edcb20e1bda6a890348ed7d282e7dd23aa00401cbe36fd0edbd9/janus-2.0.0-py3-none-any.whl", hash = "sha256:7e6449d34eab04cd016befbd7d8c0d8acaaaab67cb59e076a69149f9031745f9", size = 12161 },
 ]
 
 [[package]]

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
+from concurrent.futures import ThreadPoolExecutor
 
 from opentelemetry import trace
 from pydantic import ValidationError
@@ -68,7 +69,7 @@ class RunBundle:
     async def join(self) -> None:
         await self.await_or_terminate_event.wait()
 
-    async def execute(self, input: Message) -> None:
+    async def execute(self, input: Message, *, executor: ThreadPoolExecutor) -> None:
         with trace.get_tracer(__name__).start_as_current_span("execute"):
             run_logger = logging.LoggerAdapter(logger, {"run_id": self.run.run_id})
 
@@ -77,7 +78,9 @@ class RunBundle:
                 self.run.session_id = await self.agent.session(self.run.session_id)
                 run_logger.info("Session loaded")
 
-                generator = self.agent.run(input=input, context=Context(session_id=self.run.session_id))
+                generator = self.agent.run(
+                    input=input, context=Context(session_id=self.run.session_id), executor=executor
+                )
                 run_logger.info("Run started")
 
                 self.run.status = RunStatus.IN_PROGRESS

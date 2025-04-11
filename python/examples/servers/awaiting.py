@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from typing import Any
 
 from acp_sdk.models import (
     Await,
@@ -6,23 +7,17 @@ from acp_sdk.models import (
     Message,
     TextMessagePart,
 )
-from acp_sdk.server import Agent, serve
-from acp_sdk.server.context import Context
+from acp_sdk.server import Context, Server
+
+server = Server()
 
 
-class AwaitingAgent(Agent):
-    @property
-    def name(self) -> str:
-        return "awaiting"
-
-    @property
-    def description(self) -> str:
-        return "Greets and awaits for more data"
-
-    async def run(self, input: Message, *, context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
-        yield Message(TextMessagePart(content="Hello!"))
-        data = yield Await()
-        yield Message(TextMessagePart(content=f"Thanks for {data}"))
+@server.agent()
+async def awaiting(input: Message, context: Context) -> AsyncGenerator[Message | Await | Any, AwaitResume]:
+    """Greets and awaits for more data"""
+    yield Message(TextMessagePart(content="Hello!"))
+    data = yield Await()
+    yield Message(TextMessagePart(content=f"Thanks for {data}"))
 
 
-serve(AwaitingAgent())
+server.run()

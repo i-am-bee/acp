@@ -18,6 +18,7 @@ server = [
     "opentelemetry-exporter-otlp-proto-http>=1.31.1",
     "opentelemetry-instrumentation-fastapi>=0.52b1",
     "opentelemetry-sdk>=1.31.1",
+    "janus>=2.0.0",
 ]
 
 [tool.uv]
@@ -29,6 +30,7 @@ dev-dependencies = [
     "opentelemetry-exporter-otlp-proto-http>=1.31.1",
     "opentelemetry-instrumentation-fastapi>=0.52b1",
     "opentelemetry-sdk>=1.31.1",
+    "janus>=2.0.0",
 ]
 
 [build-system]

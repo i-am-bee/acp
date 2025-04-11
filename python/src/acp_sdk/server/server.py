@@ -1,164 +1,110 @@
-import asyncio
-from typing import Any
+import inspect
+from collections.abc import AsyncGenerator
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable
 
-from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse, StreamingResponse
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-from acp_sdk.models import (
-    Agent as AgentModel,
-)
-from acp_sdk.models import (
-    AgentName,
-    AgentReadResponse,
-    AgentsListResponse,
-    Run,
-    RunCancelResponse,
-    RunCreateRequest,
-    RunCreateResponse,
-    RunId,
-    RunMode,
-    RunReadResponse,
-    RunResumeRequest,
-    RunResumeResponse,
-    RunStatus,
-)
-from acp_sdk.models.errors import ACPError
-from acp_sdk.server.agent import Agent
-from acp_sdk.server.bundle import RunBundle
-from acp_sdk.server.errors import (
-    RequestValidationError,
-    StarletteHTTPException,
-    acp_error_handler,
-    catch_all_exception_handler,
-    http_exception_handler,
-    validation_exception_handler,
-)
+from acp_sdk.models import Message
+from acp_sdk.server.agent import Agent, SyncAgent
+from acp_sdk.server.app import create_app
+from acp_sdk.server.context import Context
 from acp_sdk.server.logging import configure_logger as configure_logger_func
 from acp_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
-from acp_sdk.server.utils import stream_sse
+from acp_sdk.server.types import RunYield, RunYieldResume
 
 
-def create_app(*agents: Agent) -> FastAPI:
-    app = FastAPI(title="acp-agents")
+class Server:
+    def __init__(self) -> None:
+        self.agents: list[Agent] = []
 
-    FastAPIInstrumentor.instrument_app(app)
+    def agent(self, name: str | None = None, description: str | None = None) -> Callable:
+        """Decorator to register an agent."""
 
-    agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
-    runs: dict[RunId, RunBundle] = {}
+        def decorator(fn: Callable) -> Callable:
+            # check agent's function signature
+            signature = inspect.signature(fn)
+            parameters = list(signature.parameters.values())
 
-    app.exception_handler(ACPError)(acp_error_handler)
-    app.exception_handler(StarletteHTTPException)(http_exception_handler)
-    app.exception_handler(RequestValidationError)(validation_exception_handler)
-    app.exception_handler(Exception)(catch_all_exception_handler)
+            # validate agent's function
+            if inspect.isasyncgenfunction(fn):
+                if len(parameters) != 2:
+                    raise TypeError(
+                        "The agent generator function must have one 'input' argument and one 'context' argument"
+                    )
+            else:
+                if len(parameters) != 2:
+                    raise TypeError("The agent function must have one 'input' argument and one 'context' argument")
 
-    def find_run_bundle(run_id: RunId) -> RunBundle:
-        bundle = runs.get(run_id)
-        if not bundle:
-            raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
-        return bundle
+            agent: Agent
+            if inspect.isasyncgenfunction(fn):
 
-    def find_agent(agent_name: AgentName) -> Agent:
-        agent = agents.get(agent_name, None)
-        if not agent:
-            raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
-        return agent
+                class DecoratedAgent(Agent):
+                    @property
+                    def name(self) -> str:
+                        return name or fn.__name__
 
-    @app.get("/agents")
-    async def list_agents() -> AgentsListResponse:
-        return AgentsListResponse(
-            agents=[
-                AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
-                for agent in agents.values()
-            ]
-        )
+                    @property
+                    def description(self) -> str:
+                        return description or fn.__doc__ or ""
 
-    @app.get("/agents/{name}")
-    async def read_agent(name: AgentName) -> AgentReadResponse:
-        agent = find_agent(name)
-        return AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
+                    async def run(
+                        self, input: Message, context: Context, executor: ThreadPoolExecutor
+                    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+                        gen: AsyncGenerator[RunYield, RunYieldResume] = fn(input, context)
+                        value = None
+                        while True:
+                            try:
+                                value = yield await gen.asend(value)
+                            except StopAsyncIteration:
+                                break
 
-    @app.post("/runs")
-    async def create_run(request: RunCreateRequest) -> RunCreateResponse:
-        agent = find_agent(request.agent_name)
-        bundle = RunBundle(
-            agent=agent,
-            run=Run(
-                agent_name=agent.name,
-                session_id=request.session_id,
-            ),
-        )
+                agent = DecoratedAgent()
+            elif inspect.iscoroutinefunction(fn):
 
-        bundle.task = asyncio.create_task(bundle.execute(request.input))
-        runs[bundle.run.run_id] = bundle
+                class DecoratedAgent(Agent):
+                    @property
+                    def name(self) -> str:
+                        return name or fn.__name__
 
-        match request.mode:
-            case RunMode.STREAM:
-                return StreamingResponse(
-                    stream_sse(bundle),
-                    media_type="text/event-stream",
-                )
-            case RunMode.SYNC:
-                await bundle.join()
-                return bundle.run
-            case RunMode.ASYNC:
-                return JSONResponse(
-                    status_code=status.HTTP_202_ACCEPTED,
-                    content=bundle.run.model_dump(),
-                )
-            case _:
-                raise NotImplementedError()
+                    @property
+                    def description(self) -> str:
+                        return description or fn.__doc__ or ""
 
-    @app.get("/runs/{run_id}")
-    async def read_run(run_id: RunId) -> RunReadResponse:
-        bundle = find_run_bundle(run_id)
-        return bundle.run
+                    async def run(
+                        self, input: Message, context: Context, executor: ThreadPoolExecutor
+                    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+                        yield await fn(input, context)
 
-    @app.post("/runs/{run_id}")
-    async def resume_run(run_id: RunId, request: RunResumeRequest) -> RunResumeResponse:
-        bundle = find_run_bundle(run_id)
-        bundle.stream_queue = asyncio.Queue()  # TODO improve
-        await bundle.await_queue.put(request.await_)
-        match request.mode:
-            case RunMode.STREAM:
-                return StreamingResponse(
-                    stream_sse(bundle),
-                    media_type="text/event-stream",
-                )
-            case RunMode.SYNC:
-                await bundle.join()
-                return bundle.run
-            case RunMode.ASYNC:
-                return JSONResponse(
-                    status_code=status.HTTP_202_ACCEPTED,
-                    content=bundle.run.model_dump(),
-                )
-            case _:
-                raise NotImplementedError()
+                agent = DecoratedAgent()
+            else:
 
-    @app.post("/runs/{run_id}/cancel")
-    async def cancel_run(run_id: RunId) -> RunCancelResponse:
-        bundle = find_run_bundle(run_id)
-        if bundle.run.status.is_terminal:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Run with terminal status {bundle.run.status} can't be cancelled",
-            )
-        bundle.task.cancel()
-        bundle.run.status = RunStatus.CANCELLING
-        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=bundle.run.model_dump())
+                class DecoratedAgent(SyncAgent):
+                    @property
+                    def name(self) -> str:
+                        return name or fn.__name__
 
-    return app
+                    @property
+                    def description(self) -> str:
+                        return description or fn.__doc__ or ""
 
+                    def run_sync(self, input: Message, context: Context, executor: ThreadPoolExecutor) -> None:
+                        return fn(input, context)
 
-def serve(
-    *agents: Agent, configure_logger: bool = True, configure_telemetry: bool = False, **kwargs: dict[str, Any]
-) -> None:
-    import uvicorn
+                agent = DecoratedAgent()
 
-    if configure_logger:
-        configure_logger_func()
-    if configure_telemetry:
-        configure_telemetry_func()
+            self.register(agent)
+            return fn
 
-    uvicorn.run(create_app(*agents), **kwargs)
+        return decorator
+
+    def register(self, *agents: Agent) -> None:
+        self.agents.extend(agents)
+
+    def run(self, configure_logger: bool = True, configure_telemetry: bool = False, **kwargs: dict[str, Any]) -> None:
+        import uvicorn
+
+        if configure_logger:
+            configure_logger_func()
+        if configure_telemetry:
+            configure_telemetry_func()
+
+        uvicorn.run(create_app(*self.agents), **kwargs)
