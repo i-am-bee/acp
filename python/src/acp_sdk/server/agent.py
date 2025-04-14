@@ -53,22 +53,20 @@ class Agent(abc.ABC):
         )
 
         if inspect.isasyncgenfunction(self.run):
-            run = self._run_async_gen(input, context)
+            run = asyncio.create_task(self._run_async_gen(input, context))
         elif inspect.iscoroutinefunction(self.run):
-            run = self._run_coro(input, context)
+            run = asyncio.create_task(self._run_coro(input, context))
         elif inspect.isgeneratorfunction(self.run):
             run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
-        elif inspect.isfunction(self.run):
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
         else:
-            raise RuntimeError("Unreachable code")
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
 
         try:
-            value = None
             while True:
-                value = yield await yield_queue.async_q.get(value)
+                value = yield await yield_queue.async_q.get()
+                await yield_resume_queue.async_q.put(value)
         except janus.AsyncQueueShutDown:
-            raise StopAsyncIteration()
+            pass
         finally:
             await run  # Raise exceptions
 
