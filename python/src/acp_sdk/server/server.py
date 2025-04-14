@@ -1,10 +1,9 @@
 import inspect
-from collections.abc import AsyncGenerator, Generator
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import AsyncGenerator, Coroutine, Generator
 from typing import Any, Callable
 
 from acp_sdk.models import Message
-from acp_sdk.server.agent import Agent, SyncAgent
+from acp_sdk.server.agent import Agent
 from acp_sdk.server.app import create_app
 from acp_sdk.server.context import Context
 from acp_sdk.server.logging import configure_logger as configure_logger_func
@@ -46,16 +45,11 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
-                    async def run(
-                        self, input: Message, context: Context, executor: ThreadPoolExecutor
-                    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+                    async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                         gen: AsyncGenerator[RunYield, RunYieldResume] = fn(input, context)
-                        try:
-                            value = None
-                            while True:
-                                value = yield await gen.asend(value)
-                        except StopAsyncIteration:
-                            pass
+                        value = None
+                        while True:
+                            value = yield await gen.asend(value)
 
                 agent = DecoratedAgent()
             elif inspect.iscoroutinefunction(fn):
@@ -69,15 +63,13 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
-                    async def run(
-                        self, input: Message, context: Context, executor: ThreadPoolExecutor
-                    ) -> AsyncGenerator[RunYield, RunYieldResume]:
-                        yield await fn(input, context)
+                    async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
+                        return await fn(input, context)
 
                 agent = DecoratedAgent()
             elif inspect.isgeneratorfunction(fn):
 
-                class DecoratedAgent(SyncAgent):
+                class DecoratedAgent(Agent):
                     @property
                     def name(self) -> str:
                         return name or fn.__name__
@@ -86,15 +78,13 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
-                    def run_sync(
-                        self, input: Message, context: Context, executor: ThreadPoolExecutor
-                    ) -> Generator[RunYield, RunYieldResume]:
+                    def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
                         yield from fn(input, context)
 
                 agent = DecoratedAgent()
             else:
 
-                class DecoratedAgent(SyncAgent):
+                class DecoratedAgent(Agent):
                     @property
                     def name(self) -> str:
                         return name or fn.__name__
@@ -103,10 +93,8 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
-                    def run_sync(
-                        self, input: Message, context: Context, executor: ThreadPoolExecutor
-                    ) -> Generator[RunYield, RunYieldResume]:
-                        yield fn(input, context)
+                    def run(self, input: Message, context: Context) -> RunYield:
+                        return fn(input, context)
 
                 agent = DecoratedAgent()
 

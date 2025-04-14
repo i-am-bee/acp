@@ -1,6 +1,7 @@
 import abc
 import asyncio
-from collections.abc import AsyncGenerator, Generator
+import inspect
+from collections.abc import AsyncGenerator, Coroutine, Generator
 from concurrent.futures import ThreadPoolExecutor
 
 import janus
@@ -11,7 +12,7 @@ from acp_sdk.models import (
     SessionId,
 )
 from acp_sdk.models.models import Metadata
-from acp_sdk.server.context import Context, SyncContext
+from acp_sdk.server.context import Context
 from acp_sdk.server.types import RunYield, RunYieldResume
 
 
@@ -30,8 +31,10 @@ class Agent(abc.ABC):
 
     @abc.abstractmethod
     def run(
-        self, input: Message, context: Context, executor: ThreadPoolExecutor
-    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+        self, input: Message, context: Context
+    ) -> (
+        AsyncGenerator[RunYield, RunYieldResume] | Generator[RunYield, RunYieldResume] | Coroutine[RunYield] | RunYield
+    ):
         pass
 
     async def session(self, session_id: SessionId | None) -> SessionId | None:
@@ -39,46 +42,66 @@ class Agent(abc.ABC):
             raise NotImplementedError()
         return None
 
-
-class SyncAgent(Agent):
-    @abc.abstractmethod
-    def run_sync(
-        self, input: Message, context: SyncContext, executor: ThreadPoolExecutor
-    ) -> Generator[RunYield, RunYieldResume]:
-        pass
-
-    async def run(
-        self, input: Message, context: Context, executor: ThreadPoolExecutor
+    async def execute(
+        self, input: Message, session_id: SessionId | None, executor: ThreadPoolExecutor
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
 
-        run_future = asyncio.get_running_loop().run_in_executor(
-            executor,
-            self._run_generator,
-            input,
-            SyncContext(
-                session_id=context.session_id,
-                yield_queue=yield_queue.sync_q,
-                yield_resume_queue=yield_resume_queue.sync_q,
-            ),
-            executor,
+        context = Context(
+            session_id=session_id, executor=executor, yield_queue=yield_queue, yield_resume_queue=yield_resume_queue
         )
 
-        while True:
-            yield_task = asyncio.create_task(yield_queue.async_q.get())
-            done, _ = await asyncio.wait([yield_task, run_future], return_when=asyncio.FIRST_COMPLETED)
-            if yield_task in done:
-                resume = yield await yield_task
-                await yield_resume_queue.async_q.put(resume)
-            if run_future in done:
-                break
+        if inspect.isasyncgenfunction(self.run):
+            run = self._run_async_gen(input, context)
+        elif inspect.iscoroutinefunction(self.run):
+            run = self._run_coro(input, context)
+        elif inspect.isgeneratorfunction(self.run):
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
+        elif inspect.isfunction(self.run):
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
+        else:
+            raise RuntimeError("Unreachable code")
 
-    def _run_generator(self, input: Message, context: SyncContext, executor: ThreadPoolExecutor) -> None:
-        gen = self.run_sync(input, context, executor)
         try:
-            resume = None
+            value = None
             while True:
-                resume = context.yield_(gen.send(resume))
+                value = yield await yield_queue.async_q.get(value)
+        except janus.AsyncQueueShutDown:
+            raise StopAsyncIteration()
+        finally:
+            await run  # Raise exceptions
+
+    async def _run_async_gen(self, input: Message, context: Context) -> None:
+        try:
+            gen: AsyncGenerator[RunYield, RunYieldResume] = self.run(input, context)
+            value = None
+            while True:
+                value = await context.yield_async(await gen.asend(value))
+        except StopAsyncIteration:
+            pass
+        finally:
+            context.shutdown()
+
+    async def _run_coro(self, input: Message, context: Context) -> None:
+        try:
+            await context.yield_async(await self.run(input, context))
+        finally:
+            context.shutdown()
+
+    def _run_gen(self, input: Message, context: Context) -> None:
+        try:
+            gen: Generator[RunYield, RunYieldResume] = self.run(input, context)
+            value = None
+            while True:
+                value = context.yield_sync(gen.send(value))
         except StopIteration:
             pass
+        finally:
+            context.shutdown()
+
+    def _run_func(self, input: Message, context: Context) -> None:
+        try:
+            context.yield_sync(self.run(input, context))
+        finally:
+            context.shutdown()

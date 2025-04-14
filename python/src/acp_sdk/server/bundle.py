@@ -78,9 +78,7 @@ class RunBundle:
                 self.run.session_id = await self.agent.session(self.run.session_id)
                 run_logger.info("Session loaded")
 
-                generator = self.agent.run(
-                    input=input, context=Context(session_id=self.run.session_id), executor=executor
-                )
+                generator = self.agent.execute(input=input, session_id=self.run.session_id, executor=executor)
                 run_logger.info("Run started")
 
                 self.run.status = RunStatus.IN_PROGRESS
