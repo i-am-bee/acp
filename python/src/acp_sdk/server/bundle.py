@@ -26,7 +26,6 @@ from acp_sdk.models import (
 )
 from acp_sdk.models.errors import ErrorCode
 from acp_sdk.server.agent import Agent
-from acp_sdk.server.context import Context
 from acp_sdk.server.logging import logger
 
 
