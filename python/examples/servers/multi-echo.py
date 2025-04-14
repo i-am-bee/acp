@@ -5,13 +5,11 @@ from acp_sdk.models import (
 )
 from acp_sdk.server import Agent, Context, RunYield, RunYieldResume, Server
 
-# This example showcases several ways to create echo agent using decoratos.
-
 server = Server()
 
 
 @server.agent()
-async def async_gen_echo(input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def async_gen_echo(input: Message) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
     yield {"thought": "I should echo everyting"}
     yield input
@@ -25,7 +23,7 @@ async def async_echo(input: Message, context: Context) -> RunYield:
 
 
 @server.agent()
-def gen_echo(input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
+def gen_echo(input: Message) -> Generator[RunYield, RunYieldResume]:
     """Echoes everything"""
     yield {"thought": "I should echo everyting"}
     return input
@@ -41,7 +39,7 @@ def sync_echo(input: Message, context: Context) -> RunYield:
 class EchoAgent(Agent):
     @property
     def name(self) -> str:
-        return "class_echo"
+        return "instance_echo"
 
     @property
     def description(self) -> str:

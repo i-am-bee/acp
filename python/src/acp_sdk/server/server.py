@@ -19,19 +19,17 @@ class Server:
         """Decorator to register an agent."""
 
         def decorator(fn: Callable) -> Callable:
-            # check agent's function signature
             signature = inspect.signature(fn)
             parameters = list(signature.parameters.values())
 
-            # validate agent's function
-            if inspect.isasyncgenfunction(fn):
-                if len(parameters) != 2:
-                    raise TypeError(
-                        "The agent generator function must have one 'input' argument and one 'context' argument"
-                    )
-            else:
-                if len(parameters) != 2:
-                    raise TypeError("The agent function must have one 'input' argument and one 'context' argument")
+            if len(parameters) == 0:
+                raise TypeError("The agent function must have at least 'input' argument")
+            if len(parameters) > 2:
+                raise TypeError("The agent function must have only 'input' and 'context' arguments")
+            if len(parameters) == 2 and parameters[1].name != "context":
+                raise TypeError("The second argument of the agent function must be 'context'")
+
+            has_context_param = len(parameters) == 2
 
             agent: Agent
             if inspect.isasyncgenfunction(fn):
@@ -47,7 +45,9 @@ class Server:
 
                     async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                         try:
-                            gen: AsyncGenerator[RunYield, RunYieldResume] = fn(input, context)
+                            gen: AsyncGenerator[RunYield, RunYieldResume] = (
+                                fn(input, context) if has_context_param else fn(input)
+                            )
                             value = None
                             while True:
                                 value = yield await gen.asend(value)
@@ -67,7 +67,7 @@ class Server:
                         return description or fn.__doc__ or ""
 
                     async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
-                        return await fn(input, context)
+                        return await (fn(input, context) if has_context_param else fn(input))
 
                 agent = DecoratedAgent()
             elif inspect.isgeneratorfunction(fn):
@@ -82,7 +82,7 @@ class Server:
                         return description or fn.__doc__ or ""
 
                     def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
-                        yield from fn(input, context)
+                        yield from (fn(input, context) if has_context_param else fn(input))
 
                 agent = DecoratedAgent()
             else:
@@ -97,7 +97,7 @@ class Server:
                         return description or fn.__doc__ or ""
 
                     def run(self, input: Message, context: Context) -> RunYield:
-                        return fn(input, context)
+                        return fn(input, context) if has_context_param else fn(input)
 
                 agent = DecoratedAgent()
 
