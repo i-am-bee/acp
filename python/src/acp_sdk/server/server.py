@@ -46,10 +46,13 @@ class Server:
                         return description or fn.__doc__ or ""
 
                     async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
-                        gen: AsyncGenerator[RunYield, RunYieldResume] = fn(input, context)
-                        value = None
-                        while True:
-                            value = yield await gen.asend(value)
+                        try:
+                            gen: AsyncGenerator[RunYield, RunYieldResume] = fn(input, context)
+                            value = None
+                            while True:
+                                value = yield await gen.asend(value)
+                        except StopAsyncIteration:
+                            pass
 
                 agent = DecoratedAgent()
             elif inspect.iscoroutinefunction(fn):
