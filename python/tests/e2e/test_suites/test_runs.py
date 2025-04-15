@@ -4,10 +4,11 @@ from acp_sdk.models import AwaitResume, CompletedEvent, CreatedEvent, Message, R
 from acp_sdk.models.models import InProgressEvent
 from acp_sdk.server import Server
 
+input = Message(TextMessagePart(content="Hello!"))
+
 
 @pytest.mark.asyncio
 async def test_run_sync(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
     run = await client.run_sync(agent="echo", input=input)
     assert run.status == RunStatus.COMPLETED
     assert run.output == input
@@ -15,7 +16,6 @@ async def test_run_sync(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_async(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
     run = await client.run_async(agent="echo", input=input)
     assert run.status == RunStatus.CREATED
     assert run.output is None
@@ -23,7 +23,6 @@ async def test_run_async(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_stream(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
     event_stream = [event async for event in client.run_stream(agent="echo", input=input)]
     assert isinstance(event_stream[0], CreatedEvent)
     assert isinstance(event_stream[-1], CompletedEvent)
@@ -31,7 +30,6 @@ async def test_run_stream(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_status(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
     run = await client.run_async(agent="echo", input=input)
     while run.status in (RunStatus.CREATED, RunStatus.IN_PROGRESS):
         run = await client.run_status(run_id=run.run_id)
@@ -40,8 +38,6 @@ async def test_run_status(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_sync(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
-
     run = await client.run_sync(agent="awaiter", input=input)
     assert run.status == RunStatus.AWAITING
     assert run.await_ is not None
@@ -53,8 +49,6 @@ async def test_run_resume_sync(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_async(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
-
     run = await client.run_sync(agent="awaiter", input=input)
     assert run.status == RunStatus.AWAITING
     assert run.await_ is not None
@@ -65,8 +59,6 @@ async def test_run_resume_async(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_stream(server: Server, client: Client) -> None:
-    input = Message(TextMessagePart(content="Hello!"))
-
     run = await client.run_sync(agent="awaiter", input=input)
     assert run.status == RunStatus.AWAITING
     assert run.await_ is not None
