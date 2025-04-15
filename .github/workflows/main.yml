@@ -54,5 +54,5 @@ jobs:
           version: "0.6.12"
       - name: Install dependencies
         run: uv sync --all-extras
-      - name: Run e2e Tests
-        run: uv run pytest
+      - name: Run E2E Tests
+        run: uv run pytest tests/e2e

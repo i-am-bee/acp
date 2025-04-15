@@ -1,45 +1,8 @@
-import time
-from collections.abc import AsyncGenerator, AsyncIterator, Generator
-from threading import Thread
-
 import pytest
-import pytest_asyncio
 from acp_sdk.client import Client
-from acp_sdk.models import Await, AwaitResume, CompletedEvent, CreatedEvent, Message, RunStatus, TextMessagePart
+from acp_sdk.models import AwaitResume, CompletedEvent, CreatedEvent, Message, RunStatus, TextMessagePart
 from acp_sdk.models.models import InProgressEvent
-from acp_sdk.server import Context, Server
-
-PORT = 8000
-
-
-@pytest.fixture
-def server() -> Generator[None]:
-    server = Server()
-
-    @server.agent()
-    async def echo(input: Message, context: Context) -> AsyncIterator[Message]:
-        yield input
-
-    @server.agent()
-    async def awaiter(input: Message, context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
-        yield Await()
-        yield Message(TextMessagePart(content="empty"))
-
-    thread = Thread(target=server.run, kwargs={"port": PORT}, daemon=True)
-    thread.start()
-
-    time.sleep(1)
-
-    yield server
-
-    server.should_exit = True
-    thread.join(timeout=2)
-
-
-@pytest_asyncio.fixture
-async def client() -> AsyncIterator[Client]:
-    async with Client(base_url=f"http://localhost:{PORT}") as client:
-        yield client
+from acp_sdk.server import Server
 
 
 @pytest.mark.asyncio
