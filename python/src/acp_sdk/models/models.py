@@ -58,8 +58,8 @@ class Message(RootModel):
 
 
 AgentName = str
-SessionId = str
-RunId = str
+SessionId = uuid.UUID
+RunId = uuid.UUID
 
 
 class RunMode(str, Enum):
@@ -92,7 +92,7 @@ class AwaitResume(BaseModel):
 
 
 class Run(BaseModel):
-    run_id: RunId = str(uuid.uuid4())
+    run_id: RunId = Field(default_factory=uuid.uuid4)
     agent_name: AgentName
     session_id: SessionId | None = None
     status: RunStatus = RunStatus.CREATED

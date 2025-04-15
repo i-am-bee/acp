@@ -70,7 +70,7 @@ class RunBundle:
 
     async def execute(self, input: Message, *, executor: ThreadPoolExecutor) -> None:
         with trace.get_tracer(__name__).start_as_current_span("execute"):
-            run_logger = logging.LoggerAdapter(logger, {"run_id": self.run.run_id})
+            run_logger = logging.LoggerAdapter(logger, {"run_id": str(self.run.run_id)})
 
             await self.emit(CreatedEvent(run=self.run))
             try:

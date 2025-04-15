@@ -2,8 +2,10 @@ import asyncio
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from enum import Enum
 
 from fastapi import FastAPI, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -37,6 +39,10 @@ from acp_sdk.server.errors import (
     validation_exception_handler,
 )
 from acp_sdk.server.utils import stream_sse
+
+
+class Headers(str, Enum):
+    RUN_ID = "Run-ID"
 
 
 def create_app(*agents: Agent) -> FastAPI:
@@ -102,19 +108,26 @@ def create_app(*agents: Agent) -> FastAPI:
         bundle.task = asyncio.create_task(bundle.execute(request.input, executor=executor))
         runs[bundle.run.run_id] = bundle
 
+        headers = {Headers.RUN_ID: str(bundle.run.run_id)}
+
         match request.mode:
             case RunMode.STREAM:
                 return StreamingResponse(
                     stream_sse(bundle),
+                    headers=headers,
                     media_type="text/event-stream",
                 )
             case RunMode.SYNC:
                 await bundle.join()
-                return bundle.run
+                return JSONResponse(
+                    headers=headers,
+                    content=jsonable_encoder(bundle.run),
+                )
             case RunMode.ASYNC:
                 return JSONResponse(
                     status_code=status.HTTP_202_ACCEPTED,
-                    content=bundle.run.model_dump(),
+                    headers=headers,
+                    content=jsonable_encoder(bundle.run),
                 )
             case _:
                 raise NotImplementedError()
@@ -141,7 +154,7 @@ def create_app(*agents: Agent) -> FastAPI:
             case RunMode.ASYNC:
                 return JSONResponse(
                     status_code=status.HTTP_202_ACCEPTED,
-                    content=bundle.run.model_dump(),
+                    content=jsonable_encoder(bundle.run),
                 )
             case _:
                 raise NotImplementedError()
@@ -156,6 +169,6 @@ def create_app(*agents: Agent) -> FastAPI:
             )
         bundle.task.cancel()
         bundle.run.status = RunStatus.CANCELLING
-        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=bundle.run.model_dump())
+        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(bundle.run))
 
     return app
