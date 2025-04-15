@@ -26,7 +26,7 @@ async def async_echo(input: Message, context: Context) -> RunYield:
 def gen_echo(input: Message) -> Generator[RunYield, RunYieldResume]:
     """Echoes everything"""
     yield {"thought": "I should echo everyting"}
-    return input
+    yield input
 
 
 @server.agent()

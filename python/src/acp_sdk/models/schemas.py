@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from acp_sdk.models.models import Agent, AgentName, AwaitResume, Message, Run, RunMode, SessionId
 
@@ -25,6 +25,8 @@ class RunCreateResponse(Run):
 class RunResumeRequest(BaseModel):
     await_: AwaitResume = Field(alias="await")
     mode: RunMode
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class RunResumeResponse(Run):
