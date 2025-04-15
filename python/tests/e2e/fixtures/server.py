@@ -6,7 +6,7 @@ import pytest
 from acp_sdk.models import Await, AwaitResume, Message, TextMessagePart
 from acp_sdk.server import Context, Server
 
-PORT = 8000
+from e2e.config import Config
 
 
 @pytest.fixture(scope="session")
@@ -22,7 +22,7 @@ def server() -> Generator[None]:
         yield Await()
         yield Message(TextMessagePart(content="empty"))
 
-    thread = Thread(target=server.run, kwargs={"port": PORT}, daemon=True)
+    thread = Thread(target=server.run, kwargs={"port": Config.PORT}, daemon=True)
     thread.start()
 
     time.sleep(1)
