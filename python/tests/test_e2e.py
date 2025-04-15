@@ -1,5 +1,5 @@
 import time
-from collections.abc import AsyncIterator, Generator
+from collections.abc import AsyncGenerator, AsyncIterator, Generator
 from threading import Thread
 
 import pytest
@@ -17,12 +17,12 @@ def server() -> Generator[None]:
     server = Server()
 
     @server.agent()
-    async def echo(input: Message, context: Context):
+    async def echo(input: Message, context: Context) -> AsyncIterator[Message]:
         yield input
 
     @server.agent()
-    async def awaiter(input: Message, context: Context):
-        data = yield Await()
+    async def awaiter(input: Message, context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
+        yield Await()
         yield Message(TextMessagePart(content="empty"))
 
     thread = Thread(target=server.run, kwargs={"port": PORT}, daemon=True)
