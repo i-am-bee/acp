@@ -9,7 +9,7 @@ from acp_sdk.server import Context, Server
 from e2e.config import Config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def server() -> Generator[None]:
     server = Server()
 
