@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import AwaitResume, CompletedEvent, CreatedEvent, Message, RunStatus, TextMessagePart
@@ -84,18 +82,8 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_session(server: Server, client: Client) -> None:
-    session_one = uuid.uuid4()
-    async with client.session(session_id=session_one) as session:
-        assert session.session_id == session_one
-        run = await session.run_sync(agent="sessioner", inputs=inputs)
-        assert session.session_id == run.session_id
-
-    session_two = uuid.uuid4()
-    async with client.session(session_id=session_two) as session:
-        assert session.session_id == session_two
-        run = await session.run_sync(agent="sessioner", inputs=inputs)
-        assert session.session_id == run.session_id
-
     async with client.session() as session:
-        run = await session.run_sync(agent="sessioner", inputs=inputs)
-        assert session.session_id == run.session_id
+        run = await session.run_sync(agent="echo", inputs=inputs)
+        assert run.outputs == inputs
+        run = await session.run_sync(agent="echo", inputs=inputs)
+        assert run.outputs == inputs + inputs + inputs

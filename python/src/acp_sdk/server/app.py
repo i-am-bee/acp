@@ -107,6 +107,7 @@ def create_app(*agents: Agent) -> FastAPI:
             history=list(session.history()),
             executor=executor,
         )
+        session.append(bundle)
 
         runs[bundle.run.run_id] = bundle
         sessions[session.id] = session

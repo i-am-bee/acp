@@ -27,12 +27,6 @@ def server() -> Generator[None]:
     async def failer(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
         raise RuntimeError("Whoops")
 
-    @server.agent()
-    async def sessioner(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
-        assert context.session_id is not None
-
-        yield Message(TextMessagePart(content=context.session_id))
-
     thread = Thread(target=server.run, kwargs={"port": Config.PORT}, daemon=True)
     thread.start()
 
