@@ -4,6 +4,7 @@ import os
 from collections.abc import AsyncGenerator, Awaitable, Coroutine, Generator
 from typing import Any, Callable
 
+import requests
 import uvicorn
 import uvicorn.config
 
@@ -11,9 +12,10 @@ from acp_sdk.models import Message
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.app import create_app
 from acp_sdk.server.context import Context
-from acp_sdk.server.logging import configure_logger as configure_logger_func
+from acp_sdk.server.logging import configure_logger as configure_logger_func, logger
 from acp_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from acp_sdk.server.types import RunYield, RunYieldResume
+from acp_sdk.server.utils import async_request_with_retry
 
 
 class Server:
@@ -232,8 +234,15 @@ class Server:
             h11_max_incomplete_event_size,
         )
         self._server = uvicorn.Server(config)
-        self._server.run()
-
+        
+        asyncio.get_event_loop().run_until_complete(self._run())
+       
+    
+    async def _run(self):
+        server_task = asyncio.create_task(self._server.serve())
+        registration_task = asyncio.create_task(self._register_agent())
+        await asyncio.gather(server_task, registration_task)
+    
     @property
     def should_exit(self) -> bool:
         return self._server.should_exit if self._server else False
@@ -241,3 +250,44 @@ class Server:
     @should_exit.setter
     def should_exit(self, value: bool) -> None:
         self._server.should_exit = value
+
+    async def _register_agent(self):
+        """If not in PRODUCTION mode, register agent to the beeai platform and provide missing env variables"""
+        if os.getenv("PRODUCTION_MODE", False):
+            logger.debug("Agent is not automatically registered in the production mode.")
+            return
+
+        for agent in self._agents:
+            request_data = {
+                "location": f"http://{self._server.config.host}:{self._server.config.port}",
+                "id": agent.name,
+                "manifest": agent.metadata.model_dump() or {"name": agent.name},
+            }
+            try:
+                url = os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
+
+                await async_request_with_retry(lambda client: client.post(f"{url}/api/v1/provider/register/unmanaged", json=request_data))
+                logger.info("Agent registered to the beeai server.")
+
+                # check missing env keyes
+                envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/env"))
+                envs = envs_request.get("env")
+
+                # register all available envs
+                missing_keyes = []
+                for env in agent.metadata.model_dump().get("env", []):
+                    server_env = envs.get(env.get("name"))
+                    if server_env:
+                        logger.debug(f"Env variable {env['name']} = '{server_env}' added dynamically")
+                        os.environ[env["name"]] = server_env
+                    elif env.get("required"):
+                        missing_keyes.append(env)
+                if len(missing_keyes):
+                    logger.error(f"Can not run agent, missing required env variables: {missing_keyes}")
+                    raise Exception("Missing env variables")
+
+            except requests.exceptions.ConnectionError as e:
+                logger.warning(f"Can not reach server, check if running on {url} : {e}")
+            except requests.exceptions.HTTPError or Exception as e:
+                logger.warning(f"Agent can not be registered to beeai server: {e}")
+            
