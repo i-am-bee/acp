@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -95,10 +96,15 @@ def create_app(*agents: Agent) -> FastAPI:
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
+        if request.session_id and not agent.session:
+            raise HTTPException(status_code=403, detail=f"Agent {agent.name} does not support sessions")
+
+        session_id = (request.session_id or uuid.uuid4()) if agent.session else None
+
         nonlocal executor
         bundle = RunBundle(
             agent=agent,
-            run=Run(agent_name=agent.name, session_id=request.session_id),
+            run=Run(agent_name=agent.name, session_id=session_id),
             input=request.input,
             executor=executor,
         )

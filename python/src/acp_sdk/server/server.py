@@ -7,7 +7,7 @@ from typing import Any, Callable
 import uvicorn
 import uvicorn.config
 
-from acp_sdk.models import Message
+from acp_sdk.models import Message, Metadata
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.app import create_app
 from acp_sdk.server.context import Context
@@ -21,7 +21,14 @@ class Server:
         self._agents: list[Agent] = []
         self._server: uvicorn.Server | None = None
 
-    def agent(self, name: str | None = None, description: str | None = None) -> Callable:
+    def agent(
+        self,
+        name: str | None = None,
+        description: str | None = None,
+        *,
+        session: bool = False,
+        metadata: Metadata | None = None,
+    ) -> Callable:
         """Decorator to register an agent."""
 
         def decorator(fn: Callable) -> Callable:
@@ -49,6 +56,14 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
+                    @property
+                    def metadata(self) -> Metadata:
+                        return metadata or Metadata()
+
+                    @property
+                    def session(self) -> bool:
+                        return session
+
                     async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                         try:
                             gen: AsyncGenerator[RunYield, RunYieldResume] = (
@@ -72,6 +87,14 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
+                    @property
+                    def metadata(self) -> Metadata:
+                        return metadata or Metadata()
+
+                    @property
+                    def session(self) -> bool:
+                        return session
+
                     async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
                         return await (fn(input, context) if has_context_param else fn(input))
 
@@ -87,6 +110,14 @@ class Server:
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
 
+                    @property
+                    def metadata(self) -> Metadata:
+                        return metadata or Metadata()
+
+                    @property
+                    def session(self) -> bool:
+                        return session
+
                     def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
                         yield from (fn(input, context) if has_context_param else fn(input))
 
@@ -101,6 +132,14 @@ class Server:
                     @property
                     def description(self) -> str:
                         return description or fn.__doc__ or ""
+
+                    @property
+                    def metadata(self) -> Metadata:
+                        return metadata or Metadata()
+
+                    @property
+                    def session(self) -> bool:
+                        return session
 
                     def run(self, input: Message, context: Context) -> RunYield:
                         return fn(input, context) if has_context_param else fn(input)

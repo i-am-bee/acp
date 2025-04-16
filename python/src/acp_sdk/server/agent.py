@@ -29,6 +29,10 @@ class Agent(abc.ABC):
     def metadata(self) -> Metadata:
         return Metadata()
 
+    @property
+    def session(self) -> bool:
+        return False
+
     @abc.abstractmethod
     def run(
         self, input: Message, context: Context
@@ -36,11 +40,6 @@ class Agent(abc.ABC):
         AsyncGenerator[RunYield, RunYieldResume] | Generator[RunYield, RunYieldResume] | Coroutine[RunYield] | RunYield
     ):
         pass
-
-    async def session(self, session_id: SessionId | None) -> SessionId | None:
-        if session_id:
-            raise NotImplementedError()
-        return None
 
     async def execute(
         self, input: Message, session_id: SessionId | None, executor: ThreadPoolExecutor
