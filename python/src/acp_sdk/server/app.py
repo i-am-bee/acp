@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -25,6 +24,7 @@ from acp_sdk.models import (
     RunReadResponse,
     RunResumeRequest,
     RunResumeResponse,
+    SessionId,
 )
 from acp_sdk.models.errors import ACPError
 from acp_sdk.server.agent import Agent
@@ -37,6 +37,7 @@ from acp_sdk.server.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
+from acp_sdk.server.session import Session
 from acp_sdk.server.utils import stream_sse
 
 
@@ -60,6 +61,7 @@ def create_app(*agents: Agent) -> FastAPI:
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
     runs: dict[RunId, RunBundle] = {}
+    sessions: dict[SessionId, Session] = {}
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)
@@ -96,19 +98,18 @@ def create_app(*agents: Agent) -> FastAPI:
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
-        if request.session_id and not agent.session:
-            raise HTTPException(status_code=403, detail=f"Agent {agent.name} does not support sessions")
-
-        session_id = (request.session_id or uuid.uuid4()) if agent.session else None
-
+        session = sessions.get(request.session_id, Session()) if request.session_id else Session()
         nonlocal executor
         bundle = RunBundle(
             agent=agent,
-            run=Run(agent_name=agent.name, session_id=session_id),
+            run=Run(agent_name=agent.name, session_id=session.id),
             inputs=request.inputs,
+            history=list(session.history()),
             executor=executor,
         )
+
         runs[bundle.run.run_id] = bundle
+        sessions[session.id] = session
 
         headers = {Headers.RUN_ID: str(bundle.run.run_id)}
 

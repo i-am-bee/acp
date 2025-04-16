@@ -26,7 +26,6 @@ class Server:
         name: str | None = None,
         description: str | None = None,
         *,
-        session: bool = False,
         metadata: Metadata | None = None,
     ) -> Callable:
         """Decorator to register an agent."""
@@ -60,10 +59,6 @@ class Server:
                     def metadata(self) -> Metadata:
                         return metadata or Metadata()
 
-                    @property
-                    def session(self) -> bool:
-                        return session
-
                     async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                         try:
                             gen: AsyncGenerator[RunYield, RunYieldResume] = (
@@ -91,10 +86,6 @@ class Server:
                     def metadata(self) -> Metadata:
                         return metadata or Metadata()
 
-                    @property
-                    def session(self) -> bool:
-                        return session
-
                     async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
                         return await (fn(input, context) if has_context_param else fn(input))
 
@@ -114,10 +105,6 @@ class Server:
                     def metadata(self) -> Metadata:
                         return metadata or Metadata()
 
-                    @property
-                    def session(self) -> bool:
-                        return session
-
                     def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
                         yield from (fn(input, context) if has_context_param else fn(input))
 
@@ -136,10 +123,6 @@ class Server:
                     @property
                     def metadata(self) -> Metadata:
                         return metadata or Metadata()
-
-                    @property
-                    def session(self) -> bool:
-                        return session
 
                     def run(self, input: Message, context: Context) -> RunYield:
                         return fn(input, context) if has_context_param else fn(input)

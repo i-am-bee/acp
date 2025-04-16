@@ -32,10 +32,13 @@ from acp_sdk.server.telemetry import get_tracer
 
 
 class RunBundle:
-    def __init__(self, *, agent: Agent, run: Run, inputs: list[Message], executor: ThreadPoolExecutor) -> None:
+    def __init__(
+        self, *, agent: Agent, run: Run, inputs: list[Message], history: list[Message], executor: ThreadPoolExecutor
+    ) -> None:
         self.agent = agent
         self.run = run
         self.inputs = inputs
+        self.history = history
 
         self.stream_queue: asyncio.Queue[RunEvent] = asyncio.Queue()
 
@@ -85,7 +88,9 @@ class RunBundle:
             try:
                 await self.emit(CreatedEvent(run=self.run))
 
-                generator = self.agent.execute(inputs=inputs, session_id=self.run.session_id, executor=executor)
+                generator = self.agent.execute(
+                    inputs=self.history + inputs, session_id=self.run.session_id, executor=executor
+                )
                 run_logger.info("Run started")
 
                 self.run.status = RunStatus.IN_PROGRESS

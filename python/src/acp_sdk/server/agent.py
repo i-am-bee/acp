@@ -29,10 +29,6 @@ class Agent(abc.ABC):
     def metadata(self) -> Metadata:
         return Metadata()
 
-    @property
-    def session(self) -> bool:
-        return False
-
     @abc.abstractmethod
     def run(
         self, inputs: list[Message], context: Context
