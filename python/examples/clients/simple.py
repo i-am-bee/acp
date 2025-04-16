@@ -3,13 +3,15 @@ import asyncio
 from acp_sdk.client import Client
 from acp_sdk.models import (
     Message,
-    TextMessagePart,
+    MessagePart,
 )
 
 
 async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
-        run = await client.run_sync(agent="echo", inputs=[Message(TextMessagePart(content="Howdy!"))])
+        run = await client.run_sync(
+            agent="echo", inputs=[Message(MessagePart(content="Howdy!", content_type="text/plain"))]
+        )
         print(run.outputs)
 
 

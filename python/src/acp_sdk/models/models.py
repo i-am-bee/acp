@@ -1,7 +1,7 @@
 import uuid
 from collections.abc import Iterator
 from enum import Enum
-from typing import Any, Literal, Union
+from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel
 
@@ -16,27 +16,20 @@ class AnyModel(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class MessagePartBase(BaseModel):
-    type: Literal["text", "image", "artifact"]
+class MessagePart(BaseModel):
+    name: Optional[str] = None
+    content_type: str
+    content: Optional[str] = None
+    content_encoding: Optional[Literal["plain", "base64"]] = "plain"
+    content_url: Optional[AnyUrl] = None
 
+    model_config = ConfigDict(extra="forbid")
 
-class TextMessagePart(MessagePartBase):
-    type: Literal["text"] = "text"
-    content: str
-
-
-class ImageMessagePart(MessagePartBase):
-    type: Literal["image"] = "image"
-    content_url: AnyUrl
-
-
-class ArtifactMessagePart(MessagePartBase):
-    type: Literal["artifact"] = "artifact"
-    name: str
-    content_url: AnyUrl
-
-
-MessagePart = Union[TextMessagePart, ImageMessagePart, ArtifactMessagePart]
+    def model_post_init(self, __context: Any) -> None:
+        if self.content is None and self.content_url is None:
+            raise ValueError("Either content or content_url must be provided")
+        if self.content is not None and self.content_url is not None:
+            raise ValueError("Only one of content or content_url can be provided")
 
 
 class Message(RootModel):
@@ -54,7 +47,9 @@ class Message(RootModel):
         return Message(*(self.root + other.root))
 
     def __str__(self) -> str:
-        return "".join(str(part) for part in self.root if isinstance(part, TextMessagePart))
+        return "".join(
+            part.content for part in self.root if part.content is not None and part.content_type == "text/plain"
+        )
 
 
 AgentName = str

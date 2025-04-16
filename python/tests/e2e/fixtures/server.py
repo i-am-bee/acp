@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator, AsyncIterator, Generator
 from threading import Thread
 
 import pytest
-from acp_sdk.models import Await, AwaitResume, Message, TextMessagePart
+from acp_sdk.models import Await, AwaitResume, Message, MessagePart
 from acp_sdk.server import Context, Server
 
 from e2e.config import Config
@@ -21,7 +21,7 @@ def server() -> Generator[None]:
     @server.agent()
     async def awaiter(inputs: list[Message], context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
         yield Await()
-        yield Message(TextMessagePart(content="empty"))
+        yield Message(MessagePart(content="empty", content_type="text/plain"))
 
     @server.agent()
     async def failer(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
