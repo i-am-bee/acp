@@ -6,7 +6,7 @@ from acp_sdk.models import Message, TextMessagePart
 
 async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
-        async for event in client.run_stream(agent="echo", input=Message(TextMessagePart(content="Howdy!"))):
+        async for event in client.run_stream(agent="echo", inputs=[Message(TextMessagePart(content="Howdy!"))]):
             print(event)
 
 

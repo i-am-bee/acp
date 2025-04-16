@@ -35,14 +35,14 @@ class Agent(abc.ABC):
 
     @abc.abstractmethod
     def run(
-        self, input: Message, context: Context
+        self, inputs: list[Message], context: Context
     ) -> (
         AsyncGenerator[RunYield, RunYieldResume] | Generator[RunYield, RunYieldResume] | Coroutine[RunYield] | RunYield
     ):
         pass
 
     async def execute(
-        self, input: Message, session_id: SessionId | None, executor: ThreadPoolExecutor
+        self, inputs: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
@@ -52,13 +52,13 @@ class Agent(abc.ABC):
         )
 
         if inspect.isasyncgenfunction(self.run):
-            run = asyncio.create_task(self._run_async_gen(input, context))
+            run = asyncio.create_task(self._run_async_gen(inputs, context))
         elif inspect.iscoroutinefunction(self.run):
-            run = asyncio.create_task(self._run_coro(input, context))
+            run = asyncio.create_task(self._run_coro(inputs, context))
         elif inspect.isgeneratorfunction(self.run):
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, inputs, context)
         else:
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, inputs, context)
 
         try:
             while True:

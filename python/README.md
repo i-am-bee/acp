@@ -28,7 +28,7 @@ The `client` submodule exposes [httpx]() based client with simple methods for co
 
 ```python
 async with Client(base_url="http://localhost:8000") as client:
-    run = await client.run_sync(agent="echo", input=Message(TextMessagePart(content="Howdy!")))
+    run = await client.run_sync(agent="echo", inputs=[Message(TextMessagePart(content="Howdy!"))])
     print(run.output)
 ```
 
@@ -40,13 +40,13 @@ The `server` submodule exposes [fastapi] application factory that makes it easy 
 server = Server()
 
 @server.agent()
-async def echo(input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for part in input:
+    for message in inputs:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everyting"}
         await asyncio.sleep(0.5)
-        yield Message(part)
+        yield message
 
 
 server.run()

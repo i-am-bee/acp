@@ -14,20 +14,21 @@ def server() -> Generator[None]:
     server = Server()
 
     @server.agent()
-    async def echo(input: Message, context: Context) -> AsyncIterator[Message]:
-        yield input
+    async def echo(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
+        for message in inputs:
+            yield message
 
     @server.agent()
-    async def awaiter(input: Message, context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
+    async def awaiter(inputs: list[Message], context: Context) -> AsyncGenerator[Message | Await, AwaitResume]:
         yield Await()
         yield Message(TextMessagePart(content="empty"))
 
     @server.agent()
-    async def failer(input: Message, context: Context) -> AsyncIterator[Message]:
+    async def failer(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
         raise RuntimeError("Whoops")
 
     @server.agent(session=True)
-    async def sessioner(input: Message, context: Context) -> AsyncIterator[Message]:
+    async def sessioner(inputs: list[Message], context: Context) -> AsyncIterator[Message]:
         assert context.session_id is not None
 
         yield Message(TextMessagePart(content=context.session_id))

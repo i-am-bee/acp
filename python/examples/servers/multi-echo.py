@@ -9,31 +9,32 @@ server = Server()
 
 
 @server.agent()
-async def async_gen_echo(input: Message) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def async_gen_echo(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
     yield {"thought": "I should echo everyting"}
     yield input
 
 
 @server.agent()
-async def async_echo(input: Message, context: Context) -> RunYield:
+async def async_echo(inputs: list[Message], context: Context) -> RunYield:
     """Echoes everything"""
     await context.yield_async({"thought": "I should echo everyting"})
     return input
 
 
 @server.agent()
-def gen_echo(input: Message) -> Generator[RunYield, RunYieldResume]:
+def gen_echo(inputs: list[Message]) -> Generator[RunYield, RunYieldResume]:
     """Echoes everything"""
     yield {"thought": "I should echo everyting"}
     yield input
 
 
 @server.agent()
-def sync_echo(input: Message, context: Context) -> RunYield:
+def sync_echo(inputs: list[Message], context: Context) -> RunYield:
     """Echoes everything"""
     context.yield_sync({"thought": "I should echo everyting"})
-    return input
+    for message in inputs:
+        yield message
 
 
 class EchoAgent(Agent):
@@ -45,10 +46,11 @@ class EchoAgent(Agent):
     def description(self) -> str:
         return "Echoes everything"
 
-    async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+    async def run(self, inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
         """Echoes everything"""
         yield {"thought": "I should echo everyting"}
-        yield input
+        for message in inputs:
+            yield message
 
 
 server.register(EchoAgent())

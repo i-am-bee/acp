@@ -105,7 +105,7 @@ def create_app(*agents: Agent) -> FastAPI:
         bundle = RunBundle(
             agent=agent,
             run=Run(agent_name=agent.name, session_id=session_id),
-            input=request.input,
+            inputs=request.inputs,
             executor=executor,
         )
         runs[bundle.run.run_id] = bundle

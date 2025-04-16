@@ -13,7 +13,7 @@ server = Server()
 
 
 @server.agent()
-async def awaiting(input: Message, context: Context) -> AsyncGenerator[Message | Await | Any, AwaitResume]:
+async def awaiting(inputs: list[Message], context: Context) -> AsyncGenerator[Message | Await | Any, AwaitResume]:
     """Greets and awaits for more data"""
     yield Message(TextMessagePart(content="Hello!"))
     data = yield Await()

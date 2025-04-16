@@ -13,8 +13,8 @@ async def example() -> None:
             # Additional client configuration
         )
     ) as client:
-        run = await client.run_sync(agent="echo", input=Message(TextMessagePart(content="Howdy!")))
-        print(run.output)
+        run = await client.run_sync(agent="echo", inputs=[Message(TextMessagePart(content="Howdy!"))])
+        print(run.outputs)
 
 
 if __name__ == "__main__":

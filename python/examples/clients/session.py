@@ -9,9 +9,9 @@ from acp_sdk.models import (
 
 async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client, client.session() as session:
-        run = await session.run_sync(agent="historian", input=Message(TextMessagePart(content="Howdy!")))
-        run = await session.run_sync(agent="historian", input=Message(TextMessagePart(content="Howdy again!")))
-        print(run.output)
+        run = await session.run_sync(agent="historian", inputs=[Message(TextMessagePart(content="Howdy!"))])
+        run = await session.run_sync(agent="historian", inputs=[Message(TextMessagePart(content="Howdy again!"))])
+        print(run.outputs)
 
 
 if __name__ == "__main__":

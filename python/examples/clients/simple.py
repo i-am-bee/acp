@@ -9,8 +9,8 @@ from acp_sdk.models import (
 
 async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
-        run = await client.run_sync(agent="echo", input=Message(TextMessagePart(content="Howdy!")))
-        print(run.output)
+        run = await client.run_sync(agent="echo", inputs=[Message(TextMessagePart(content="Howdy!"))])
+        print(run.outputs)
 
 
 if __name__ == "__main__":

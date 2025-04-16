@@ -12,12 +12,12 @@ histories: dict[str, list[Message]] = {}
 
 
 @server.agent(session=True)
-async def historian(input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def historian(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes full session history"""
     assert context.session_id is not None
 
     history = histories.get(str(context.session_id), [])
-    history.append(input)
+    history.extend(inputs)
     for message in history:
         yield message
     histories[str(context.session_id)] = history
