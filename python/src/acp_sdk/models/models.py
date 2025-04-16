@@ -87,7 +87,19 @@ class AwaitResume(BaseModel):
 
 
 class Artifact(BaseModel):
-    pass
+    name: str
+    content_type: str
+    content: Optional[str] = None
+    content_encoding: Optional[Literal["plain", "base64"]] = "plain"
+    content_url: Optional[AnyUrl] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.content is None and self.content_url is None:
+            raise ValueError("Either content or content_url must be provided")
+        if self.content is not None and self.content_url is not None:
+            raise ValueError("Only one of content or content_url can be provided")
 
 
 class Run(BaseModel):
