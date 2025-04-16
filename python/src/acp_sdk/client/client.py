@@ -65,8 +65,8 @@ class Client:
     async def agent_healthcheck(self, *, name: AgentName) -> bool:
         response = await self._client.get(f"/agents/{name}/healthcheck")
         self._raise_error(response)
-        return response.json() == 'OK'
-    
+        return response.json() == "OK"
+
     async def run_sync(self, *, agent: AgentName, input: Message) -> Run:
         response = await self._client.post(
             "/runs",

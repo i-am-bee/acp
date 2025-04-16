@@ -96,7 +96,6 @@ def create_app(*agents: Agent) -> FastAPI:
         find_agent(name)
         return "OK"
 
-
     @app.post("/runs")
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
