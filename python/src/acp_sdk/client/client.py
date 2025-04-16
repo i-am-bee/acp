@@ -1,4 +1,6 @@
-from collections.abc import AsyncIterator
+import uuid
+from collections.abc import AsyncGenerator, AsyncIterator
+from contextlib import asynccontextmanager
 from types import TracebackType
 from typing import Self
 
@@ -14,6 +16,7 @@ from acp_sdk.models import (
     AgentReadResponse,
     AgentsListResponse,
     AwaitResume,
+    CreatedEvent,
     Error,
     Message,
     Run,
@@ -25,12 +28,20 @@ from acp_sdk.models import (
     RunMode,
     RunResumeRequest,
     RunResumeResponse,
+    SessionId,
 )
 
 
 class Client:
-    def __init__(self, *, base_url: httpx.URL | str = "", client: httpx.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        base_url: httpx.URL | str = "",
+        session_id: SessionId | None = None,
+        client: httpx.AsyncClient | None = None,
+    ) -> None:
         self.base_url = base_url
+        self.session_id = session_id
 
         self._client = self._init_client(client)
 
@@ -51,6 +62,10 @@ class Client:
     ) -> None:
         await self._client.__aexit__(exc_type, exc_value, traceback)
 
+    @asynccontextmanager
+    async def session(self, session_id: SessionId | None = None) -> AsyncGenerator[Self]:
+        yield Client(client=self._client, session_id=session_id or uuid.uuid4())
+
     async def agents(self) -> AsyncIterator[Agent]:
         response = await self._client.get("/agents")
         self._raise_error(response)
@@ -65,27 +80,48 @@ class Client:
     async def run_sync(self, *, agent: AgentName, input: Message) -> Run:
         response = await self._client.post(
             "/runs",
-            json=RunCreateRequest(agent_name=agent, input=input, mode=RunMode.SYNC).model_dump(),
+            content=RunCreateRequest(
+                agent_name=agent,
+                input=input,
+                mode=RunMode.SYNC,
+                session_id=self.session_id,
+            ).model_dump_json(),
         )
         self._raise_error(response)
-        return RunCreateResponse.model_validate(response.json())
+        response = RunCreateResponse.model_validate(response.json())
+        self._set_session(response)
+        return response
 
     async def run_async(self, *, agent: AgentName, input: Message) -> Run:
         response = await self._client.post(
             "/runs",
-            json=RunCreateRequest(agent_name=agent, input=input, mode=RunMode.ASYNC).model_dump(),
+            content=RunCreateRequest(
+                agent_name=agent,
+                input=input,
+                mode=RunMode.ASYNC,
+                session_id=self.session_id,
+            ).model_dump_json(),
         )
         self._raise_error(response)
-        return RunCreateResponse.model_validate(response.json())
+        response = RunCreateResponse.model_validate(response.json())
+        self._set_session(response)
+        return response
 
     async def run_stream(self, *, agent: AgentName, input: Message) -> AsyncIterator[RunEvent]:
         async with aconnect_sse(
             self._client,
             "POST",
             "/runs",
-            json=RunCreateRequest(agent_name=agent, input=input, mode=RunMode.STREAM).model_dump(),
+            content=RunCreateRequest(
+                agent_name=agent,
+                input=input,
+                mode=RunMode.STREAM,
+                session_id=self.session_id,
+            ).model_dump_json(),
         ) as event_source:
             async for event in self._validate_stream(event_source):
+                if isinstance(event, CreatedEvent):
+                    self._set_session(event.run)
                 yield event
 
     async def run_status(self, *, run_id: RunId) -> Run:
@@ -137,3 +173,6 @@ class Client:
             response.raise_for_status()
         except httpx.HTTPError:
             raise ACPError(Error.model_validate(response.json()))
+
+    def _set_session(self, run: Run) -> None:
+        self.session_id = run.session_id

@@ -80,3 +80,12 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
     event_stream = [event async for event in client.run_resume_stream(run_id=run.run_id, await_=AwaitResume())]
     assert isinstance(event_stream[0], InProgressEvent)
     assert isinstance(event_stream[-1], CompletedEvent)
+
+
+@pytest.mark.asyncio
+async def test_run_session(server: Server, client: Client) -> None:
+    async with client.session() as session:
+        run = await session.run_sync(agent="sessioner", input=input)
+        session_id = run.session_id
+        run = await session.run_sync(agent="sessioner", input=input)
+        assert session_id == run.session_id
