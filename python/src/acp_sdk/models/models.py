@@ -189,6 +189,7 @@ RunEvent = Union[
     CancelledEvent,
     FailedEvent,
     CompletedEvent,
+    ArtifactEvent,
 ]
 
 
