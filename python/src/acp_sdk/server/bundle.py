@@ -7,6 +7,8 @@ from pydantic import ValidationError
 
 from acp_sdk.models import (
     AnyModel,
+    Artifact,
+    ArtifactEvent,
     Await,
     AwaitEvent,
     AwaitResume,
@@ -36,7 +38,6 @@ class RunBundle:
         self.input = input
 
         self.stream_queue: asyncio.Queue[RunEvent] = asyncio.Queue()
-        self.composed_message = Message()
 
         self.await_queue: asyncio.Queue[AwaitResume] = asyncio.Queue(maxsize=1)
         self.await_or_terminate_event = asyncio.Event()
@@ -94,8 +95,11 @@ class RunBundle:
                 while True:
                     next = await generator.asend(await_resume)
                     if isinstance(next, Message):
-                        self.composed_message += next
+                        self.run.outputs.append(next)
                         await self.emit(MessageEvent(message=next))
+                    elif isinstance(next, Artifact):
+                        self.run.artifacts.append(next)
+                        await self.emit(ArtifactEvent(artifact=next))
                     elif isinstance(next, Await):
                         self.run.await_ = next
                         self.run.status = RunStatus.AWAITING
@@ -119,7 +123,6 @@ class RunBundle:
                         except ValidationError:
                             raise TypeError("Invalid yield")
             except StopAsyncIteration:
-                self.run.output = self.composed_message
                 self.run.status = RunStatus.COMPLETED
                 await self.emit(CompletedEvent(run=self.run))
                 run_logger.info("Run completed")

@@ -91,13 +91,18 @@ class AwaitResume(BaseModel):
     pass
 
 
+class Artifact(BaseModel):
+    pass
+
+
 class Run(BaseModel):
     run_id: RunId = Field(default_factory=uuid.uuid4)
     agent_name: AgentName
     session_id: SessionId | None = None
     status: RunStatus = RunStatus.CREATED
     await_: Await | None = Field(None, alias="await")
-    output: Message | None = None
+    outputs: list[Message] = []
+    artifacts: list[Artifact] = []
     error: Error | None = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -115,6 +120,11 @@ class Run(BaseModel):
 class MessageEvent(BaseModel):
     type: Literal["message"] = "message"
     message: Message
+
+
+class ArtifactEvent(BaseModel):
+    type: Literal["artifact"] = "artifact"
+    artifact: Artifact
 
 
 class AwaitEvent(BaseModel):

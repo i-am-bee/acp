@@ -77,12 +77,12 @@ class Client:
         self._raise_error(response)
         return AgentReadResponse.model_validate(response.json())
 
-    async def run_sync(self, *, agent: AgentName, input: Message) -> Run:
+    async def run_sync(self, *, agent: AgentName, inputs: list[Message]) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=input,
+                inputs=inputs,
                 mode=RunMode.SYNC,
                 session_id=self.session_id,
             ).model_dump_json(),
@@ -92,12 +92,12 @@ class Client:
         self._set_session(response)
         return response
 
-    async def run_async(self, *, agent: AgentName, input: Message) -> Run:
+    async def run_async(self, *, agent: AgentName, inputs: list[Message]) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=input,
+                inputs=inputs,
                 mode=RunMode.ASYNC,
                 session_id=self.session_id,
             ).model_dump_json(),
@@ -107,14 +107,14 @@ class Client:
         self._set_session(response)
         return response
 
-    async def run_stream(self, *, agent: AgentName, input: Message) -> AsyncIterator[RunEvent]:
+    async def run_stream(self, *, agent: AgentName, inputs: list[Message]) -> AsyncIterator[RunEvent]:
         async with aconnect_sse(
             self._client,
             "POST",
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=input,
+                inputs=inputs,
                 mode=RunMode.STREAM,
                 session_id=self.session_id,
             ).model_dump_json(),
