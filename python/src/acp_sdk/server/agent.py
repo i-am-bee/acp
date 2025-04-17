@@ -122,22 +122,23 @@ def agent(
 
         has_context_param = len(parameters) == 2
 
+        class DecoratorAgentBase(Agent):
+            @property
+            def name(self) -> str:
+                return name or fn.__name__
+
+            @property
+            def description(self) -> str:
+                return description or fn.__doc__ or ""
+
+            @property
+            def metadata(self) -> Metadata:
+                return metadata or Metadata()
+
         agent: Agent
         if inspect.isasyncgenfunction(fn):
 
-            class DecoratedAgent(Agent):
-                @property
-                def name(self) -> str:
-                    return name or fn.__name__
-
-                @property
-                def description(self) -> str:
-                    return description or fn.__doc__ or ""
-
-                @property
-                def metadata(self) -> Metadata:
-                    return metadata or Metadata()
-
+            class AsyncGenDecoratorAgent(DecoratorAgentBase):
                 async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                     try:
                         gen: AsyncGenerator[RunYield, RunYieldResume] = (
@@ -149,64 +150,28 @@ def agent(
                     except StopAsyncIteration:
                         pass
 
-            agent = DecoratedAgent()
+            agent = AsyncGenDecoratorAgent()
         elif inspect.iscoroutinefunction(fn):
 
-            class DecoratedAgent(Agent):
-                @property
-                def name(self) -> str:
-                    return name or fn.__name__
-
-                @property
-                def description(self) -> str:
-                    return description or fn.__doc__ or ""
-
-                @property
-                def metadata(self) -> Metadata:
-                    return metadata or Metadata()
-
+            class CoroDecoratorAgent(DecoratorAgentBase):
                 async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
                     return await (fn(input, context) if has_context_param else fn(input))
 
-            agent = DecoratedAgent()
+            agent = CoroDecoratorAgent()
         elif inspect.isgeneratorfunction(fn):
 
-            class DecoratedAgent(Agent):
-                @property
-                def name(self) -> str:
-                    return name or fn.__name__
-
-                @property
-                def description(self) -> str:
-                    return description or fn.__doc__ or ""
-
-                @property
-                def metadata(self) -> Metadata:
-                    return metadata or Metadata()
-
+            class GenDecoratorAgent(DecoratorAgentBase):
                 def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
                     yield from (fn(input, context) if has_context_param else fn(input))
 
-            agent = DecoratedAgent()
+            agent = GenDecoratorAgent()
         else:
 
-            class DecoratedAgent(Agent):
-                @property
-                def name(self) -> str:
-                    return name or fn.__name__
-
-                @property
-                def description(self) -> str:
-                    return description or fn.__doc__ or ""
-
-                @property
-                def metadata(self) -> Metadata:
-                    return metadata or Metadata()
-
+            class FuncDecoratorAgent(DecoratorAgentBase):
                 def run(self, input: Message, context: Context) -> RunYield:
                     return fn(input, context) if has_context_param else fn(input)
 
-            agent = DecoratedAgent()
+            agent = FuncDecoratorAgent()
 
         return agent
 
