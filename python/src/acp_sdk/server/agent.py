@@ -106,7 +106,7 @@ def agent(
     description: str | None = None,
     *,
     metadata: Metadata | None = None,
-) -> Agent:
+) -> Callable:
     """Decorator to create an agent."""
 
     def decorator(fn: Callable) -> Agent:
