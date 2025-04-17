@@ -44,7 +44,6 @@ class Client:
         instrument: bool = True,
     ) -> None:
         self._session_id = session_id
-
         self._client = client or httpx.AsyncClient(base_url=base_url, timeout=timeout)
         if instrument:
             HTTPXClientInstrumentor.instrument_client(self._client)
@@ -142,7 +141,7 @@ class Client:
     async def run_resume_sync(self, *, run_id: RunId, await_resume: AwaitResume) -> Run:
         response = await self._client.post(
             f"/runs/{run_id}",
-            json=RunResumeRequest(await_resume=await_resume, mode=RunMode.SYNC).model_dump(),
+            content=RunResumeRequest(await_resume=await_resume, mode=RunMode.SYNC).model_dump_json(),
         )
         self._raise_error(response)
         return RunResumeResponse.model_validate(response.json())
@@ -150,7 +149,7 @@ class Client:
     async def run_resume_async(self, *, run_id: RunId, await_resume: AwaitResume) -> Run:
         response = await self._client.post(
             f"/runs/{run_id}",
-            json=RunResumeRequest(await_resume=await_resume, mode=RunMode.ASYNC).model_dump(),
+            content=RunResumeRequest(await_resume=await_resume, mode=RunMode.ASYNC).model_dump_json(),
         )
         self._raise_error(response)
         return RunResumeResponse.model_validate(response.json())
@@ -160,7 +159,7 @@ class Client:
             self._client,
             "POST",
             f"/runs/{run_id}",
-            json=RunResumeRequest(await_resume=await_resume, mode=RunMode.STREAM).model_dump(),
+            content=RunResumeRequest(await_resume=await_resume, mode=RunMode.STREAM).model_dump_json(),
         ) as event_source:
             async for event in self._validate_stream(event_source):
                 yield event
@@ -169,6 +168,9 @@ class Client:
         self,
         event_source: EventSource,
     ) -> AsyncIterator[Event]:
+        if event_source.response.is_error:
+            await event_source.response.aread()
+            self._raise_error(event_source.response)
         async for event in event_source.aiter_sse():
             event = TypeAdapter(Event).validate_json(event.data)
             yield event

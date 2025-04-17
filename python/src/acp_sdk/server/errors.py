@@ -32,7 +32,9 @@ def status_code_to_error_code(status_code: int) -> ErrorCode:
 
 async def acp_error_handler(request: Request, exc: ACPError, *, status_code: int | None = None) -> JSONResponse:
     error = exc.error
-    return JSONResponse(status_code=status_code or error_code_to_status_code(error.code), content=error.model_dump())
+    return JSONResponse(
+        status_code=status_code or error_code_to_status_code(error.code), content=error.model_dump_json()
+    )
 
 
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
