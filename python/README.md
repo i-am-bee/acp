@@ -40,7 +40,7 @@ async with Client(base_url="http://localhost:8000") as client:
 
 ### Server
 
-The `server` submodule exposes [fastapi](https://fastapi.tiangolo.com/) application factory that makes it easy to server agent over ACP. Additionaly, it exposes [uvicorn](https://www.uvicorn.org/) based server with more agent registration capabilities, default logging and [opentelemetry](https://opentelemetry.io/) support.
+The `server` submodule exposes `Agent` class and `agent` decorator together with [fastapi](https://fastapi.tiangolo.com/) application factory, making it easy to expose agents over ACP. Additionaly, it exposes [uvicorn](https://www.uvicorn.org/) based server to serve agents with set up logging, [opentelemetry](https://opentelemetry.io/) and more.
 
 ```python
 server = Server()
