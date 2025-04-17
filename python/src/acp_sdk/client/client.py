@@ -62,8 +62,8 @@ class Client:
         self._raise_error(response)
         return AgentReadResponse.model_validate(response.json())
 
-    async def agent_healthcheck(self, *, name: AgentName) -> bool:
-        response = await self._client.get(f"/agents/{name}/healthcheck")
+    async def provider_healthcheck(self) -> bool:
+        response = await self._client.get(f"/healthcheck")
         self._raise_error(response)
         return response.json() == "OK"
 

@@ -122,6 +122,7 @@ class Server:
         self,
         configure_logger: bool = True,
         configure_telemetry: bool = False,
+        self_registration: bool = True,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -236,9 +237,12 @@ class Server:
         )
         self._server = uvicorn.Server(config)
 
-        asyncio.get_event_loop().run_until_complete(self._run())
+        if self_registration:
+            asyncio.get_event_loop().run_until_complete(self._registrate_and_run())
+        else:
+            self._server.run()
 
-    async def _run(self) -> None:
+    async def _registrate_and_run(self) -> None:
         """Run the server and register the agent."""
         server_task = asyncio.create_task(self._server.serve())
         registration_task = asyncio.create_task(self._register_agent())
