@@ -1,10 +1,12 @@
+import logging
 import os
-import asyncio
-from typing import AsyncGenerator, Any, Awaitable
-from gpt_researcher import GPTResearcher
+from collections.abc import AsyncGenerator
+from typing import Any
+
 from acp_sdk.models import Message, MessagePart
-from acp_sdk.models.errors import Error, ACPError, ErrorCode
+from acp_sdk.models.errors import ACPError, Error, ErrorCode
 from acp_sdk.server import Context, RunYield, RunYieldResume, Server
+from gpt_researcher import GPTResearcher
 
 os.environ.update(
     {
@@ -18,69 +20,41 @@ os.environ.update(
 )
 
 server = Server()
-
-
-async def enqueue_message(queue: asyncio.Queue, content: str):
-    await queue.put(
-        Message(parts=[MessagePart(content_type="text/plain", content=content)])
-    )
-
-
-class CustomLogsHandler:
-    def __init__(self, queue: asyncio.Queue):
-        self.queue = queue
-
-    async def send_json(self, data: dict[str, Any]) -> None:
-        match data.get("type"):
-            case "logs":
-                log_output = data.get("output", "")
-                await enqueue_message(self.queue, log_output)
-            case "report":
-                report_output = data.get("output", "")
-                await enqueue_message(self.queue, report_output)
-            case _:  # handle other types of logs
-                generic_output = (
-                    f"Unhandled log type {data.get('type')}: {data.get('output', '')}"
-                )
-                await enqueue_message(self.queue, generic_output)
-
-
-async def perform_research(query: str, queue: asyncio.Queue):
-    handler = CustomLogsHandler(queue)
-    researcher = GPTResearcher(
-        query=query, report_type="research_report", websocket=handler
-    )
-
-    await researcher.conduct_research()
-    report = await researcher.write_report()
-    await enqueue_message(queue, report)
-    await queue.put(None)
+logger = logging.getLogger(__name__)
 
 
 @server.agent()
-async def gpt_researcher(
-    input: Message, context: Context
-) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def gpt_researcher(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+    parts = [part for message in input for part in message.parts]
+    if len(parts) != 1:
+        raise ACPError(Error(code=ErrorCode.INVALID_INPUT, message="Please provide exactly one query."))
+    query = parts[0].content
 
-    if len(input) != 1:
-        raise ACPError(
-            Error(
-                code=ErrorCode.INVALID_INPUT,
-                message="Please provide exactly one query.",
-            )
-        )
+    class CustomLogsHandler:
+        async def send_json(self, data: dict[str, Any]) -> None:
+            match data.get("type"):
+                case "logs":
+                    log_output = data.get("output", "")
+                    await context.yield_async(
+                        Message(parts=[MessagePart(content_type="text/plain", content=log_output)])
+                    )
+                case "report":
+                    report_output = data.get("output", "")
+                    await context.yield_async(
+                        Message(parts=[MessagePart(content_type="text/plain", content=report_output)])
+                    )
+                case _:  # handle other types of logs
+                    generic_output = f"Unhandled log type {data.get('type')}: {data.get('output', '')}"
+                    await context.yield_async(
+                        Message(parts=[MessagePart(content_type="text/plain", content=generic_output)])
+                    )
 
-    message_queue = asyncio.Queue()
-
-    research_task = asyncio.create_task(perform_research(input[0], message_queue))
-
-    while True:
-        msg = await message_queue.get()
-        if msg is None:
-            break
-        yield msg
-
-    await research_task
+    handler = CustomLogsHandler()
+    researcher = GPTResearcher(query=query, report_type="research_report", websocket=handler)
+    await researcher.conduct_research()
+    report_output = await researcher.write_report()
+    yield Message(parts=[MessagePart(content_type="text/plain", content=report_output)])
 
 
-server.run()
+if __name__ == "__main__":
+    server.run()

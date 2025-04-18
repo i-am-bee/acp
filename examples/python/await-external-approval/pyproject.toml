@@ -1,11 +1,9 @@
 [project]
-name = "acp-gpt-researcher"
+name = "await-external-approval"
 version = "0.1.0"
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "acp-sdk",
-    "duckduckgo-search>=8.0.1",
-    "gpt-researcher>=0.12.19",
 ]
 
 [tool.uv.sources]

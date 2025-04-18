@@ -1,5 +1,6 @@
 import asyncio
 
+from acp_sdk import MessagePartEvent
 from acp_sdk.client import Client
 from acp_sdk.models import Message, MessagePart
 
@@ -19,7 +20,9 @@ async def client() -> None:
                 )
             ],
         ):
-            print(event)
+            match event:
+                case MessagePartEvent():
+                    print(event.part.content)
 
 
 if __name__ == "__main__":
