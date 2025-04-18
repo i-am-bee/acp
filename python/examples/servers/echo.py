@@ -14,7 +14,7 @@ async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYie
     """Echoes everything"""
     for message in inputs:
         await asyncio.sleep(0.5)
-        yield {"thought": "I should echo everyting"}
+        yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
         yield message
 
