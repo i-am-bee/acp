@@ -144,6 +144,16 @@ def create_app(*agents: Agent) -> FastAPI:
     @app.post("/runs/{run_id}")
     async def resume_run(run_id: RunId, request: RunResumeRequest) -> RunResumeResponse:
         bundle = find_run_bundle(run_id)
+
+        if bundle.run.await_request is None:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Run {run_id} has no await request")
+
+        if bundle.run.await_request.type != request.await_resume.type:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Run {run_id} is expecting resume of type {bundle.run.await_request.type}",
+            )
+
         await bundle.resume(request.await_resume)
         match request.mode:
             case RunMode.STREAM:

@@ -75,12 +75,18 @@ class RunStatus(str, Enum):
         return self in terminal_states
 
 
-class AwaitRequest(BaseModel):
-    type: Literal["placeholder"] = "placeholder"
+class MessageAwaitRequest(BaseModel):
+    type: Literal["message"] = "message"
+    message: Message
 
 
-class AwaitResume(BaseModel):
-    pass
+class MessageAwaitResume(BaseModel):
+    type: Literal["message"] = "message"
+    message: Message
+
+
+AwaitRequest = Union[MessageAwaitRequest]
+AwaitResume = Union[MessageAwaitResume]
 
 
 class Run(BaseModel):
