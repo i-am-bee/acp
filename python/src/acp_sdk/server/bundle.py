@@ -129,6 +129,8 @@ class RunBundle:
                         run_logger.info("Run resumed")
                     elif isinstance(next, Error):
                         raise ACPError(error=next)
+                    elif next is None:
+                        pass  # Do nothing
                     else:
                         try:
                             generic = AnyModel.model_validate(next)
