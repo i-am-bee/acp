@@ -17,12 +17,12 @@ class AnyModel(BaseModel):
 
 class MessagePart(BaseModel):
     name: Optional[str] = None
-    content_type: str
+    content_type: Optional[str] = "text/plain"
     content: Optional[str] = None
     content_encoding: Optional[Literal["plain", "base64"]] = "plain"
     content_url: Optional[AnyUrl] = None
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
 
     def model_post_init(self, __context: Any) -> None:
         if self.content is None and self.content_url is None:

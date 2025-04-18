@@ -10,12 +10,12 @@ server = Server()
 @server.agent()
 async def approval_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
     """Request approval and respond to user's confirmation."""
-    yield MessagePart(content="Hello! I need an approval.", content_type="text/plain")
+    yield MessagePart(content="Hello! I need an approval.")
 
     # Pause execution and wait for external confirmation
     yield AwaitRequest()
 
-    yield MessagePart(content="Thank you for approving!", content_type="text/plain")
+    yield MessagePart(content="Thank you for approving!")
 
 
 server.run()

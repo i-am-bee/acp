@@ -9,16 +9,7 @@ async def client() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         async for event in client.run_stream(
             agent="gpt_researcher",
-            inputs=[
-                Message(
-                    parts=[
-                        MessagePart(
-                            content="Protocols focused on agent to agent communication",
-                            content_type="text/plain",
-                        )
-                    ]
-                )
-            ],
+            inputs=[Message(parts=[MessagePart(content="Protocols focused on agent to agent communication")])],
         ):
             match event:
                 case MessagePartEvent():

@@ -9,12 +9,8 @@ from acp_sdk.models import (
 
 async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client, client.session() as session:
-        run = await session.run_sync(
-            agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!", content_type="text/plain")])]
-        )
-        run = await session.run_sync(
-            agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy again!", content_type="text/plain")])]
-        )
+        run = await session.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!")])])
+        run = await session.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy again!")])])
         print(run)
 
 

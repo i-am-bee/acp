@@ -16,7 +16,7 @@ from acp_sdk.models import (
 )
 from acp_sdk.server import Server
 
-inputs = [Message(parts=[MessagePart(content="Hello!", content_type="text/plain")])]
+inputs = [Message(parts=[MessagePart(content="Hello!")])]
 await_resume = MessageAwaitResume(message=Message(parts=[]))
 
 

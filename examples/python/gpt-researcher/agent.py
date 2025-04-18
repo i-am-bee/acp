@@ -35,25 +35,19 @@ async def gpt_researcher(input: list[Message], context: Context) -> AsyncGenerat
             match data.get("type"):
                 case "logs":
                     log_output = data.get("output", "")
-                    await context.yield_async(
-                        Message(parts=[MessagePart(content_type="text/plain", content=log_output)])
-                    )
+                    await context.yield_async(Message(parts=[MessagePart(content=log_output)]))
                 case "report":
                     report_output = data.get("output", "")
-                    await context.yield_async(
-                        Message(parts=[MessagePart(content_type="text/plain", content=report_output)])
-                    )
+                    await context.yield_async(Message(parts=[MessagePart(content=report_output)]))
                 case _:  # handle other types of logs
                     generic_output = f"Unhandled log type {data.get('type')}: {data.get('output', '')}"
-                    await context.yield_async(
-                        Message(parts=[MessagePart(content_type="text/plain", content=generic_output)])
-                    )
+                    await context.yield_async(Message(parts=[MessagePart(content=generic_output)]))
 
     handler = CustomLogsHandler()
     researcher = GPTResearcher(query=query, report_type="research_report", websocket=handler)
     await researcher.conduct_research()
     report_output = await researcher.write_report()
-    yield Message(parts=[MessagePart(content_type="text/plain", content=report_output)])
+    yield Message(parts=[MessagePart(content=report_output)])
 
 
 if __name__ == "__main__":

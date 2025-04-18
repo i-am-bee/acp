@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "acp-sdk",
-    "duckduckgo-search>=8.0.1",
+    "duckduckgo-search>=7.0.0",
     "gpt-researcher>=0.12.19",
 ]
 

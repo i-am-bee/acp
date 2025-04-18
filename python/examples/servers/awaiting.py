@@ -15,14 +15,12 @@ server = Server()
 @server.agent()
 async def awaiting(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Greets and awaits for more data"""
-    yield MessagePart(content="Hello!", content_type="text/plain")
+    yield MessagePart(content="Hello!")
     resume = yield MessageAwaitRequest(
-        message=Message(
-            parts=[MessagePart(content="Can you provide me with additional configuration?", content_type="text/plain")]
-        )
+        message=Message(parts=[MessagePart(content="Can you provide me with additional configuration?")])
     )
     assert isinstance(resume, MessageAwaitResume)
-    yield MessagePart(content=f"Thanks for config: {resume.message}", content_type="text/plain")
+    yield MessagePart(content=f"Thanks for config: {resume.message}")
 
 
 server.run()
