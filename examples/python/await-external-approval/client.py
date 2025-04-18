@@ -2,22 +2,28 @@ import asyncio
 from acp_sdk.client import Client
 from acp_sdk.models import Message, MessagePart, AwaitResume
 
+
 async def handle_resume(client, run_id):
-    async for event in client.run_resume_stream(run_id=run_id, await_resume=AwaitResume()):
+    async for event in client.run_resume_stream(
+        run_id=run_id, await_resume=AwaitResume()
+    ):
         print(event)
 
 
-async def run_client():
+async def client():
     async with Client(base_url="http://localhost:8000") as client:
         initial_message = Message(
             parts=[MessagePart(content="Hi there!", content_type="text/plain")]
         )
 
-        async for event in client.run_stream(agent="approval_agent", inputs=[initial_message]):
+        async for event in client.run_stream(
+            agent="approval_agent", inputs=[initial_message]
+        ):
             print(event)
 
             if event.type == "run.awaiting":
                 await handle_resume(client, event.run.run_id)
 
+
 if __name__ == "__main__":
-    asyncio.run(run_client())
+    asyncio.run(client())
