@@ -48,6 +48,36 @@ class Message(BaseModel):
             part.content for part in self.parts if part.content is not None and part.content_type == "text/plain"
         )
 
+    def compress(self) -> "Message":
+        def can_be_joined(first: MessagePart, second: MessagePart) -> bool:
+            return (
+                first.name is None
+                and second.name is None
+                and first.content_type == "text/plain"
+                and second.content_type == "text/plain"
+                and first.content_encoding == "plain"
+                and second.content_encoding == "plain"
+                and first.content_url is None
+                and second.content_url is None
+            )
+
+        def join(first: MessagePart, second: MessagePart) -> MessagePart:
+            return MessagePart(
+                name=None,
+                content_type="text/plain",
+                content=first.content + second.content,
+                content_encoding="plain",
+                content_url=None,
+            )
+
+        parts: list[MessagePart] = []
+        for part in self.parts:
+            if len(parts) > 0 and can_be_joined(parts[-1], part):
+                parts[-1] = join(parts[-1], part)
+            else:
+                parts.append(part)
+        return Message(parts=parts)
+
 
 AgentName = str
 SessionId = uuid.UUID
