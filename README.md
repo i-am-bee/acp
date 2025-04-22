@@ -45,7 +45,7 @@ pip install acp-sdk
 
 **2. Create agent file**
 
-Let’s create a simple `echo` agent that returns any message it receives.
+Let’s create a simple `echo` agent that returns any message it receives. This will start a local ACP server at `http://localhost:8000` when we run the file.
 
 ```py
 # agent.py
