@@ -9,6 +9,7 @@ Maintainers are listed in alphabetical order by last name.
 | Name | GitHub Username |
 | ---- | ---- |
 | Paolo Dettori | [pdettori](https://github.com/pdettori) |
+| Tomáš Dvořák | [Tomas2D](https://github.com/Tomas2D) |
 | Ismael Faro | [ismaelfaro](https://github.com/ismaelfaro) |
 | Matous Havlena | [matoushavlena](https://github.com/matoushavlena) |
 | Lukáš Janeček | [xjacka](https://github.com/xjacka) |
