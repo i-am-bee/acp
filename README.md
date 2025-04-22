@@ -37,10 +37,18 @@ The **Agent Communication Protocol (ACP)** is an open standard that enables seam
 
 ## Quickstart
 
-**1. Install Python SDK:** `pip install acp-sdk`
+**1. Install Python SDK:**
+
+```sh
+pip install acp-sdk
+```
 
 **2. Create agent file**
-```python agent.py
+
+Let’s create a simple `echo` agent that returns any message it receives.
+
+```py
+# agent.py
 import asyncio
 from collections.abc import AsyncGenerator
 
@@ -65,20 +73,27 @@ async def echo(
 server.run()
 ```
 
-**3. Set up virtual environment and run agent**
-```bash
+**3. Run the agent**
+
+```sh
 python3 -m venv env
 source venv/bin/activate
 python agent.py
 ```
 
-**4. List available agents to confirm your agent is running**
-```bash
+Your agent server should now be running at `http://localhost:8000`.
+
+**4. Verify your agent is available**
+
+```sh
 curl http://localhost:8000/agents
 ```
 
-**5. Call your agent**
-```bash
+You should see your `echo` agent listed.
+
+**5. Call the agent via HTTP**
+
+```sh
 curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
@@ -95,6 +110,47 @@ curl -X POST http://localhost:8000/runs \
         ]
       }'
 ```
+
+Your response should include the echoed message.
+
+**6. Build an ACP client**
+
+Here’s a simple ACP client to send a message to the `echo` agent:
+
+```py
+# client.py
+import asyncio
+
+from acp_sdk.client import Client
+from acp_sdk.models import Message, MessagePart
+
+
+async def example() -> None:
+    async with Client(base_url="http://localhost:8000") as client:
+        run = await client.run_sync(
+            agent="echo",
+            inputs=[
+                Message(
+                    parts=[MessagePart(content="Howdy!", content_type="text/plain")]
+                )
+            ],
+        )
+        print(run.outputs)
+
+
+if __name__ == "__main__":
+    asyncio.run(example())
+```
+
+**7. Run the client**
+
+Here’s a simple ACP client to send a message to the `echo` agent:
+
+```sh
+python client.py
+```
+
+You should see the echoed response printed to your console. 🎉
 
 ## Get Involved
 
