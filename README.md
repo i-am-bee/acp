@@ -12,16 +12,26 @@
 
 </div>
 
+<p align="center">
+  <strong><a href="https://ibm.biz/agentcommunicationprotocol">Documentation</a></strong> •
+  <strong><a href="https://github.com/i-am-bee/beeai-platform/blob/main/docs/acp/spec/openapi.yaml">OpenAPI Spec</a></strong> •
+  <strong><a href="https://github.com/i-am-bee/acp/blob/main/python">Python SDK</a></strong> •
+  <strong><a href="https://github.com/i-am-bee/acp/tree/main/examples">Examples</a></strong>
+</p>
+
 <br>
 
 The **Agent Communication Protocol (ACP)** is an open standard that enables seamless communication between AI agents across different technology stacks and frameworks. It provides a standardized RESTful API for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streamed** interactions for effective agent interoperability.
 
-## Key Components
+## Core Concepts
 
-- 📚 **[Documentation](https://ibm.biz/agentcommunicationprotocol)** - Complete guides & architecture
-- 📄 **[OpenAPI Spec](https://github.com/i-am-bee/beeai-platform/blob/main/docs/acp/spec/openapi.yaml)** - REST API schema
-- 🐍 **[Python SDK](https://github.com/i-am-bee/acp/blob/main/python)** - Client/server SDK implementation
-- 💻 **[Examples](https://github.com/i-am-bee/acp/tree/main/examples/python)** - Sample code for agents and clients
+- Agent Detail
+- ACP Server
+- ACP Client
+- Run
+- Message
+- MessagePart
+- Await
 
 ## Quickstart
 
