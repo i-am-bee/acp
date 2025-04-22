@@ -14,7 +14,7 @@
 
 <br>
 
-The **Agent Communication Protocol (ACP)** is an open standard that enables seamless communication between AI agents across different technology stacks and frameworks. It provides a standardized RESTful API for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streamed** interactions for effective agent collaboration and interoperability.
+The **Agent Communication Protocol (ACP)** is an open standard that enables seamless communication between AI agents across different technology stacks and frameworks. It provides a standardized RESTful API for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streamed** interactions for effective agent interoperability.
 
 ## Key Components
 
