@@ -1,11 +1,12 @@
 [project]
-name = "lang-graph"
+name = "beeai-canvas"
 version = "0.1.0"
-description = "Add your description here"
+description = "BeeAI Canvas example"
 requires-python = ">=3.11, <4.0"
 dependencies = [
     "acp-sdk",
-    "langgraph>=0.3.31",
+    "beeai-framework>=0.1.17",
+    "pydantic-settings>=2.9.0",
 ]
 
 [tool.uv.sources]

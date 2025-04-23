@@ -53,7 +53,7 @@ server = Server()
 
 
 @server.agent()
-async def lang_graph_agent(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def lang_graph_greeting_agent(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """LangGraph agent that greets the user based on the current time."""
     query = reduce(lambda x, y: x + y, inputs)
     output = None
