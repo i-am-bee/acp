@@ -37,17 +37,16 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 
 ## Quickstart
 
-**1. Create and activate a Python virtual environment**
+**1. Initialize your project**
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
+uv init
 ```
 
-**2. Install ACP SDK into the virtual environment**
+**2. Add the ACP SDK**
 
 ```sh
-pip install acp-sdk
+uv add acp-sdk
 ```
 
 **3. Create an agent**
