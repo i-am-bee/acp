@@ -16,17 +16,17 @@
 
 ## Overview
 
-The client module provides a thin ACP client that can be integrated into any application that needs to communicate with ACP agents. It provides the following advantages over raw http client:
+The client module provides a thin ACP client that can be integrated into any application that needs to communicate with ACP agents. It provides the following advantages over raw HTTP client:
 
 - Strong typing
-- Error translation
+- Error handling
 - Stream decoding
 - Session management
-- Opentelemetry instrumentation
+- Instrumentation
 
 > [!NOTE]
 >
-> Location within the sdk: [client](/python/src/acp_sdk/client).
+> Location within the sdk: [client](/python/src/acp_sdk/client)
 
 ## Usage
 
@@ -34,14 +34,14 @@ The client is based on the [httpx.AsyncClient](https://www.python-httpx.org/asyn
 
 ### Setting up a client
 
-To set up a simple client, simply provide a URL:
+To set up a simple client, simply provide an URL:
 
 ```py
 async with Client(base_url="http://localhost:8000") as client:
   ...
 ```
 
-To use advanced http configuration, provide `httpx` async client:
+To use advanced HTTP configuration, provide `httpx` async client:
 
 ```py
 async with Client(
@@ -59,7 +59,7 @@ To discover available agents:
 ```py
 async with Client(base_url="http://localhost:8000") as client:
   async for agent in client.agents():
-    print(agent)
+    ...
 ```
 
 ### Running an agent
@@ -87,7 +87,7 @@ async with Client(base_url="http://localhost:8000") as client:
 
 Sessions are a mechanism to have multi-turn conversations with agents.
 
-To enter a session, do:
+To enter a session, create one from the client:
 
 ```py
 async with Client(base_url="http://localhost:8000" as client:
