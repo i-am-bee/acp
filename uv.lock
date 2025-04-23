@@ -18,6 +18,7 @@ members = [
     "crewai-song-writer",
     "lang-graph-greeting",
     "prompt-chaining",
+    "routing",
 ]
 
 [manifest.dependency-groups]
@@ -4140,6 +4141,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2e/ea/13945d58d556a28dfb0f774ad5c8af759527390e59505a40d164bf8ce1ce/rich_toolkit-0.14.1.tar.gz", hash = "sha256:9248e2d087bfc01f3e4c5c8987e05f7fa744d00dd22fa2be3aa6e50255790b3f", size = 104416 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/66/e8/61c5b12d1567fdba41a6775db12a090d88b8305424ee7c47259c70d33cb4/rich_toolkit-0.14.1-py3-none-any.whl", hash = "sha256:dc92c0117d752446d04fdc828dbca5873bcded213a091a5d3742a2beec2e6559", size = 24177 },
+]
+
+[[package]]
+name = "routing"
+version = "0.1.0"
+source = { virtual = "examples/python/beeai-routing" }
+dependencies = [
+    { name = "acp-sdk" },
+    { name = "beeai-framework" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acp-sdk", editable = "python" },
+    { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
 [[package]]
