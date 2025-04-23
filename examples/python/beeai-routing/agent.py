@@ -18,10 +18,7 @@ from beeai_framework.tools import ToolOutput
 from beeai_framework.utils.strings import to_json
 from beeai_framework.utils.dicts import exclude_none
 
-
-
 server = Server()
-
 
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
@@ -54,9 +51,6 @@ class TranslateToolOutput(ToolOutput):
     def __init__(self, result: TranslateToolResult) -> None:
         super().__init__()
         self.result = result
-
-
-
 
 @server.agent(name="translation_spanish")
 async def translation_spanish_agent(inputs: list[Message]) -> AsyncGenerator:
