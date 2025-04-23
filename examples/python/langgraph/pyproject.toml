@@ -1,0 +1,12 @@
+[project]
+name = "lang-graph"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11, <4.0"
+dependencies = [
+    "acp-sdk",
+    "langgraph>=0.3.31",
+]
+
+[tool.uv.sources]
+acp-sdk = { workspace = true }
