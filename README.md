@@ -191,9 +191,13 @@ python client.py
 
 You should see the echoed response printed to your console. 🎉
 
-## Get Involved
+## Contributors
 
-Start a [GitHub Discussion](https://github.com/i-am-bee/acp/discussions) to help shape this evolving standard and build the foundation for an open, interoperable agent ecosystem.
+We are grateful for the efforts of our initial contributors, who have played a vital role in getting ACP of the ground. As we continue to grow and evolve, we invite others to join our vibrant community and contribute to our project’s ongoing development. For more information, please visit the [Contribute](https://agentcommunicationprotocol.dev/about/contribute) page of our documentation.
+
+<a href="https://github.com/i-am-bee/acp/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=i-am-bee/acp" />
+</a>
 
 ## Maintainers
 
