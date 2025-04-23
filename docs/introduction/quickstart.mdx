@@ -6,18 +6,17 @@ description: "Get up and running with ACP"
 This guide will walk you through using the Agent Communication Protocol (ACP) to create and run your first agent, interact with it using HTTP requests, and build a basic client.
 
 <Steps>
-<Step title="Create and activate a Python virtual environment">
+<Step title="Initialize your project">
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
+uv init
 ```
 
 </Step>
-<Step title="Install ACP SDK into the virtual environment">
+<Step title="Add the ACP SDK">
 
 ```sh
-pip install acp-sdk
+uv add acp-sdk
 ```
 
 </Step>
