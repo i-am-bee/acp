@@ -37,17 +37,24 @@ The **Agent Communication Protocol (ACP)** is an open standard that enables seam
 
 ## Quickstart
 
-**1. Install Python SDK:**
+**1. Create and activate a Python virtual environment**
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+**2. Install ACP SDK into the virtual environment**
 
 ```sh
 pip install acp-sdk
 ```
 
-**2. Create agent file**
+**3. Create an agent**
 
-Let’s create a simple `echo` agent that returns any message it receives. This will start a local ACP server at `http://localhost:8000` when we run the file.
+Let’s create a simple "echo agent" that returns any message it receives.
 
-```py
+```python
 # agent.py
 import asyncio
 from collections.abc import AsyncGenerator
@@ -73,26 +80,35 @@ async def echo(
 server.run()
 ```
 
-**3. Run the agent**
+**4. Start the ACP server**
 
 ```sh
-python3 -m venv env
-source venv/bin/activate
 python agent.py
 ```
 
-Your agent server should now be running at `http://localhost:8000`.
+Your server should now be running at `http://localhost:8000`.
 
-**4. Verify your agent is available**
+**5. Verify your agent is available**
 
+*Request:*
 ```sh
 curl http://localhost:8000/agents
 ```
 
-You should see your `echo` agent listed.
+*Response:*
+```json
+{
+  "agents": [
+    { "name": "echo", "description": "Echoes everything", "metadata": {} }
+  ]
+}
+```
 
-**5. Call the agent via HTTP**
+You should see a JSON response containing your `echo` agent, confirming it's available.
 
+**6. Run the agent via HTTP**
+
+*Request:*
 ```sh
 curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
@@ -102,8 +118,8 @@ curl -X POST http://localhost:8000/runs \
           {
             "parts": [
               {
-                "content_type": "text/plain",
-                "content": "Howdy!"
+                "content": "Howdy!",
+                "content_type": "text/plain"
               }
             ]
           }
@@ -111,13 +127,38 @@ curl -X POST http://localhost:8000/runs \
       }'
 ```
 
-Your response should include the echoed message.
+*Response:*
+```json
+{
+  "run_id": "44e480d6-9a3e-4e35-8a03-faa759e19588",
+  "agent_name": "echo",
+  "session_id": "b30b1946-6010-4974-bd35-89a2bb0ce844",
+  "status": "completed",
+  "await_request": null,
+  "outputs": [
+    {
+      "parts": [
+        {
+          "name": null,
+          "content_type": "text/plain",
+          "content": "Howdy!",
+          "content_encoding": "plain",
+          "content_url": null
+        }
+      ]
+    }
+  ],
+  "error": null
+}
+```
 
-**6. Build an ACP client**
+Your response should include the echoed message "Howdy!".
 
-Here’s a simple ACP client to send a message to the `echo` agent:
+**7. Build an ACP client**
 
-```py
+Here’s a simple ACP client to interact with your `echo` agent:
+
+```python
 # client.py
 import asyncio
 
@@ -142,9 +183,7 @@ if __name__ == "__main__":
     asyncio.run(example())
 ```
 
-**7. Run the client**
-
-Here’s a simple ACP client to send a message to the `echo` agent:
+**8. Run the ACP client**
 
 ```sh
 python client.py
