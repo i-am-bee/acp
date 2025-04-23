@@ -9,7 +9,7 @@ from acp_sdk.models import (
 
 
 async def example() -> None:
-    async with Client(base_url="http://localhost:8000", timeout=100) as client, client.session() as session:
+    async with Client(base_url="http://localhost:8000") as client, client.session() as session:
         run = await session.run_sync(
             agent="chat_agent", inputs=[Message(parts=[MessagePart(content="Hi, my name is Jon. I like apples. Can you tell me something about them?", role='user')])]
         )
