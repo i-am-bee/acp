@@ -1974,7 +1974,7 @@ wheels = [
 [[package]]
 name = "lang-graph"
 version = "0.1.0"
-source = { virtual = "examples/python/lang-graph" }
+source = { virtual = "examples/python/langgraph" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "langgraph" },
