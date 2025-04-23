@@ -14,7 +14,7 @@ members = [
     "basic",
     "beeai-framework-chat",
     "crewai-song-writer",
-    "lang-graph",
+    "lang-graph-greeting",
     "prompt-chaining",
 ]
 
@@ -1972,9 +1972,9 @@ wheels = [
 ]
 
 [[package]]
-name = "lang-graph"
+name = "lang-graph-greeting"
 version = "0.1.0"
-source = { virtual = "examples/python/langgraph" }
+source = { virtual = "examples/python/langgraph-greeting" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "langgraph" },
