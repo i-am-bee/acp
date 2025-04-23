@@ -193,7 +193,7 @@ You should see the echoed response printed to your console. 🎉
 
 ## Get Involved
 
-Join our [GitHub discussions](https://github.com/orgs/i-am-bee/discussions) to help shape this evolving standard and build the foundation for an open, interoperable agent ecosystem.
+Start a [GitHub Discussion](https://github.com/i-am-bee/acp/discussions) to help shape this evolving standard and build the foundation for an open, interoperable agent ecosystem.
 
 ## Maintainers
 
