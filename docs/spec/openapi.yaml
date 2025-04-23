@@ -3,16 +3,13 @@ info:
   title: ACP - Agent Communication Protocol
   description: >-
     The Agent Communication Protocol (ACP) provides a standardized RESTful API to manage and execute AI agents. It supports synchronous, asynchronous, and streamed interactions as well as stateless and stateful agents.
-  contact:
-    name: BeeAI
-    url: https://beeai.dev
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 0.1.0
 externalDocs:
   description: Comprehensive documentation for ACP
-  url: https://docs.beeai.dev
+  # url: TBD
 servers:
   - url: http://localhost:8000
 tags:
@@ -229,7 +226,7 @@ components:
       properties:
         name:
           type: string
-        content_type: 
+        content_type:
           type: string
           default: "text/plain"
         content:
@@ -313,7 +310,7 @@ components:
     # Events
     MessageCreatedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.created
         message:
@@ -323,7 +320,7 @@ components:
         - message
     MessagePartEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.part
         part:
@@ -333,7 +330,7 @@ components:
         - part
     MessageCompletedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.completed
         message:
@@ -343,7 +340,7 @@ components:
         - message
     GenericEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: generic
         generic:
@@ -353,7 +350,7 @@ components:
         - generic
     RunCreatedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.created
         run:
@@ -363,7 +360,7 @@ components:
         - run
     RunInProgressEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.in-progress
         run:
@@ -373,7 +370,7 @@ components:
         - run
     RunAwaitingEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.awaiting
         run:
@@ -383,7 +380,7 @@ components:
         - run
     RunCompletedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.completed
         run:
@@ -393,7 +390,7 @@ components:
         - run
     RunCancelledEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.cancelled
         run:
@@ -403,7 +400,7 @@ components:
         - run
     RunFailedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.failed
         run:
@@ -446,19 +443,19 @@ components:
         status:
           $ref: "#/components/schemas/Status"
     Status:
-       type: object
-       description: Dynamic runtime information provided and regularly updated by the system managing the agent. This includes current operational metrics, state information, and other real-time statistics.
-       properties:
-         avg_run_tokens:
-           type: number
-           format: integer
-         avg_run_time_seconds:
-           type: number
-           format: float
-         success_rate:
-           type: number
-           minimum: 0
-           maximum: 100
+      type: object
+      description: Dynamic runtime information provided and regularly updated by the system managing the agent. This includes current operational metrics, state information, and other real-time statistics.
+      properties:
+        avg_run_tokens:
+          type: number
+          format: integer
+        avg_run_time_seconds:
+          type: number
+          format: float
+        success_rate:
+          type: number
+          minimum: 0
+          maximum: 100
     Tag:
       anyOf:
         - type: string
