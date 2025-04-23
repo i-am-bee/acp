@@ -9,7 +9,7 @@ info:
   version: 0.1.0
 externalDocs:
   description: Comprehensive documentation for ACP
-  # url: TBD
+  url: https://agentcommunicationprotocol.dev
 servers:
   - url: http://localhost:8000
 tags:

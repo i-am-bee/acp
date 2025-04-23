@@ -13,7 +13,7 @@
 </div>
 
 <p align="center">
-  <strong><a href="https://ibm.biz/agentcommunicationprotocol">Documentation</a></strong> •
+  <strong><a href="https://agentcommunicationprotocol.dev">Documentation</a></strong> •
   <strong><a href="https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml">OpenAPI Spec</a></strong> •
   <strong><a href="https://github.com/i-am-bee/acp/blob/main/python">Python SDK</a></strong> •
   <strong><a href="https://github.com/i-am-bee/acp/tree/main/examples">Examples</a></strong>
