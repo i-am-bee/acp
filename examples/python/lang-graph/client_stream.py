@@ -13,7 +13,7 @@ async def client() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         async for event in client.run_stream(
             agent="lang_graph_agent", 
-            inputs=[Message(parts=[MessagePart(content="Lukas", content_type="text/plain")])]
+            inputs=[Message(parts=[MessagePart(content="Jon")])]
         ):
             match event:
                 case MessageCompletedEvent():

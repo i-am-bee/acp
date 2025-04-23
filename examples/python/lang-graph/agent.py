@@ -9,7 +9,7 @@ from acp_sdk.models import Message
 from acp_sdk.server import RunYield, RunYieldResume, Server
 
 from langchain_core.runnables import RunnableLambda
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
 
 class AgentState(TypedDict):
     name: str
@@ -61,7 +61,7 @@ async def lang_graph_agent(inputs: list[Message]) -> AsyncGenerator[RunYield, Ru
         for value in event.items():
             yield {"update": value}
         output = event
-    yield MessagePart(content=output.get("format_response", {}).get("final_response", ""), content_type="text/plain")
+    yield MessagePart(content=output.get("format_response", {}).get("final_response", ""))
 
 
 server.run()
