@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from functools import reduce
 
 from acp_sdk import Message
 from acp_sdk.models import MessagePart
@@ -11,18 +12,17 @@ from translation_tool import TranslationTool
 
 server = Server()
 
-@server.agent(name="translation_spanish")
-async def translation_spanish_agent(inputs: list[Message]) -> AsyncGenerator:
+@server.agent()
+async def translation_spanish(inputs: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
-    print("Translation Spanish agent")
 
     agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
     response = await agent.run(prompt="Translate the given text to Spanish. The text is: " + str(inputs))
 
     yield MessagePart(content=response.result.text)
 
-@server.agent(name="translation_french")
-async def translation_french_agent(inputs: list[Message]) -> AsyncGenerator:
+@server.agent()
+async def translation_french(inputs: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
 
     agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
@@ -52,8 +52,8 @@ async def main_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
         memory=TokenMemory(llm)
     )
 
-    prompt = (str(inputs[0]))
-    response = await agent.run(prompt)
+    prompt = reduce(lambda x, y: x + y, inputs)
+    response = await agent.run(str(prompt))
 
     yield MessagePart(content=response.result.text)
 
