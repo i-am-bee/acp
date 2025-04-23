@@ -1,0 +1,41 @@
+---
+title: "Example Agents"
+description: "Explore reference agent implementations"
+---
+
+Each example demonstrates how to expose agents built with various AI frameworks through ACP, preserving their specialized capabilities while leveraging ACP’s standardized communication interface.
+
+## BeeAI Framework Chat
+
+Integrates the [BeeAI framework's](https://github.com/i-am-bee/beeai-framework) ReAct agent architecture with ACP by mapping BeeAI events to ACP protocol messages. This enables tool-based reasoning steps and structured final outputs within ACP.
+
+The complete source code is available on <Icon icon="github" /> [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/beeai-chat).
+
+
+## BeeAI Framework Canvas
+
+Another example using [BeeAI framework](https://github.com/i-am-bee/beeai-framework), this time directly calling an LLM and emplyoing a custom logic for parsing the output. It utilizes the ACP's artifact functionality to include generated files in responses, allowing the user to iterate over the generated files.
+
+The complete source code is available on <Icon icon="github" /> [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/beeai-canvas).
+
+
+## CrewAI Song Writer
+
+A reference implementation of a Crew using [crew.ai](https://www.crewai.com/), exposed via ACP. This Crew generates a song based on a website provided by the user, showcasing collaborative agent behavior exposed as a unit via ACP.
+
+The complete source code is available on <Icon icon="github" /> [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/crewai-song-writer).
+
+
+## GPT Researcher
+
+Integrates GPT Researcher with ACP using a custom handler that transforms outputs into structured ACP messages. This allows real-time progress updates throughout research tasks, enhancing transparency and control.
+
+The complete source code is available on <Icon icon="github" /> [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/gpt-researcher).
+
+
+## LangGraph Greeting Agent
+
+An example of a [LangGraph](https://langchain-ai.github.io/langgraph/) agent that returns a time-of-day specific greeting based on a provided name. This demonstrates how LangGraph can enable context-aware, responsive agents within ACP.
+
+The complete source code is available on <Icon icon="github" /> [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/langgraph-greeting).
+

@@ -1,0 +1,115 @@
+---
+title: "Await External Response"
+description: "Learn how to pause and resume ACP agent execution"
+---
+
+ACP agents can pause their execution using the built-in `Await` mechanism. This powerful feature enables agents to await external input, which could come from human users, other agents in multi-agent environments, or external systems. Leveraging `Await` enhances flexibility, safety, and responsiveness in automated workflows.
+
+## Why Use Await?
+
+Here are several scenarios where `Await` significantly enhances agent behavior:
+
+- **Human-in-the-Loop Interactions:** Request explicit approval, qualitative feedback, or have the external party choose from provided options (e.g., selecting from multiple suggested actions).​
+- **Agent Coordination:** Pause execution to receive instructions, oversight, or validation from another agent acting as a supervisor or orchestrator.​
+- **Data Collection:** Request supplemental data when initial inputs are insufficient or ambiguous.​
+- **Frontend or Browser Interactions:** Interact with frontend or browser environments (e.g., geolocation, device capabilities).​
+- **External System Integration:** Facilitate interactions with systems that cannot be directly invoked by an agent, prompting external parties to fulfill the awaited request.
+
+ACP's `Await` enables dynamic interactions with external entities (whether human or automated) providing intelligent agents with practical solutions for handling complex scenarios.
+
+## Example: Awaiting External Approval
+
+<Tip>See the complete source code on [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/basic/await-external-approval).</Tip>
+
+This example demonstrates how to implement an ACP agent that requests and awaits external approval.​
+
+<Steps>
+  <Step title="Agent Implementation">
+
+The agent sends a prompt requesting approval and pauses execution using `MessageAwaitRequest`. Once external input is received, the agent resumes execution and acknowledges the approval.​
+
+```python agent.py
+import asyncio
+from collections.abc import AsyncGenerator
+import random
+import string
+
+from acp_sdk import Message
+from acp_sdk.models import MessageAwaitRequest, MessagePart
+from acp_sdk.server import Context, Server
+
+server = Server()
+
+
+@server.agent()
+async def approval_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
+    """Request approval and respond to user's confirmation."""
+
+    # Pause execution and wait for external confirmation
+    response = yield MessageAwaitRequest(message=Message(parts=[MessagePart(content="I can generate password for you. Do you want me to do that?")]))
+    if str(response.message) == "yes":
+        # User approved, continue execution
+        yield MessagePart(content="Generating password...")
+        # Simulate password generation
+        await asyncio.sleep(1)
+        yield Message(parts=[MessagePart(content=f"Your password is: {''.join(random.choices(string.ascii_letters, k=10))}")])
+    else:
+        # User declined, stop execution
+        yield MessagePart(content="Password generation declined.")
+
+
+server.run()
+```
+
+  </Step>
+  <Step title="Client Interaction">
+
+The client initiates the agent run and listens for events. Upon receiving the `run.awaiting` event, the client responds with an `MessageAwaitResume` to resume the agent's execution.
+
+```python client.py
+import asyncio
+from functools import reduce
+
+from acp_sdk.client import Client
+from acp_sdk.models import MessageAwaitResume, Message, MessagePart
+
+
+async def handle_resume(client, run_id):
+    async for event in client.run_resume_stream(run_id=run_id, await_resume=MessageAwaitResume(message=Message(parts=[MessagePart(content="yes")]))):
+        print(event)
+        
+        if event.type == "run.completed":
+            print()
+            print(str(event.run.outputs[-1]))
+
+
+async def client():
+    async with Client(base_url="http://localhost:8000") as client:
+        initial_message = Message(parts=[MessagePart(content="Can you generate a password for me?")])
+
+        async for event in client.run_stream(agent="approval_agent", inputs=[initial_message]):
+            print(event)
+
+            if event.type == "run.awaiting":
+                await handle_resume(client, event.run.run_id)
+
+
+if __name__ == "__main__":
+    asyncio.run(client())
+```
+
+  </Step>
+</Steps>
+
+## Await in Multi-Agent Systems
+
+The Await mechanism is not limited to human-agent interactions. It’s also particularly useful in multi-agent environments:
+
+- **Supervisor-Orchestrator Pattern:**  
+  An agent performing critical tasks pauses execution and sends an Await event. A supervisory agent evaluates this event, possibly adjusting parameters, making decisions, or granting approval. After the supervisor agent responds, the original agent resumes execution based on the supervisor’s instructions.
+
+- **Cooperative Problem Solving:**  
+  Agents collaboratively solving complex problems can pause and use Await to delegate specific subtasks to specialized agents, waiting for their responses before continuing.
+
+- **Validation and Oversight:**  
+  Agents in compliance-heavy environments (such as financial or medical systems) can pause for external validation from dedicated compliance-checking agents.

@@ -1,4 +1,0 @@
-- [Python](/python/)
-
-
-- [Home](/)

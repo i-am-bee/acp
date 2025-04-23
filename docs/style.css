@@ -1,0 +1,49 @@
+/* Breakpoint "sm" in Tailwind */
+@media (max-width: 639.98px) {
+    /* To fit the main headline into the navbar */
+    #navbar a > div.text-2xl {
+        font-size: 1.125rem;
+        line-height: calc(24 / 18);
+    }
+
+    /* To accommodate more content, especially for code blocks */
+    #content-area [role="listitem"] > div.pl-12 {
+        padding-left: 2rem;
+    }
+
+    /* To prevent longer page names from flowing out of the pagination and stretching the entire page layout */
+    #pagination > a:first-child.pr-6 {
+        padding-right: 0.75rem;
+    }
+    #pagination > a:last-child div.px-5 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        word-break: break-word;
+    }
+    #pagination > a:last-child div.pl-5 {
+        padding-left: 0.75rem;
+    }
+
+    /* To fit social network icons on one line */
+    #footer {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    #footer > div:last-child {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Breakpoint "lg" in Tailwind */
+@media (min-width: 1024px) {
+    #sidebar-content > div:first-child > a > div.text-2xl {
+        font-size: 0.875rem;
+        line-height: calc(18 / 14);
+        max-width: 8rem;
+        height: auto;
+    }
+    #sidebar-content > div:first-child > a + button {
+        flex-shrink: 0;
+    }
+}

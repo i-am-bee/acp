@@ -1,0 +1,54 @@
+---
+title: "Production-grade"
+description: "Designed for secure, scalable, production-grade deployments"
+---
+
+## Overview
+
+The Agent Communication Protocol (ACP) is designed with production-grade environments in mind, prioritizing **security**, **scalability**, and **observability** to ensure reliable performance at scale. It leverages the simplicity and robustness of **HTTP standards** for seamless integration with your existing tools and infrastructure.
+
+## Core values
+
+### Security
+
+ACP aligns with modern security practices through familiar, HTTP-native mechanisms:
+
+- **Transport Layer Security (TLS) encryption** for secure, end-to-end communication
+- **Support for common authentication methods** such as Basic Auth, Bearer tokens, and JWTs
+- **Reverse proxy integration** to enforce access controls and security policies
+
+### Scalability
+
+ACP is a **stateless protocol** by design, just like HTTP. It supports session management, enabling developers to easily implement stateful agents when required.
+
+This flexibility ensures ACP is highly scalable and reliable in high-demand environments:
+
+- Deploy behind **standard HTTP load balancers**; route requests for stateful agents based on session
+- Fully compatible with **Kubernetes** and other orchestration platforms
+- Seamlessly integrates with **cloud-native infrastructure**
+
+### Observability
+
+Built around the HTTP request-response model, ACP is inherently easy to monitor using any standard HTTP monitoring tools, allowing you to:
+
+- Track system health with **standard metrics**
+- Monitor **performance** across agent interactions
+- Quickly **diagnose** issues at scale
+- Implement **detailed audit logging**
+
+As an HTTP-based protocol, ACP integrates with existing **OpenTelemetry** instrumentation, enabling request/response tracing and context propagation across networks. This makes it easy to monitor agent workflows across distributed systems.
+
+The ACP SDK enhances observability with improved traces and default exporters for all telemetry signals, ensuring seamless integration with OpenTelemetry-driven standards such as **OpenInference** and **OpenLLMetry**.
+
+### Identity Federation
+
+ACP is developing support for **User and Client Identity Federation** to enable smooth integration with your existing identity management infrastructure. This feature will allow agents to:
+
+- Authenticate users across **multiple identity providers**
+- Maintain **consistent authorization** between systems
+- Simplify **organization-wide access control**
+- Enhance **security management**
+
+This functionality is under active development. We welcome your input to help shape the future of identity federation in ACP.
+
+Visit our [Contribute](/about/contribute) page to join the discussion.
