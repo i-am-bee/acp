@@ -28,7 +28,10 @@ def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Me
 
 @server.agent()
 async def chat_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
-    """Request approval and respond to user's confirmation."""
+    """
+    The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
+    and weather updates through integrated tools.
+    """
 
     # ensure the model is pulled before running
     llm = ChatModel.from_name("ollama:llama3.1", ChatModelParameters(temperature=0))
@@ -42,14 +45,9 @@ async def chat_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
     framework_messages = [to_framework_message(Role(message.parts[0].role), str(message)) for message in inputs]
     await agent.memory.add_many(framework_messages)
 
-    update_idx = 0
-    async for data, _event in agent.run():
-        match data:
-            case ReActAgentUpdateEvent():
-                update_idx += 1
-                if update_idx > 1 and data.update.value == data.update.parsed_value:
-                    update_idx = 0
-                    continue
+    async for data, event in agent.run():
+        match (data, event.name):
+            case (ReActAgentUpdateEvent(), "partial_update"):
                 update = data.update.value
                 if not isinstance(update, str):
                     update = update.get_text_content()

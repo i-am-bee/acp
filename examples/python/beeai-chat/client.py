@@ -36,7 +36,7 @@ async def run_client() -> None:
                             if log_type:
                                 print()
                                 log_type = None
-                            print(f"ℹ️{event.type}", file=sys.stderr)
+                            print(f"ℹ️ {event.type}", file=sys.stderr)
 
 
 if __name__ == "__main__":
