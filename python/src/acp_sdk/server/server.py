@@ -1,7 +1,7 @@
 import asyncio
-from datetime import timedelta
 import os
 from collections.abc import Awaitable
+from datetime import timedelta
 from typing import Any, Callable
 
 import uvicorn

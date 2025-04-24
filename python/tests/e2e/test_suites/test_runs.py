@@ -2,7 +2,6 @@ import asyncio
 import base64
 from datetime import timedelta
 
-from acp_sdk.models.errors import ACPError
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
@@ -17,6 +16,7 @@ from acp_sdk.models import (
     RunInProgressEvent,
     RunStatus,
 )
+from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Server
 
 inputs = [Message(parts=[MessagePart(content="Hello!")])]
