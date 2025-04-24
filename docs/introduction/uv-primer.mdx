@@ -1,0 +1,37 @@
+---
+title: "Primer on uv"
+description: "How to use the uv tool"
+---
+
+## What's `uv`?
+
+[`uv`](https://github.com/astral-sh/uv) is a modern all-in-one Python tool for managing Python installations, virtual environments, PyPI dependencies, project lockfiles, multi-project workspaces and virtually everything else you need for a Python project. It fully replaces many legacy tools, like `pip`, `pip-tools`, `pyenv`, `pipenv`, `virtualenv`, `venv`, etc.
+
+## Can I use ACP SDK without `uv`?
+
+Yes, the PyPI package `acp-sdk` can be used with `uv`, `pip`, `poetry`, or any other Python package installer. You will need `uv` only if you want to clone this repository and run the included examples.
+
+## How to install `uv`?
+
+These are our recommendations on how to install `uv`. For more options, follow the [official installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+
+| Operating System           | Installation Command                                                                                                                |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| macOS (or Linux) with Brew | `brew install uv`                                                                                                                   |
+| Linux                      | `sudo apt install pipx && pipx ensurepath && pipx install uv`<br/><small>(replace `apt` with your distro's package manager)</small> |
+| Windows                    | `winget install --id=astral-sh.uv -e`                                                                                               |
+
+## How to use `uv`?
+
+Here's a quick table for common commands. For the full list of commands, see the [official documentation](https://docs.astral.sh/uv/getting-started/features/).
+
+Note that `uv` commands do not require the virtual environment to be "activated", they will always work with the project virtual environment.
+
+| Task                         | `uv` command                  | Legacy command                    |
+| ---------------------------- | ----------------------------- | --------------------------------- |
+| Set up a new project         | `uv init --python '>=3.11'`\* | `python -m venv .venv`            |
+| Run a Python file            | `uv run script.py`            | `python script.py`                |
+| Install a package            | `uv add <package>`            | `pip install <package>`           |
+| Install all project packages | `uv sync`                     | `pip install -r requirements.txt` |
+
+<small>*ACP SDK requires Python 3.11 or higher.</small>

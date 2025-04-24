@@ -8,11 +8,12 @@ Agent Communication Protocol SDK for Python provides allows developers to serve 
 
 ## Installation
 
-Install with:
+Install according to your Python package manager:
 
-```shell
-pip install acp-sdk
-```
+- `uv add acp-sdk`
+- `pip install acp-sdk`
+- `poetry add acp-sdk`
+- ...
 
 ## Quickstart
 

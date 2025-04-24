@@ -37,10 +37,13 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 
 ## Quickstart
 
+> [!NOTE]
+> This guide uses `uv`. See the [`uv` primer](https://agentcommunicationprotocol.dev/introduction/uv-primer) for more details.
+
 **1. Initialize your project**
 
 ```sh
-uv init
+uv init --python '>=3.11'
 ```
 
 **2. Add the ACP SDK**
@@ -82,7 +85,7 @@ server.run()
 **4. Start the ACP server**
 
 ```sh
-python agent.py
+uv run agent.py
 ```
 
 Your server should now be running at `http://localhost:8000`.
@@ -185,7 +188,7 @@ if __name__ == "__main__":
 **8. Run the ACP client**
 
 ```sh
-python client.py
+uv run client.py
 ```
 
 You should see the echoed response printed to your console. 🎉
