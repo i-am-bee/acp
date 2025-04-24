@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 
 from acp_sdk.models.models import Agent, AgentName, AwaitResume, Message, Run, RunMode, SessionId
 
@@ -14,7 +14,7 @@ class AgentReadResponse(Agent):
 class RunCreateRequest(BaseModel):
     agent_name: AgentName
     session_id: SessionId | None = None
-    input: Message
+    inputs: list[Message]
     mode: RunMode = RunMode.SYNC
 
 
@@ -23,10 +23,8 @@ class RunCreateResponse(Run):
 
 
 class RunResumeRequest(BaseModel):
-    await_: AwaitResume = Field(alias="await")
+    await_resume: AwaitResume
     mode: RunMode
-
-    model_config = ConfigDict(populate_by_name=True)
 
 
 class RunResumeResponse(Run):

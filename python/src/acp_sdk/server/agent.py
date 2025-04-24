@@ -3,6 +3,7 @@ import asyncio
 import inspect
 from collections.abc import AsyncGenerator, Coroutine, Generator
 from concurrent.futures import ThreadPoolExecutor
+from typing import Callable
 
 import janus
 
@@ -31,19 +32,14 @@ class Agent(abc.ABC):
 
     @abc.abstractmethod
     def run(
-        self, input: Message, context: Context
+        self, inputs: list[Message], context: Context
     ) -> (
         AsyncGenerator[RunYield, RunYieldResume] | Generator[RunYield, RunYieldResume] | Coroutine[RunYield] | RunYield
     ):
         pass
 
-    async def session(self, session_id: SessionId | None) -> SessionId | None:
-        if session_id:
-            raise NotImplementedError()
-        return None
-
     async def execute(
-        self, input: Message, session_id: SessionId | None, executor: ThreadPoolExecutor
+        self, inputs: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
@@ -53,13 +49,13 @@ class Agent(abc.ABC):
         )
 
         if inspect.isasyncgenfunction(self.run):
-            run = asyncio.create_task(self._run_async_gen(input, context))
+            run = asyncio.create_task(self._run_async_gen(inputs, context))
         elif inspect.iscoroutinefunction(self.run):
-            run = asyncio.create_task(self._run_coro(input, context))
+            run = asyncio.create_task(self._run_coro(inputs, context))
         elif inspect.isgeneratorfunction(self.run):
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, inputs, context)
         else:
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, inputs, context)
 
         try:
             while True:
@@ -103,3 +99,80 @@ class Agent(abc.ABC):
             context.yield_sync(self.run(input, context))
         finally:
             context.shutdown()
+
+
+def agent(
+    name: str | None = None,
+    description: str | None = None,
+    *,
+    metadata: Metadata | None = None,
+) -> Callable[[Callable], Agent]:
+    """Decorator to create an agent."""
+
+    def decorator(fn: Callable) -> Agent:
+        signature = inspect.signature(fn)
+        parameters = list(signature.parameters.values())
+
+        if len(parameters) == 0:
+            raise TypeError("The agent function must have at least 'input' argument")
+        if len(parameters) > 2:
+            raise TypeError("The agent function must have only 'input' and 'context' arguments")
+        if len(parameters) == 2 and parameters[1].name != "context":
+            raise TypeError("The second argument of the agent function must be 'context'")
+
+        has_context_param = len(parameters) == 2
+
+        class DecoratorAgentBase(Agent):
+            @property
+            def name(self) -> str:
+                return name or fn.__name__
+
+            @property
+            def description(self) -> str:
+                return description or inspect.getdoc(fn) or ""
+
+            @property
+            def metadata(self) -> Metadata:
+                return metadata or Metadata()
+
+        agent: Agent
+        if inspect.isasyncgenfunction(fn):
+
+            class AsyncGenDecoratorAgent(DecoratorAgentBase):
+                async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+                    try:
+                        gen: AsyncGenerator[RunYield, RunYieldResume] = (
+                            fn(input, context) if has_context_param else fn(input)
+                        )
+                        value = None
+                        while True:
+                            value = yield await gen.asend(value)
+                    except StopAsyncIteration:
+                        pass
+
+            agent = AsyncGenDecoratorAgent()
+        elif inspect.iscoroutinefunction(fn):
+
+            class CoroDecoratorAgent(DecoratorAgentBase):
+                async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
+                    return await (fn(input, context) if has_context_param else fn(input))
+
+            agent = CoroDecoratorAgent()
+        elif inspect.isgeneratorfunction(fn):
+
+            class GenDecoratorAgent(DecoratorAgentBase):
+                def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
+                    yield from (fn(input, context) if has_context_param else fn(input))
+
+            agent = GenDecoratorAgent()
+        else:
+
+            class FuncDecoratorAgent(DecoratorAgentBase):
+                def run(self, input: Message, context: Context) -> RunYield:
+                    return fn(input, context) if has_context_param else fn(input)
+
+            agent = FuncDecoratorAgent()
+
+        return agent
+
+    return decorator

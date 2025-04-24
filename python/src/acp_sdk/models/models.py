@@ -1,60 +1,134 @@
 import uuid
-from collections.abc import Iterator
+from datetime import datetime
 from enum import Enum
-from typing import Any, Literal, Union
+from typing import Any, Literal, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import Error
-
-
-class Metadata(BaseModel):
-    model_config = ConfigDict(extra="allow")
 
 
 class AnyModel(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class MessagePartBase(BaseModel):
-    type: Literal["text", "image", "artifact"]
-
-
-class TextMessagePart(MessagePartBase):
-    type: Literal["text"] = "text"
-    content: str
-
-
-class ImageMessagePart(MessagePartBase):
-    type: Literal["image"] = "image"
-    content_url: AnyUrl
-
-
-class ArtifactMessagePart(MessagePartBase):
-    type: Literal["artifact"] = "artifact"
+class Author(BaseModel):
     name: str
-    content_url: AnyUrl
+    email: str | None = None
+    url: AnyUrl | None = None
 
 
-MessagePart = Union[TextMessagePart, ImageMessagePart, ArtifactMessagePart]
+class Contributor(BaseModel):
+    name: str
+    email: str | None = None
+    url: AnyUrl | None = None
 
 
-class Message(RootModel):
-    root: list[MessagePart]
+class LinkType(str, Enum):
+    SOURCE_CODE = "source-code"
+    CONTAINER_IMAGE = "container-image"
+    HOMEPAGE = "homepage"
+    DOCUMENTATION = "documentation"
 
-    def __init__(self, *items: MessagePart) -> None:
-        super().__init__(root=list(items))
 
-    def __iter__(self) -> Iterator[MessagePart]:
-        return iter(self.root)
+class Link(BaseModel):
+    type: LinkType
+    url: AnyUrl
+
+
+class DependencyType(str, Enum):
+    AGENT = "agent"
+    TOOL = "tool"
+    MODEL = "model"
+
+
+class Dependency(BaseModel):
+    type: DependencyType
+    name: str
+
+
+class Metadata(BaseModel):
+    annotations: AnyModel | None = None
+    documentation: str | None = None
+    license: str | None = None
+    programming_language: str | None = None
+    natural_languages: list[str] | None = None
+    framework: str | None = None
+    use_cases: list[str] | None = None
+    tags: list[str] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    author: Author | None = None
+    contributors: list[Contributor] | None = None
+    links: list[Link] | None = None
+    dependencies: list[Dependency] | None = None
+    recommended_models: list[str] | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+class MessagePart(BaseModel):
+    name: Optional[str] = None
+    content_type: Optional[str] = "text/plain"
+    content: Optional[str] = None
+    content_encoding: Optional[Literal["plain", "base64"]] = "plain"
+    content_url: Optional[AnyUrl] = None
+
+    model_config = ConfigDict(extra="allow")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.content is None and self.content_url is None:
+            raise ValueError("Either content or content_url must be provided")
+        if self.content is not None and self.content_url is not None:
+            raise ValueError("Only one of content or content_url can be provided")
+
+
+class Artifact(MessagePart):
+    name: str
+
+
+class Message(BaseModel):
+    parts: list[MessagePart]
 
     def __add__(self, other: "Message") -> "Message":
         if not isinstance(other, Message):
             raise TypeError(f"Cannot concatenate Message with {type(other).__name__}")
-        return Message(*(self.root + other.root))
+        return Message(*(self.parts + other.parts))
 
     def __str__(self) -> str:
-        return "".join(str(part) for part in self.root if isinstance(part, TextMessagePart))
+        return "".join(
+            part.content for part in self.parts if part.content is not None and part.content_type == "text/plain"
+        )
+
+    def compress(self) -> "Message":
+        def can_be_joined(first: MessagePart, second: MessagePart) -> bool:
+            return (
+                first.name is None
+                and second.name is None
+                and first.content_type == "text/plain"
+                and second.content_type == "text/plain"
+                and first.content_encoding == "plain"
+                and second.content_encoding == "plain"
+                and first.content_url is None
+                and second.content_url is None
+            )
+
+        def join(first: MessagePart, second: MessagePart) -> MessagePart:
+            return MessagePart(
+                name=None,
+                content_type="text/plain",
+                content=first.content + second.content,
+                content_encoding="plain",
+                content_url=None,
+            )
+
+        parts: list[MessagePart] = []
+        for part in self.parts:
+            if len(parts) > 0 and can_be_joined(parts[-1], part):
+                parts[-1] = join(parts[-1], part)
+            else:
+                parts.append(part)
+        return Message(parts=parts)
 
 
 AgentName = str
@@ -83,12 +157,18 @@ class RunStatus(str, Enum):
         return self in terminal_states
 
 
-class Await(BaseModel):
-    type: Literal["placeholder"] = "placeholder"
+class MessageAwaitRequest(BaseModel):
+    type: Literal["message"] = "message"
+    message: Message
 
 
-class AwaitResume(BaseModel):
-    pass
+class MessageAwaitResume(BaseModel):
+    type: Literal["message"] = "message"
+    message: Message
+
+
+AwaitRequest = Union[MessageAwaitRequest]
+AwaitResume = Union[MessageAwaitResume]
 
 
 class Run(BaseModel):
@@ -96,41 +176,34 @@ class Run(BaseModel):
     agent_name: AgentName
     session_id: SessionId | None = None
     status: RunStatus = RunStatus.CREATED
-    await_: Await | None = Field(None, alias="await")
-    output: Message | None = None
+    await_request: AwaitRequest | None = None
+    outputs: list[Message] = []
     error: Error | None = None
 
-    model_config = ConfigDict(populate_by_name=True)
 
-    def model_dump_json(
-        self,
-        **kwargs: dict[str, Any],
-    ) -> str:
-        return super().model_dump_json(
-            by_alias=True,
-            **kwargs,
-        )
-
-
-class MessageEvent(BaseModel):
-    type: Literal["message"] = "message"
+class MessageCreatedEvent(BaseModel):
+    type: Literal["message.created"] = "message.created"
     message: Message
 
 
-class AwaitEvent(BaseModel):
-    type: Literal["await"] = "await"
-    await_: Await | None = Field(alias="await")
+class MessagePartEvent(BaseModel):
+    type: Literal["message.part"] = "message.part"
+    part: MessagePart
 
-    model_config = ConfigDict(populate_by_name=True)
 
-    def model_dump_json(
-        self,
-        **kwargs: dict[str, Any],
-    ) -> str:
-        return super().model_dump_json(
-            by_alias=True,
-            **kwargs,
-        )
+class ArtifactEvent(BaseModel):
+    type: Literal["message.part"] = "message.part"
+    part: Artifact
+
+
+class MessageCompletedEvent(BaseModel):
+    type: Literal["message.completed"] = "message.completed"
+    message: Message
+
+
+class RunAwaitingEvent(BaseModel):
+    type: Literal["run.awaiting"] = "run.awaiting"
+    run: Run
 
 
 class GenericEvent(BaseModel):
@@ -138,40 +211,44 @@ class GenericEvent(BaseModel):
     generic: AnyModel
 
 
-class CreatedEvent(BaseModel):
-    type: Literal["created"] = "created"
+class RunCreatedEvent(BaseModel):
+    type: Literal["run.created"] = "run.created"
     run: Run
 
 
-class InProgressEvent(BaseModel):
-    type: Literal["in-progress"] = "in-progress"
+class RunInProgressEvent(BaseModel):
+    type: Literal["run.in-progress"] = "run.in-progress"
     run: Run
 
 
-class FailedEvent(BaseModel):
-    type: Literal["failed"] = "failed"
+class RunFailedEvent(BaseModel):
+    type: Literal["run.failed"] = "run.failed"
     run: Run
 
 
-class CancelledEvent(BaseModel):
-    type: Literal["cancelled"] = "cancelled"
+class RunCancelledEvent(BaseModel):
+    type: Literal["run.cancelled"] = "run.cancelled"
     run: Run
 
 
-class CompletedEvent(BaseModel):
-    type: Literal["completed"] = "completed"
+class RunCompletedEvent(BaseModel):
+    type: Literal["run.completed"] = "run.completed"
     run: Run
 
 
-RunEvent = Union[
-    CreatedEvent,
-    InProgressEvent,
-    MessageEvent,
-    AwaitEvent,
+Event = Union[
+    RunCreatedEvent,
+    RunInProgressEvent,
+    MessageCreatedEvent,
+    ArtifactEvent,
+    MessagePartEvent,
+    MessageCompletedEvent,
+    RunAwaitingEvent,
     GenericEvent,
-    CancelledEvent,
-    FailedEvent,
-    CompletedEvent,
+    RunCancelledEvent,
+    RunFailedEvent,
+    RunCompletedEvent,
+    MessagePartEvent,
 ]
 
 

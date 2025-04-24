@@ -15,10 +15,10 @@ In this repository you are going to find the documentation, specification and to
 ## Contents
 
 - [ACP Documentation](./docs/README.md) [Draft]
-- [Specifications](https://docs.beeai.dev/acp/spec/concepts/overview) [Draft]
+- [Specifications](https://github.com/i-am-bee/beeai-platform/blob/main/docs/acp/spec/openapi.yaml) [Draft]
 - [ACP SDK](./python/) [Alpha]
 - [Community Discussions](https://github.com/orgs/i-am-bee/discussions)
 
 ## Get Involved
 
-Join our GitHub discussions to help shape this evolving standard and build the foundation for an open, interoperable Internet of Agents.
+Join our GitHub [discussions](https://github.com/orgs/i-am-bee/discussions) to help shape this evolving standard and build the foundation for an open, interoperable Internet of Agents.

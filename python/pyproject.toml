@@ -1,29 +1,15 @@
 [project]
 name = "acp-sdk"
-version = "0.1.0rc7"
+version = "0.3.3"
 description = "Agent Communication Protocol SDK"
+license = "Apache-2.0"
 readme = "README.md"
-authors = []
+authors = [{ name = "IBM Corp." }]
+maintainers = [{ name = "Tomas Pilar", email = "thomas7pilar@gmail.com" }]
 requires-python = ">=3.11, <4.0"
-dependencies = ["opentelemetry-api>=1.31.1", "pydantic>=2.11.1"]
-
-[project.optional-dependencies]
-client = [
-    "httpx>=0.28.1",
-    "httpx-sse>=0.4.0",
-    "opentelemetry-instrumentation-httpx>=0.52b1",
-]
-server = [
-    "httpx>=0.28.1",
-    "fastapi[standard]>=0.115.8",
-    "opentelemetry-exporter-otlp-proto-http>=1.31.1",
-    "opentelemetry-instrumentation-fastapi>=0.52b1",
-    "opentelemetry-sdk>=1.31.1",
-    "janus>=2.0.0",
-]
-
-[tool.uv]
-dev-dependencies = [
+dependencies = [
+    "opentelemetry-api>=1.31.1",
+    "pydantic>=2.11.1",
     "httpx>=0.28.1",
     "httpx-sse>=0.4.0",
     "opentelemetry-instrumentation-httpx>=0.52b1",

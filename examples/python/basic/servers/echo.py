@@ -10,13 +10,13 @@ server = Server()
 
 
 @server.agent()
-async def echo(input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for part in input:
+    for message in inputs:
         await asyncio.sleep(0.5)
-        yield {"thought": "I should echo everyting"}
+        yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
-        yield Message(part)
+        yield message
 
 
 server.run()

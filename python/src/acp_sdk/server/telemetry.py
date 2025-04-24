@@ -51,7 +51,3 @@ def configure_telemetry() -> None:
     processor = BatchLogRecordProcessor(OTLPLogExporter())
     logger_provider.add_log_record_processor(processor)
     root_logger.addHandler(LoggingHandler(logger_provider=logger_provider))
-
-
-def get_tracer() -> trace.Tracer:
-    return trace.get_tracer("acp-sdk", __version__)

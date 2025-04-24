@@ -24,6 +24,7 @@ from acp_sdk.models import (
     RunReadResponse,
     RunResumeRequest,
     RunResumeResponse,
+    SessionId,
 )
 from acp_sdk.models.errors import ACPError
 from acp_sdk.server.agent import Agent
@@ -36,6 +37,7 @@ from acp_sdk.server.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
+from acp_sdk.server.session import Session
 from acp_sdk.server.utils import stream_sse
 
 
@@ -59,6 +61,7 @@ def create_app(*agents: Agent) -> FastAPI:
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
     runs: dict[RunId, RunBundle] = {}
+    sessions: dict[SessionId, Session] = {}
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)
@@ -99,14 +102,19 @@ def create_app(*agents: Agent) -> FastAPI:
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
+        session = sessions.get(request.session_id, Session()) if request.session_id else Session()
         nonlocal executor
         bundle = RunBundle(
             agent=agent,
-            run=Run(agent_name=agent.name, session_id=request.session_id),
-            input=request.input,
+            run=Run(agent_name=agent.name, session_id=session.id),
+            inputs=request.inputs,
+            history=list(session.history()),
             executor=executor,
         )
+        session.append(bundle)
+
         runs[bundle.run.run_id] = bundle
+        sessions[session.id] = session
 
         headers = {Headers.RUN_ID: str(bundle.run.run_id)}
 
@@ -140,7 +148,17 @@ def create_app(*agents: Agent) -> FastAPI:
     @app.post("/runs/{run_id}")
     async def resume_run(run_id: RunId, request: RunResumeRequest) -> RunResumeResponse:
         bundle = find_run_bundle(run_id)
-        await bundle.resume(request.await_)
+
+        if bundle.run.await_request is None:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Run {run_id} has no await request")
+
+        if bundle.run.await_request.type != request.await_resume.type:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Run {run_id} is expecting resume of type {bundle.run.await_request.type}",
+            )
+
+        await bundle.resume(request.await_resume)
         match request.mode:
             case RunMode.STREAM:
                 return StreamingResponse(
