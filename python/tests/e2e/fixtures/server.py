@@ -11,9 +11,9 @@ from acp_sdk.server import Context, Server
 from e2e.config import Config
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", params=[timedelta(minutes=1)])
 def server(request: pytest.FixtureRequest) -> Generator[None]:
-    ttl = request.param or timedelta(minutes=1)
+    ttl = request.param
     server = Server()
 
     @server.agent()
