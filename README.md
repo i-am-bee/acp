@@ -38,7 +38,7 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 ## Quickstart
 
 > [!NOTE]
-> This guide uses `uv`. See the [`uv` primer](https://agentcommunicationprotocol.dev/introduction/uv-primer.mdx) for more details.
+> This guide uses `uv`. See the [`uv` primer](https://agentcommunicationprotocol.dev/introduction/uv-primer) for more details.
 
 **1. Initialize your project**
 
