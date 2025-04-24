@@ -13,7 +13,8 @@ This guide uses `uv`. See the [`uv` primer](/introduction/uv-primer) for more de
 <Step title="Initialize your project">
 
 ```sh
-uv init --python '>=3.11'
+uv init --python '>=3.11' my_acp_project
+cd my_acp_project
 ```
 
 </Step>
@@ -27,6 +28,7 @@ uv add acp-sdk
 <Step title="Create an agent">
 
 Let’s create a simple "echo agent" that returns any message it receives.
+Create an `agent.py` file in your project directory with the following code:
 
 ```python agent.py
 import asyncio
@@ -67,6 +69,8 @@ Your server should now be running at http://localhost:8000.
 <Step title="Verify your agent is available">
 <CodeGroup>
 
+In another terminal, run the following `curl` command:
+
 ```sh Request
 curl http://localhost:8000/agents
 ```
@@ -82,6 +86,12 @@ curl http://localhost:8000/agents
 </CodeGroup>
 
 You should see a JSON response containing your `echo` agent, confirming it's available.
+
+<Note>
+For `curl` commands, you can add a pipe to a pretty-printer.
+Install `jq` and add `| jq .` or use the python standard tool by
+adding `| python -m json.tool`.
+</Note>
 
 </Step>
 <Step title="Run the agent via HTTP">
@@ -136,7 +146,8 @@ Your response should include the echoed message "Howdy!".
 </Step>
 <Step title="Build an ACP client">
 
-Here’s a simple ACP client to interact with your `echo` agent:
+Here’s a simple ACP client to interact with your `echo` agent.
+Create a `client.py` file in your project directory with the following code:
 
 ```python client.py
 import asyncio
@@ -151,7 +162,7 @@ async def example() -> None:
             agent="echo",
             inputs=[
                 Message(
-                    parts=[MessagePart(content="Howdy!", content_type="text/plain")]
+                    parts=[MessagePart(content="Howdy to echo from client!", content_type="text/plain")]
                 )
             ],
         )
