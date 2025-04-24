@@ -160,22 +160,13 @@ class Server:
         )
         self._server = uvicorn.Server(config)
 
-        if self_registration:
-            loop = None
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            loop.run_until_complete(self._registrate_and_run())
-        else:
-            self._server.run()
+        asyncio.run(self._serve(self_registration=self_registration))
 
-    async def _registrate_and_run(self) -> None:
-        """Run the server and register the agent."""
-        server_task = asyncio.create_task(self._server.serve())
-        registration_task = asyncio.create_task(self._register_agent())
-        await asyncio.gather(server_task, registration_task)
+    async def _serve(self, self_registration: bool = True) -> None:
+        registration_task = asyncio.create_task(self._register_agent()) if self_registration else None
+        await self._server.serve()
+        if registration_task:
+            registration_task.cancel()
 
     @property
     def should_exit(self) -> bool:

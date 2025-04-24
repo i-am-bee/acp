@@ -95,7 +95,7 @@ def create_app(*agents: Agent) -> FastAPI:
         return AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
 
     @app.get("/healthcheck")
-    async def provider_healthcheck() -> str:
+    async def healthcheck() -> str:
         return "OK"
 
     @app.post("/runs")
