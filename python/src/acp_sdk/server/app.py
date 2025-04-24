@@ -3,7 +3,6 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import ParamSpec
 
 from cachetools import TTLCache
 from fastapi import FastAPI, HTTPException, status
@@ -46,9 +45,6 @@ from acp_sdk.server.utils import stream_sse
 
 class Headers(str, Enum):
     RUN_ID = "Run-ID"
-
-
-P = ParamSpec("P")
 
 
 def create_app(*agents: Agent, run_limit: int = 1000, run_ttl: timedelta = timedelta(hours=1)) -> FastAPI:
