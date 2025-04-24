@@ -33,7 +33,7 @@ from acp_sdk.models import (
 )
 from acp_sdk.models.models import MessagePart
 
-Inputs = list[Message] | Message | MessagePart | str
+Input = list[Message] | Message | list[MessagePart] | MessagePart | list[str] | str
 
 
 class Client:
@@ -85,12 +85,12 @@ class Client:
         response = AgentReadResponse.model_validate(response.json())
         return Agent(**response.model_dump())
 
-    async def run_sync(self, inputs: Inputs, *, agent: AgentName) -> Run:
+    async def run_sync(self, input: Input, *, agent: AgentName) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=self._unify_inputs(inputs),
+                inputs=self._unify_inputs(input),
                 mode=RunMode.SYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -100,12 +100,12 @@ class Client:
         self._set_session(response)
         return Run(**response.model_dump())
 
-    async def run_async(self, inputs: Inputs, *, agent: AgentName) -> Run:
+    async def run_async(self, input: Input, *, agent: AgentName) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=self._unify_inputs(inputs),
+                inputs=self._unify_inputs(input),
                 mode=RunMode.ASYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -115,14 +115,14 @@ class Client:
         self._set_session(response)
         return Run(**response.model_dump())
 
-    async def run_stream(self, inputs: Inputs, *, agent: AgentName) -> AsyncIterator[Event]:
+    async def run_stream(self, input: Input, *, agent: AgentName) -> AsyncIterator[Event]:
         async with aconnect_sse(
             self._client,
             "POST",
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=self._unify_inputs(inputs),
+                inputs=self._unify_inputs(input),
                 mode=RunMode.STREAM,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -191,11 +191,23 @@ class Client:
     def _set_session(self, run: Run) -> None:
         self._session_id = run.session_id
 
-    def _unify_inputs(self, inputs: Inputs) -> list[Message]:
-        if isinstance(inputs, str):
-            inputs = MessagePart(content=inputs)
-        if isinstance(inputs, MessagePart):
-            inputs = Message(parts=[inputs])
-        if isinstance(inputs, Message):
-            inputs = [inputs]
-        return inputs
+    def _unify_inputs(self, input: Input) -> list[Message]:
+        if isinstance(input, list):
+            if len(input) == 0:
+                return []
+            if all(isinstance(item, Message) for item in input):
+                return input
+            elif all(isinstance(item, MessagePart) for item in input):
+                return [Message(parts=input)]
+            elif all(isinstance(item, str) for item in input):
+                return [Message(parts=[MessagePart(content=content) for content in input])]
+            else:
+                raise RuntimeError("List with mixed types is not supported")
+        else:
+            if isinstance(input, str):
+                input = MessagePart(content=input)
+            if isinstance(input, MessagePart):
+                input = Message(parts=[input])
+            if isinstance(input, Message):
+                input = [input]
+            return input

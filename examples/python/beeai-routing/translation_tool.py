@@ -11,33 +11,38 @@ from beeai_framework.emitter import Emitter
 from beeai_framework.tools import ToolOutput
 from beeai_framework.utils.strings import to_json
 
+
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
-            agent=agent, inputs=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
+            agent=agent, input=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
         )
 
     return run.outputs
 
+
 class Language(str, Enum):
-    spanish = 'spanish'
-    french = 'french'
+    spanish = "spanish"
+    french = "french"
+
+
 class TranslateToolInput(BaseModel):
     text: str = Field(description="The text to translate")
     language: Language = Field(description="The language to translate the text to")
 
+
 class TranslateToolResult(BaseModel):
     text: str = Field(description="The translated text")
+
 
 class TranslateToolOutput(ToolOutput):
     result: TranslateToolResult = Field(description="Translation result")
 
     def get_text_content(self) -> str:
         return to_json(self.result)
-    
+
     def is_empty(self) -> bool:
         return self.result.text == ""
-
 
     def __init__(self, result: TranslateToolResult) -> None:
         super().__init__()
@@ -55,8 +60,9 @@ class TranslationTool(Tool[TranslateToolInput, ToolRunOptions, TranslateToolOutp
             creator=self,
         )
 
-
-    async def _run(self, input: TranslateToolInput, options: ToolRunOptions | None, context: RunContext) -> TranslateToolOutput:
+    async def _run(
+        self, input: TranslateToolInput, options: ToolRunOptions | None, context: RunContext
+    ) -> TranslateToolOutput:
         if input.language == Language.spanish:
             result = await run_agent("translation_spanish", input.text)
         elif input.language == Language.french:

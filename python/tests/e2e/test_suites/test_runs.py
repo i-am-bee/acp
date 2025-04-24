@@ -25,27 +25,27 @@ await_resume = MessageAwaitResume(message=Message(parts=[]))
 
 @pytest.mark.asyncio
 async def test_run_sync(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="echo", inputs=inputs)
+    run = await client.run_sync(agent="echo", input=inputs)
     assert run.status == RunStatus.COMPLETED
     assert run.outputs == inputs
 
 
 @pytest.mark.asyncio
 async def test_run_async(server: Server, client: Client) -> None:
-    run = await client.run_async(agent="echo", inputs=inputs)
+    run = await client.run_async(agent="echo", input=inputs)
     assert run.status == RunStatus.CREATED
 
 
 @pytest.mark.asyncio
 async def test_run_stream(server: Server, client: Client) -> None:
-    event_stream = [event async for event in client.run_stream(agent="echo", inputs=inputs)]
+    event_stream = [event async for event in client.run_stream(agent="echo", input=inputs)]
     assert isinstance(event_stream[0], RunCreatedEvent)
     assert isinstance(event_stream[-1], RunCompletedEvent)
 
 
 @pytest.mark.asyncio
 async def test_run_status(server: Server, client: Client) -> None:
-    run = await client.run_async(agent="echo", inputs=inputs)
+    run = await client.run_async(agent="echo", input=inputs)
     while run.status in (RunStatus.CREATED, RunStatus.IN_PROGRESS):
         run = await client.run_status(run_id=run.run_id)
     assert run.status == RunStatus.COMPLETED
@@ -53,7 +53,7 @@ async def test_run_status(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_failure(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="failer", inputs=inputs)
+    run = await client.run_sync(agent="failer", input=inputs)
     assert run.status == RunStatus.FAILED
     assert run.error is not None
     assert run.error.code == ErrorCode.INVALID_INPUT
@@ -61,7 +61,7 @@ async def test_failure(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_cancel(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="awaiter", inputs=inputs)
+    run = await client.run_sync(agent="awaiter", input=inputs)
     assert run.status == RunStatus.AWAITING
     run = await client.run_cancel(run_id=run.run_id)
     assert run.status == RunStatus.CANCELLING
@@ -69,7 +69,7 @@ async def test_run_cancel(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_sync(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="awaiter", inputs=inputs)
+    run = await client.run_sync(agent="awaiter", input=inputs)
     assert run.status == RunStatus.AWAITING
     assert run.await_request is not None
 
@@ -79,7 +79,7 @@ async def test_run_resume_sync(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_async(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="awaiter", inputs=inputs)
+    run = await client.run_sync(agent="awaiter", input=inputs)
     assert run.status == RunStatus.AWAITING
     assert run.await_request is not None
 
@@ -89,7 +89,7 @@ async def test_run_resume_async(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_resume_stream(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="awaiter", inputs=inputs)
+    run = await client.run_sync(agent="awaiter", input=inputs)
     assert run.status == RunStatus.AWAITING
     assert run.await_request is not None
 
@@ -101,15 +101,15 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
 @pytest.mark.asyncio
 async def test_run_session(server: Server, client: Client) -> None:
     async with client.session() as session:
-        run = await session.run_sync(agent="echo", inputs=inputs)
+        run = await session.run_sync(agent="echo", input=inputs)
         assert run.outputs == inputs
-        run = await session.run_sync(agent="echo", inputs=inputs)
+        run = await session.run_sync(agent="echo", input=inputs)
         assert run.outputs == inputs + inputs + inputs
 
 
 @pytest.mark.asyncio
 async def test_mime_types(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="mime_types", inputs=inputs)
+    run = await client.run_sync(agent="mime_types", input=inputs)
     assert run.status == RunStatus.COMPLETED
     assert len(run.outputs) == 1
 
@@ -130,7 +130,7 @@ async def test_mime_types(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_base64_encoding(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="base64_encoding", inputs=inputs)
+    run = await client.run_sync(agent="base64_encoding", input=inputs)
     assert run.status == RunStatus.COMPLETED
     assert len(run.outputs) == 1
 
@@ -150,7 +150,7 @@ async def test_base64_encoding(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_artifacts(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="artifact_producer", inputs=inputs)
+    run = await client.run_sync(agent="artifact_producer", input=inputs)
     assert run.status == RunStatus.COMPLETED
 
     assert len(run.outputs) == 1
@@ -179,7 +179,7 @@ async def test_artifacts(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_artifact_streaming(server: Server, client: Client) -> None:
-    events = [event async for event in client.run_stream(agent="artifact_producer", inputs=inputs)]
+    events = [event async for event in client.run_stream(agent="artifact_producer", input=inputs)]
 
     assert isinstance(events[0], RunCreatedEvent)
     assert isinstance(events[-1], RunCompletedEvent)
@@ -201,7 +201,7 @@ async def test_artifact_streaming(server: Server, client: Client) -> None:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("server", [timedelta(seconds=5)], indirect=True)
 async def test_run_ttl(server: Server, client: Client) -> None:
-    run = await client.run_async(agent="echo", inputs=inputs)
+    run = await client.run_async(agent="echo", input=inputs)
     run = await client.run_status(run_id=run.run_id)
     await asyncio.sleep(6)
     try:
@@ -218,10 +218,10 @@ async def test_run_ttl(server: Server, client: Client) -> None:
 @pytest.mark.parametrize("server", [timedelta(seconds=5)], indirect=True)
 async def test_session_ttl(server: Server, client: Client) -> None:
     async with client.session() as session:
-        run = await session.run_sync(agent="echo", inputs=inputs)
+        run = await session.run_sync(agent="echo", input=inputs)
         await asyncio.sleep(3)
-        run = await session.run_sync(agent="echo", inputs=inputs)
+        run = await session.run_sync(agent="echo", input=inputs)
         assert len(run.outputs) == 3
         await asyncio.sleep(3)
-        run = await session.run_sync(agent="echo", inputs=inputs)
+        run = await session.run_sync(agent="echo", input=inputs)
         assert len(run.outputs) == 7  # First run shall be forgotten
