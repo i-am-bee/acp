@@ -12,44 +12,45 @@ llm = LLM(model="openai/llama3.1", base_url="http://localhost:11434/v1", api_key
 
 server = Server()
 
-website_scraper = Agent(
-    llm=llm,
-    role="Website Researcher",
-    goal="Find useful content for songwriting from this website: {url}",
-    backstory="Expert researcher who finds inspiring stories and themes online.",
-    verbose=True,
-    tools=[ScrapeWebsiteTool()],
-)
-
-song_writer = Agent(
-    llm=llm,
-    role="Songwriter",
-    goal="Create songs from research material.",
-    backstory="Talented songwriter who transforms information into emotional, memorable songs.",
-    verbose=True,
-)
-
-scrape_task = Task(
-    description="Research this URL for songwriting material: {url}",
-    expected_output="Collection of themes, stories, and facts for songwriting inspiration.",
-    agent=website_scraper,
-)
-
-write_song_task = Task(
-    description="Write a song based on research.",
-    expected_output="Complete song with lyrics and style based on research.",
-    agent=song_writer,
-)
-
 
 @server.agent()
 def song_writer_agent(inputs: list[Message], context: Context) -> Iterator:
     """Agent that writes a song about a website. Accepts a message with URL"""
+
     try:
         url = str(AnyUrl(str(inputs[-1])))
     except ValueError:
         yield MessagePart(content="This is not a URL, please provide valid website.")
         return
+
+    website_scraper = Agent(
+        llm=llm,
+        role="Website Researcher",
+        goal="Find useful content for songwriting from this website: {url}",
+        backstory="Expert researcher who finds inspiring stories and themes online.",
+        verbose=True,
+        tools=[ScrapeWebsiteTool()],
+    )
+
+    song_writer = Agent(
+        llm=llm,
+        role="Songwriter",
+        goal="Create songs from research material.",
+        backstory="Talented songwriter who transforms information into emotional, memorable songs.",
+        verbose=True,
+    )
+
+    scrape_task = Task(
+        description="Research this URL for songwriting material: {url}",
+        expected_output="Collection of themes, stories, and facts for songwriting inspiration.",
+        agent=website_scraper,
+    )
+
+    write_song_task = Task(
+        description="Write a song based on research.",
+        expected_output="Complete song with lyrics and style based on research.",
+        agent=song_writer,
+    )
 
     def step_callback(event: Any, *args, **kwargs) -> None:
         match event:
