@@ -62,6 +62,10 @@ dependencies = [
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-sdk" },
     { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "pytest-httpx" },
 ]
 
@@ -78,8 +82,10 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-httpx", specifier = ">=0.52b1" },
     { name = "opentelemetry-sdk", specifier = ">=1.31.1" },
     { name = "pydantic", specifier = ">=2.11.1" },
-    { name = "pytest-httpx", specifier = ">=0.35.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest-httpx", specifier = ">=0.35.0" }]
 
 [[package]]
 name = "aiofiles"

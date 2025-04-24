@@ -19,9 +19,11 @@ dependencies = [
     "opentelemetry-sdk>=1.31.1",
     "janus>=2.0.0",
     "cachetools>=5.5.2",
-    "pytest-httpx>=0.35.0",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest-httpx>=0.35.0"]
