@@ -195,7 +195,7 @@ class Server:
         for agent in self._agents:
             request_data = {
                 "location": f"http://{self._server.config.host}:{self._server.config.port}",
-                "id": agent.name
+                "id": agent.name,
             }
             try:
                 await async_request_with_retry(
