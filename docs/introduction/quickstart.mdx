@@ -5,11 +5,15 @@ description: "Get up and running with ACP"
 
 This guide will walk you through using the Agent Communication Protocol (ACP) to create and run your first agent, interact with it using HTTP requests, and build a basic client.
 
+<Note>
+This guide uses `uv`. See the [`uv` primer](/introduction/uv-primer.mdx) for more details.
+</Note>
+
 <Steps>
 <Step title="Initialize your project">
 
 ```sh
-uv init
+uv init --python '>=3.11'
 ```
 
 </Step>
@@ -54,7 +58,7 @@ server.run()
 <Step title="Start the ACP server">
 
 ```sh
-python agent.py
+uv run agent.py
 ```
 
 Your server should now be running at http://localhost:8000.
@@ -162,7 +166,7 @@ if __name__ == "__main__":
 <Step title="Run the ACP client">
 
 ```sh
-python client.py
+uv run client.py
 ```
 
 You should see the echoed response printed to your console. 🎉
