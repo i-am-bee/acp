@@ -58,13 +58,15 @@ async def canvas_agent(inputs: list[Message], context: Context) -> AsyncGenerato
 
     llm = ChatModel.from_name("ollama:gemma3:12b-it-qat")
 
-    response = await llm.create(messages=[
-        SystemMessage(SYSTEM_PROMPT),
-        *(
-            (UserMessage if getattr(message.parts[0], "role", None) == "user" else AssistantMessage)(str(message))
-            for message in inputs
-        ),
-    ])
+    response = await llm.create(
+        messages=[
+            SystemMessage(SYSTEM_PROMPT),
+            *(
+                (UserMessage if getattr(message.parts[0], "role", None) == "user" else AssistantMessage)(str(message))
+                for message in inputs
+            ),
+        ]
+    )
     response_text = response.get_text_content()
 
     last_end = 0

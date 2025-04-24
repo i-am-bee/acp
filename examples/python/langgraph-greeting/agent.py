@@ -16,9 +16,11 @@ class AgentState(TypedDict):
     hour: int
     greeting: str
 
+
 def get_current_hour(state: AgentState) -> dict[str, int]:
     now = datetime.now()
     return {"hour": now.hour}
+
 
 def decide_greeting(state: AgentState) -> dict[str, str]:
     hour = state["hour"]
@@ -29,8 +31,10 @@ def decide_greeting(state: AgentState) -> dict[str, str]:
     else:
         return {"greeting": "Good evening"}
 
+
 def format_response(state: AgentState) -> dict[str, str]:
-    return {"final_response": f'{state["greeting"]} {state["name"]}'}
+    return {"final_response": f"{state['greeting']} {state['name']}"}
+
 
 # create graph
 workflow = StateGraph(AgentState)

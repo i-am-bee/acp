@@ -5,7 +5,9 @@ from acp_sdk.models import Message, MessageAwaitResume, MessagePart
 
 
 async def handle_resume(client, run_id):
-    async for event in client.run_resume_stream(run_id=run_id, await_resume=MessageAwaitResume(message=Message(parts=[MessagePart(content="yes")]))):
+    async for event in client.run_resume_stream(
+        run_id=run_id, await_resume=MessageAwaitResume(message=Message(parts=[MessagePart(content="yes")]))
+    ):
         print(event)
 
         if event.type == "run.completed":

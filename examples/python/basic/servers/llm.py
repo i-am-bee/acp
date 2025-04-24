@@ -9,6 +9,7 @@ from beeai_framework.memory.token_memory import TokenMemory
 
 server = Server()
 
+
 @server.agent()
 async def llm(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """LLM agent that processes inputs and returns a response"""

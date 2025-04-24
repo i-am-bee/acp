@@ -12,6 +12,7 @@ from translation_tool import TranslationTool
 
 server = Server()
 
+
 @server.agent()
 async def translation_spanish(inputs: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
@@ -20,6 +21,7 @@ async def translation_spanish(inputs: list[Message]) -> AsyncGenerator:
     response = await agent.run(prompt="Translate the given text to Spanish. The text is: " + str(inputs))
 
     yield MessagePart(content=response.result.text)
+
 
 @server.agent()
 async def translation_french(inputs: list[Message]) -> AsyncGenerator:
@@ -40,16 +42,18 @@ async def main_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
         tools=[TranslationTool()],
         templates={
             "system": lambda template: template.update(
-                defaults=exclude_none({
-                    "instructions": """
+                defaults=exclude_none(
+                    {
+                        "instructions": """
                         Translate the given text to either Spanish or French using the translation tool.
                         Return only the result from the tool as it is, don't change it.
                     """,
-                    "role": "system"
-                })
+                        "role": "system",
+                    }
+                )
             )
         },
-        memory=TokenMemory(llm)
+        memory=TokenMemory(llm),
     )
 
     prompt = reduce(lambda x, y: x + y, inputs)
