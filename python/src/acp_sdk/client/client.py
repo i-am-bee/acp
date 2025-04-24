@@ -31,6 +31,9 @@ from acp_sdk.models import (
     RunResumeResponse,
     SessionId,
 )
+from acp_sdk.models.models import MessagePart
+
+Inputs = list[Message] | Message | MessagePart | str
 
 
 class Client:
@@ -81,12 +84,12 @@ class Client:
         self._raise_error(response)
         return AgentReadResponse.model_validate(response.json())
 
-    async def run_sync(self, *, agent: AgentName, inputs: list[Message]) -> Run:
+    async def run_sync(self, inputs: Inputs, *, agent: AgentName) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=inputs,
+                inputs=self._unify_inputs(inputs),
                 mode=RunMode.SYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -96,12 +99,12 @@ class Client:
         self._set_session(response)
         return response
 
-    async def run_async(self, *, agent: AgentName, inputs: list[Message]) -> Run:
+    async def run_async(self, inputs: Inputs, *, agent: AgentName) -> Run:
         response = await self._client.post(
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=inputs,
+                inputs=self._unify_inputs(inputs),
                 mode=RunMode.ASYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -111,14 +114,14 @@ class Client:
         self._set_session(response)
         return response
 
-    async def run_stream(self, *, agent: AgentName, inputs: list[Message]) -> AsyncIterator[Event]:
+    async def run_stream(self, inputs: Inputs, *, agent: AgentName) -> AsyncIterator[Event]:
         async with aconnect_sse(
             self._client,
             "POST",
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                inputs=inputs,
+                inputs=self._unify_inputs(inputs),
                 mode=RunMode.STREAM,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -138,7 +141,7 @@ class Client:
         self._raise_error(response)
         return RunCancelResponse.model_validate(response.json())
 
-    async def run_resume_sync(self, *, run_id: RunId, await_resume: AwaitResume) -> Run:
+    async def run_resume_sync(self, await_resume: AwaitResume, *, run_id: RunId) -> Run:
         response = await self._client.post(
             f"/runs/{run_id}",
             content=RunResumeRequest(await_resume=await_resume, mode=RunMode.SYNC).model_dump_json(),
@@ -146,7 +149,7 @@ class Client:
         self._raise_error(response)
         return RunResumeResponse.model_validate(response.json())
 
-    async def run_resume_async(self, *, run_id: RunId, await_resume: AwaitResume) -> Run:
+    async def run_resume_async(self, await_resume: AwaitResume, *, run_id: RunId) -> Run:
         response = await self._client.post(
             f"/runs/{run_id}",
             content=RunResumeRequest(await_resume=await_resume, mode=RunMode.ASYNC).model_dump_json(),
@@ -154,7 +157,7 @@ class Client:
         self._raise_error(response)
         return RunResumeResponse.model_validate(response.json())
 
-    async def run_resume_stream(self, *, run_id: RunId, await_resume: AwaitResume) -> AsyncIterator[Event]:
+    async def run_resume_stream(self, await_resume: AwaitResume, *, run_id: RunId) -> AsyncIterator[Event]:
         async with aconnect_sse(
             self._client,
             "POST",
@@ -183,3 +186,12 @@ class Client:
 
     def _set_session(self, run: Run) -> None:
         self._session_id = run.session_id
+
+    def _unify_inputs(self, inputs: Inputs) -> list[Message]:
+        if isinstance(inputs, str):
+            inputs = MessagePart(content=inputs)
+        if isinstance(inputs, MessagePart):
+            inputs = Message(parts=[inputs])
+        if isinstance(inputs, Message):
+            inputs = [inputs]
+        return inputs
