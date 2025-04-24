@@ -1,8 +1,10 @@
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 from enum import Enum
 
+from cachetools import TTLCache
 from fastapi import FastAPI, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -45,7 +47,7 @@ class Headers(str, Enum):
     RUN_ID = "Run-ID"
 
 
-def create_app(*agents: Agent) -> FastAPI:
+def create_app(*agents: Agent, run_limit: int = 1000, run_ttl: timedelta = timedelta(hours=1)) -> FastAPI:
     executor: ThreadPoolExecutor
 
     @asynccontextmanager
@@ -60,8 +62,8 @@ def create_app(*agents: Agent) -> FastAPI:
     FastAPIInstrumentor.instrument_app(app)
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
-    runs: dict[RunId, RunBundle] = {}
-    sessions: dict[SessionId, Session] = {}
+    runs: TTLCache[RunId, RunBundle] = TTLCache(maxsize=run_limit, ttl=run_ttl, timer=datetime.now)
+    sessions: TTLCache[SessionId, Session] = TTLCache(maxsize=run_limit, ttl=run_ttl, timer=datetime.now)
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)

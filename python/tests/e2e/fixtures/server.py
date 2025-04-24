@@ -1,6 +1,7 @@
 import base64
 import time
 from collections.abc import AsyncGenerator, AsyncIterator, Generator
+from datetime import timedelta
 from threading import Thread
 
 import pytest
@@ -10,8 +11,9 @@ from acp_sdk.server import Context, Server
 from e2e.config import Config
 
 
-@pytest.fixture(scope="module")
-def server() -> Generator[None]:
+@pytest.fixture(scope="module", params=[timedelta(minutes=1)])
+def server(request: pytest.FixtureRequest) -> Generator[None]:
+    ttl = request.param
     server = Server()
 
     @server.agent()
@@ -74,7 +76,7 @@ def server() -> Generator[None]:
             content_encoding="base64",
         )
 
-    thread = Thread(target=server.run, kwargs={"port": Config.PORT}, daemon=True)
+    thread = Thread(target=server.run, kwargs={"run_ttl": ttl, "port": Config.PORT}, daemon=True)
     thread.start()
 
     time.sleep(1)

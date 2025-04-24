@@ -18,6 +18,7 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.52b1",
     "opentelemetry-sdk>=1.31.1",
     "janus>=2.0.0",
+    "cachetools>=5.5.2",
 ]
 
 [build-system]
