@@ -1,5 +1,8 @@
+import asyncio
 import base64
+from datetime import timedelta
 
+from acp_sdk.models.errors import ACPError
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
@@ -193,3 +196,32 @@ async def test_artifact_streaming(server: Server, client: Client) -> None:
     assert "text/plain" in artifact_types
     assert "application/json" in artifact_types
     assert "image/png" in artifact_types
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("server", [timedelta(seconds=5)], indirect=True)
+async def test_run_ttl(server: Server, client: Client) -> None:
+    run = await client.run_async(agent="echo", inputs=inputs)
+    run = await client.run_status(run_id=run.run_id)
+    await asyncio.sleep(6)
+    try:
+        run = await client.run_status(run_id=run.run_id)
+        raise AssertionError("Error expected")
+    except ACPError as e:
+        if e.error.code == ErrorCode.NOT_FOUND:
+            assert True
+        else:
+            raise AssertionError(f"Unexpected error code {e.error.code}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("server", [timedelta(seconds=5)], indirect=True)
+async def test_session_ttl(server: Server, client: Client) -> None:
+    async with client.session() as session:
+        run = await session.run_sync(agent="echo", inputs=inputs)
+        await asyncio.sleep(3)
+        run = await session.run_sync(agent="echo", inputs=inputs)
+        assert len(run.outputs) == 3
+        await asyncio.sleep(3)
+        run = await session.run_sync(agent="echo", inputs=inputs)
+        assert len(run.outputs) == 7  # First run shall be forgotten

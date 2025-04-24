@@ -1,4 +1,5 @@
 import asyncio
+from datetime import timedelta
 import os
 from collections.abc import Awaitable
 from typing import Any, Callable
@@ -42,6 +43,8 @@ class Server:
         self,
         configure_logger: bool = True,
         configure_telemetry: bool = False,
+        run_limit: int = 1000,
+        run_ttl: timedelta = timedelta(hours=1),
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -105,7 +108,7 @@ class Server:
             configure_telemetry_func()
 
         config = uvicorn.Config(
-            create_app(*self._agents),
+            create_app(*self._agents, run_limit=run_limit, run_ttl=run_ttl),
             host,
             port,
             uds,
