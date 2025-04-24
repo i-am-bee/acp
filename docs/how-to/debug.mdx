@@ -61,15 +61,18 @@ docker run -p 4318:6006 -i -t arizephoenix/phoenix
 In this example, we will focus only on the communication between the server and client. 
 Let's use the `Jaeger` for this example.
 
-> Be sure you have a running Jaeger instance before you start! See the [Run Jaeger](#run-jaeger) section for more details.
+<Warning>
+Be sure you have a running Jaeger instance before you start! See the [Run Jaeger](#run-jaeger) section for more details.
+</Warning>
 
 ### Init the repository
 
-```
-uv init
-```
+<Note>
+This guide uses `uv`. See the [`uv` primer](/introduction/uv-primer) for more details.
+</Note>
 
 ```
+uv init --python '>=3.11'
 uv add acp-sdk
 ```
 
