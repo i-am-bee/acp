@@ -82,7 +82,8 @@ class Client:
     async def agent(self, *, name: AgentName) -> Agent:
         response = await self._client.get(f"/agents/{name}")
         self._raise_error(response)
-        return AgentReadResponse.model_validate(response.json())
+        response = AgentReadResponse.model_validate(response.json())
+        return Agent(**response.model_dump())
 
     async def run_sync(self, inputs: Inputs, *, agent: AgentName) -> Run:
         response = await self._client.post(
@@ -97,7 +98,7 @@ class Client:
         self._raise_error(response)
         response = RunCreateResponse.model_validate(response.json())
         self._set_session(response)
-        return response
+        return Run(**response.model_dump())
 
     async def run_async(self, inputs: Inputs, *, agent: AgentName) -> Run:
         response = await self._client.post(
@@ -112,7 +113,7 @@ class Client:
         self._raise_error(response)
         response = RunCreateResponse.model_validate(response.json())
         self._set_session(response)
-        return response
+        return Run(**response.model_dump())
 
     async def run_stream(self, inputs: Inputs, *, agent: AgentName) -> AsyncIterator[Event]:
         async with aconnect_sse(
@@ -139,7 +140,8 @@ class Client:
     async def run_cancel(self, *, run_id: RunId) -> Run:
         response = await self._client.post(f"/runs/{run_id}/cancel")
         self._raise_error(response)
-        return RunCancelResponse.model_validate(response.json())
+        response = RunCancelResponse.model_validate(response.json())
+        return Run(**response.model_dump())
 
     async def run_resume_sync(self, await_resume: AwaitResume, *, run_id: RunId) -> Run:
         response = await self._client.post(
@@ -147,7 +149,8 @@ class Client:
             content=RunResumeRequest(await_resume=await_resume, mode=RunMode.SYNC).model_dump_json(),
         )
         self._raise_error(response)
-        return RunResumeResponse.model_validate(response.json())
+        response = RunResumeResponse.model_validate(response.json())
+        return Run(**response.model_dump())
 
     async def run_resume_async(self, await_resume: AwaitResume, *, run_id: RunId) -> Run:
         response = await self._client.post(
@@ -155,7 +158,8 @@ class Client:
             content=RunResumeRequest(await_resume=await_resume, mode=RunMode.ASYNC).model_dump_json(),
         )
         self._raise_error(response)
-        return RunResumeResponse.model_validate(response.json())
+        response = RunResumeResponse.model_validate(response.json())
+        return Run(**response.model_dump())
 
     async def run_resume_stream(self, await_resume: AwaitResume, *, run_id: RunId) -> AsyncIterator[Event]:
         async with aconnect_sse(
