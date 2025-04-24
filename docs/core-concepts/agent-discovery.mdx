@@ -1,0 +1,87 @@
+---
+title: "Agent Discovery"
+description: "Discover available agents and their capabilities"
+---
+
+Agent discovery in ACP helps you quickly **find available agents** and **understand their capabilities**. This simplifies integration and ensures compatibility. Agent metadata is standardized through the [Agent Detail](/core-concepts/agent-detail) specification and can be **extended** to support your custom needs.
+
+## Basic Discovery (via ACP Server)
+
+You can discover agents hosted on ACP servers using REST APIs or the ACP Python SDK. Basic discovery returns essential info like:
+- Name and description
+- Capabilities
+- Operational status
+
+<Note>
+  Filtering and sorting are on our roadmap. Help us shape priorities by sharing your thoughts via [community feedback](/about/contribute).
+</Note>
+
+<Tabs>
+  <Tab title="REST API">
+    ```bash
+    curl http://localhost:8000/agents
+    ```
+  </Tab>
+  <Tab title="Python SDK">
+    ```python
+    import asyncio
+    from acp_sdk.client import Client
+    
+    async def main():
+        client = Client(base_url="http://localhost:8000")
+        async for agent in client.agents():
+            print(agent.name, agent.description)
+    
+    asyncio.run(main())
+    ```
+  </Tab>
+</Tabs>
+
+## Registry-Based Discovery
+
+Registry-based discovery provides a centralized view of agents across multiple ACP servers. This makes managing and discovering agents easier, especially in large-scale deployments or enterprise environments.
+
+It enables:
+- Centralized agent listings
+- Scalable management across multiple servers
+- Simplified search and discovery
+
+While not yet part of the official ACP spec, this feature is already implemented in the [BeeAI Platform](https://beeai.dev).
+
+We are actively gauging community interest in making this a core part of the ACP specification. To help shape the direction, visit our [Contribute](/about/contribute) page.
+
+## Offline Discovery
+
+Offline discovery allows agents to be discoverable without requiring network connectivity. This is achieved by embedding agent metadata directly into the distribution package, typically through container image labels or bundled metadata files.
+
+By embedding metadata during build time, the [Agent Detail](/core-concepts/agent-detail) remains synchronized with the agent's actual implementation. This approach:
+- Prevents mismatches between advertised capabilities and actual behavior
+- Provides value in secure, disconnected, or automated deployment environments
+- Simplifies distribution and deployment workflows
+
+We recommend embedding Agent Detail metadata directly into container images during the build process. The [BeeAI Platform](https://beeai.dev) follows this best practice by storing standardized metadata in container image labels, which:
+- Streamlines integration with CI/CD pipelines
+- Ensures metadata consistency throughout the deployment lifecycle
+- Simplifies agent discovery in offline environments
+
+## Open Discovery (Manifest Files)
+
+Open discovery allows [Agent Detail](/core-concepts/agent-detail) to be made publicly accessible through a standardized manifest file. This makes it easy for apps, websites, and third-party tools to discover agent capabilities by knowing only the agent’s domain.
+
+We recommended that you publish agent metadata using a YAML file (`agent.yml`), placed in a well-known public location:
+
+```bash
+https://your-domain.com/.well-known/agent.yml
+```
+
+The Agent Detail specification currently covers only the description of an agent’s capabilities. It does **not** include instructions for how to deploy or consume the agent.
+
+- **Managed agents** (packaged for deployment) require standardized build and deployment instructions
+- **Unmanaged agents** (already running services) require metadata on how to access and consume the service
+
+These deployment details are not yet part of the official ACP specification. However, we are exploring options for standardizing both managed and unmanaged agent metadata. Early prototypes have used containers, `uvx`, and `npx` to simplify agent distribution and usage.
+
+To participate in ongoing discussions about manifest standardization and best practices, visit our [Contribute](/about/contribute) page or join these existing discussions:
+
+- [Agent Manifest File Format #427](https://github.com/orgs/i-am-bee/discussions/427)
+- [Manifest-Based Agent Offline Discoverability #344](https://github.com/orgs/i-am-bee/discussions/344)

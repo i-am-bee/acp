@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.11, <4.0"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -12,10 +13,12 @@ members = [
     "acp-gpt-researcher",
     "acp-sdk",
     "basic",
+    "beeai-canvas",
     "beeai-framework-chat",
     "crewai-song-writer",
-    "lang-graph",
+    "lang-graph-greeting",
     "prompt-chaining",
+    "routing",
 ]
 
 [manifest.dependency-groups]
@@ -356,6 +359,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d8/e4/0c4c39e18fd76d6a628d4dd8da40543d136ce2d1752bd6eeeab0791f4d6b/beautifulsoup4-4.13.4.tar.gz", hash = "sha256:dbb3c4e1ceae6aefebdaf2423247260cd062430a410e38c66f2baa50a8437195", size = 621067 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/50/cd/30110dc0ffcf3b131156077b90e9f60ed75711223f306da4db08eff8403b/beautifulsoup4-4.13.4-py3-none-any.whl", hash = "sha256:9bbbb14bfde9d79f38b8cd5f8c7c85f4b8f2523190ebed90e950a8dea4cb1c4b", size = 187285 },
+]
+
+[[package]]
+name = "beeai-canvas"
+version = "0.1.0"
+source = { virtual = "examples/python/beeai-canvas" }
+dependencies = [
+    { name = "acp-sdk" },
+    { name = "beeai-framework" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acp-sdk", editable = "python" },
+    { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
 [[package]]
@@ -1972,9 +1992,9 @@ wheels = [
 ]
 
 [[package]]
-name = "lang-graph"
+name = "lang-graph-greeting"
 version = "0.1.0"
-source = { virtual = "examples/python/langgraph" }
+source = { virtual = "examples/python/langgraph-greeting" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "langgraph" },
@@ -4121,6 +4141,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2e/ea/13945d58d556a28dfb0f774ad5c8af759527390e59505a40d164bf8ce1ce/rich_toolkit-0.14.1.tar.gz", hash = "sha256:9248e2d087bfc01f3e4c5c8987e05f7fa744d00dd22fa2be3aa6e50255790b3f", size = 104416 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/66/e8/61c5b12d1567fdba41a6775db12a090d88b8305424ee7c47259c70d33cb4/rich_toolkit-0.14.1-py3-none-any.whl", hash = "sha256:dc92c0117d752446d04fdc828dbca5873bcded213a091a5d3742a2beec2e6559", size = 24177 },
+]
+
+[[package]]
+name = "routing"
+version = "0.1.0"
+source = { virtual = "examples/python/beeai-routing" }
+dependencies = [
+    { name = "acp-sdk" },
+    { name = "beeai-framework" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acp-sdk", editable = "python" },
+    { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
 [[package]]

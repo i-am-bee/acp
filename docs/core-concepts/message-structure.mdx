@@ -1,0 +1,163 @@
+---
+title: "Message Structure"
+description: "A minimal, multi-modal structure for exchanging content"
+---
+
+In the Agent Communication Protocol (ACP), a **Message** is a sequence of ordered parts, forming complete, structured, multi-modal communications.
+
+## Message Parts
+
+| Attribute                  | Required | Description                                                               |
+| :------------------------- | :------- | :------------------------------------------------------------------------ |
+| `content_type`             | Yes      | The MIME type describing the format of the content                        |
+| `content` OR `content_url` | Yes      | Content provided inline (`content`) or via URL (`content_url`) |
+| `content_encoding`         | No       | Encoding of the content (`"plain"` by default, or `"base64"`)             |
+| `name`                     | No       | If present, identifies the part as an **Artifact**                        |
+
+## Artifacts
+
+**Artifacts** are specialized MessageParts identified explicitly by a required `name` attribute. They typically represent:
+
+- Attachments
+- Citations
+- Files
+- Named results
+
+## Examples
+
+ACP Messages always consist of ordered parts. The ordering ensures content is presented or processed in the intended sequence.
+
+### Basic Text Message
+
+```json
+{
+  "content_type": "text/plain",
+  "content": "Hello, world!"
+}
+```
+
+### Multi-modal Message with Image
+
+```json
+[
+  {
+    "content_type": "text/plain",
+    "content": "This is a cute cat:"
+  },
+  {
+    "content_type": "image/png",
+    "content_url": "https://s3.example.com/12345678901234567890/image.png"
+  },
+  {
+    "content_type": "text/plain",
+    "content": "Would you like me to send more images of cats?"
+  },
+  {
+    "name": "/sources/1.url",
+    "content_type": "text/url",
+    "content": "https://example.com/cat-facts"
+  }
+]
+```
+
+### Message with an Artifact
+
+```json
+[
+  {
+    "content_type": "text/plain",
+    "content": "Here's the report you requested:"
+  },
+  {
+    "name": "/report.pdf",
+    "content_type": "application/pdf",
+    "content_url": "https://example.com/report.pdf"
+  }
+]
+```
+
+## Content Delivery Methods
+
+### Inline Content
+
+Use inline content for small, text-based, or simple data:
+
+```json
+{
+  "content_type": "text/plain",
+  "content": "Direct text content",
+  "content_encoding": "plain" // Default if omitted
+}
+```
+
+### Referenced Content
+
+Use referenced content (via URLs) for larger files, external resources, or when inline embedding is impractical:
+
+```json
+{
+  "content_type": "image/jpeg",
+  "content_url": "https://example.com/image.jpg"
+}
+```
+
+### Base64 Encoded Content
+
+Use explicitly for binary data (e.g., images, documents) embedded directly:
+
+```json
+{
+  "content_type": "image/png",
+  "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "content_encoding": "base64"
+}
+```
+
+## Data Models
+
+```python
+class MessagePart(BaseModel):
+    name: Optional[str] = None
+    content_type: str
+    content: Optional[str] = None
+    content_encoding: Optional[Literal["plain", "base64"]] = "plain"
+    content_url: Optional[AnyUrl] = None
+
+    # Validation ensures either content or content_url is provided, but not both
+
+class Artifact(MessagePart):
+    name: str  # Name is required for Artifacts
+
+class Message(BaseModel):
+    parts: list[MessagePart]
+```
+
+<Note>`Artifact` inherits all validation rules from `MessagePart`. Therefore, artifacts must also contain either `content` or `content_url`, but never both.</Note>
+
+
+## Validation Rules
+
+- Every part must have a `content_type`
+- Parts must provide either `content` or `content_url`, but not both
+- MessageParts with a `name` are considered Artifacts
+- Parts are ordered, allowing for structured sequences
+
+## Common Content Types
+
+Some commonly used content types include:
+
+- `text/plain`: For plain text content
+- `image/png`, `image/jpeg`: For image content
+- `application/json`: For JSON data
+- `application/pdf`: For PDF documents
+- `text/html`: For HTML content
+
+Any valid MIME type can be used as appropriate for your content.
+
+## Extensibility Feature
+
+ACP is designed to be extensible through specialized content types:
+
+- Schema validation via `application/json;schema=...`
+- Special meaning for certain types (trajectory, tool calling, etc.)
+- Additional metadata for specific applications

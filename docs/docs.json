@@ -1,0 +1,106 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Agent Communication Protocol",
+  "colors": {
+    "primary": "#000000",
+    "light": "#c5c5c5",
+    "dark": "#000000"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Introduction",
+        "pages": [
+          "/introduction/welcome",
+          "/introduction/quickstart",
+          "/introduction/example-agents"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "/core-concepts/agent-detail",
+          "/core-concepts/agent-discovery",
+          "/core-concepts/agent-lifecycle",
+          "/core-concepts/message-structure",
+          "/core-concepts/production-grade"
+        ]
+      },
+      {
+        "group": "How To",
+        "icon": "brackets-curly",
+        "pages": [
+          "/how-to/wrap-existing-agent",
+          "/how-to/discover-and-run-agent",
+          "/how-to/generate-artifacts",
+          "/how-to/compose-agents",
+          "/how-to/debug",
+          "/how-to/await-external-response"
+        ]
+      },
+      {
+        "group": "REST API",
+        "icon": "brackets-curly",
+        "pages": [
+          "/spec/openapi",
+          {
+            "group": "Playground",
+            "pages": [
+              "/spec/agents-list",
+              "/spec/agents-get",
+              "/spec/run-create",
+              "/spec/run-get",
+              "/spec/run-resume",
+              "/spec/run-cancel"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Python SDK",
+        "pages": [
+          {
+            "group": "Documentation",
+            "pages": [
+              "/python-sdk/server",
+              "/python-sdk/client",
+              "/python-sdk/models"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "About",
+        "pages": [
+          "/about/mission-and-team",
+          "/about/contribute",
+          "/about/whats-next",
+          "/about/mcp-and-a2a"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "GitHub",
+      "href": "https://github.com/i-am-bee/acp"
+    },
+    "links": [
+      {
+        "label": "Support",
+        "href": "https://github.com/i-am-bee/acp/discussions/categories/q-a"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/i-am-bee/acp",
+      "discord": "https://discord.gg/AZFrp3UF5k",
+      "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social",
+      "youtube": "https://www.youtube.com/@BeeAIAgents"
+    }
+  }
+}

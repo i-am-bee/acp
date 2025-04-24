@@ -1,0 +1,101 @@
+---
+title: "Generate Artifacts"
+description: "Learn how to generate and return artifacts like images and structured data."
+---
+
+Artifacts are specialized message parts used to represent attachments, citations, files, or other named results. They are distinguished from regular message parts by the presence of a `name` field. This allows agentic applications to implement specific semantics for handling these outputs, such as displaying structured metadata, enabling file downloads, or facilitating iterative workflows.
+
+Refer to the [Message Structure](/core-concepts/message-structure#artifact) documentation for more details on the artifact definition.
+
+This guide demonstrates how to generate common artifact types like images and JSON data within your ACP agent.
+
+## Generating Image Artifacts
+
+Agents can generate images dynamically and return them as artifacts. This example uses the Pillow (PIL) library to create a simple PNG image, encode it in base64, and yield it as an `Artifact` message part.
+
+```python pil_image.py
+import base64
+import io
+from collections.abc import AsyncGenerator
+
+from acp_sdk.models import Message, Artifact
+from acp_sdk.server import Context, RunYield, RunYieldResume, Server
+from PIL import Image, ImageDraw
+
+server = Server()
+
+
+@server.agent()
+async def pil_image_generator(
+    inputs: list[Message], context: Context
+) -> AsyncGenerator[RunYield, RunYieldResume]:
+    """Generates a simple PNG image using PIL and returns it."""
+    img = Image.new("RGB", (100, 100), color="red")
+    draw = ImageDraw.Draw(img)
+    draw.text((10, 10), "ACP Image", fill="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    yield Artifact(
+        name="image.png",
+        content=base64.b64encode(buffer.read()).decode("utf-8"),
+        content_encoding="base64",
+        content_type="image/png"
+    )
+
+
+server.run()
+```
+
+Key points:
+- The image is created in memory using Pillow.
+- It's saved to a `BytesIO` buffer.
+- The buffer's content is base64 encoded, which is required for inlined binary data.
+- An `Artifact` is yielded with `name`, `content` (base64 string), `content_encoding="base64"`, and `content_type="image/png"`.
+
+## Generating JSON Artifacts
+
+Agents can also return structured data, like JSON, as artifacts. This is useful for providing machine-readable output alongside or instead of human-readable text.
+
+```python json_artifact.py
+import json
+from collections.abc import AsyncGenerator
+
+from acp_sdk.models import Message, Artifact
+from acp_sdk.server import Context, RunYield, RunYieldResume, Server
+
+server = Server()
+
+
+@server.agent()
+async def json_artifact_generator(
+    inputs: list[Message], context: Context
+) -> AsyncGenerator[RunYield, RunYieldResume]:
+    """Generates a JSON artifact."""
+    data = {
+        "status": "success",
+        "result": {
+            "item_id": 123,
+            "description": "Sample JSON data"
+        }
+    }
+
+    yield Artifact(
+        name="result.json",
+        content=json.dumps(data, indent=2),
+        content_type="application/json"
+    )
+
+
+server.run()
+```
+
+Key points:
+- A Python dictionary (`data`) holds the structured information.
+- `json.dumps()` converts the dictionary into a JSON string.
+- An `Artifact` is yielded with `name`, `content` (the JSON string), and `content_type="application/json"`.
+- The default `content_encoding` is `"plain"`, which is suitable for JSON strings.
+
+By generating artifacts, your agents can provide rich, structured outputs beyond simple text, enabling more sophisticated interactions and integrations.

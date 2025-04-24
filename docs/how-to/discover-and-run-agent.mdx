@@ -1,0 +1,184 @@
+---
+title: "Discover & Run Agent"
+description: "How to discover and run ACP agents via REST and Python SDK"
+---
+
+This page shows how you can discover available ACP agents and run them synchronously, asynchronously, or with streaming outputs, using both REST API and Python SDK.
+
+## Discover available agents
+
+You can discover available agents on your ACP server to know which agents you can run. Use REST for simple interactions or Python SDK for richer, programmatic control.
+
+Send a GET request to the `/agents` endpoint to list available agents:
+
+<CodeGroup>
+```bash Request
+curl http://localhost:8000/agents
+```
+
+```json Response
+{
+  "agents": [
+    { "name": "echo", "description": "Echoes everything", "metadata": {} }
+  ]
+}
+```
+
+</CodeGroup>
+
+Use the Python SDK to list agents programmatically:
+
+```python
+import asyncio
+from acp_sdk.client import Client
+
+async def list_agents():
+    async with Client(base_url="http://localhost:8000") as client:
+        async for agent in client.agents():
+            print(agent)
+
+if __name__ == "__main__":
+    asyncio.run(list_agents())
+```
+
+If you're interested in discovering agents across multiple ACP servers using a registry-based approach, check out the [BeeAI Platform](https://beeai.dev).
+
+## Run an agent
+
+You can run agents synchronously, asynchronously, or stream their outputs.
+
+### Synchronous execution
+
+Synchronous execution waits until the agent completes processing and returns a single response.
+
+<CodeGroup>
+```bash Request
+curl -X POST http://localhost:8000/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+        "agent_name": "echo",
+        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "mode": "sync"
+      }'
+```
+
+```json Response
+{
+  "agent_name": "echo",
+  "status": "completed",
+  "outputs": [
+    { "parts": [{ "content_type": "text/plain", "content": "Hello" }] }
+  ]
+}
+```
+
+</CodeGroup>
+
+Using Python SDK:
+
+```python
+import asyncio
+from acp_sdk.client import Client
+from acp_sdk.models import Message, MessagePart
+
+async def run_sync():
+    async with Client(base_url="http://localhost:8000") as client:
+        run = await client.run_sync(
+            agent="echo",
+            inputs=[Message(parts=[MessagePart(content="Hello")])]
+        )
+        print(run.outputs)
+
+if __name__ == "__main__":
+    asyncio.run(run_sync())
+```
+
+### Asynchronous execution
+
+Asynchronous execution returns immediately, and you can ask (poll) for the result later.
+
+Start async execution:
+
+<CodeGroup>
+
+```bash Request
+curl -X POST http://localhost:8000/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+        "agent_name": "echo",
+        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "mode": "async"
+      }'
+```
+
+```json Response
+{
+  "agent_name": "echo",
+  "status": "created",
+  "run_id": "12345678-abcd-1234-abcd-123456789abc"
+}
+```
+
+</CodeGroup>
+
+Check the status/result using the returned `run_id`:
+
+```bash
+curl http://localhost:8000/runs/<run_id>
+```
+
+Using Python SDK:
+
+```python
+import asyncio
+from acp_sdk.client import Client
+from acp_sdk.models import Message, MessagePart
+
+async def run_async():
+    async with Client(base_url="http://localhost:8000") as client:
+        run = await client.run_async(
+            agent="echo",
+            inputs=[Message(parts=[MessagePart(content="Hello")])]
+        )
+        print("Run ID:", run.run_id)
+
+        # Later, retrieve results
+        result = await client.get_run(run.run_id)
+        print(result)
+
+if __name__ == "__main__":
+    asyncio.run(run_async())
+```
+
+### Streaming execution
+
+Streaming execution provides incremental outputs with SSE (Server-sent Events) as they are generated, ideal for real-time feedback.
+
+```bash
+curl -N -H "Accept: text/event-stream" -X POST http://localhost:8000/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+        "agent_name": "echo",
+        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "mode": "stream"
+      }'
+```
+
+Using Python SDK:
+
+```python
+import asyncio
+from acp_sdk.client import Client
+from acp_sdk.models import Message, MessagePart
+
+async def run_stream():
+    async with Client(base_url="http://localhost:8000") as client:
+        async for event in client.run_stream(
+            agent="echo",
+            inputs=[Message(parts=[MessagePart(content="Hello")])]
+        ):
+            print(event)
+
+if __name__ == "__main__":
+    asyncio.run(run_stream())
+```

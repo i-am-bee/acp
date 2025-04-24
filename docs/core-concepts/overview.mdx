@@ -1,0 +1,35 @@
+---
+title: "Overview"
+description: "Key principles of the Agent Communication Protocol"
+---
+
+The **Agent Communication Protocol (ACP)** is a flexible, design-led protocol built for seamless and intuitive communication between software agents. ACP emphasizes simplicity, flexibility, and progressive complexity, enabling rapid integration and scalability across diverse systems.
+
+Explore the [API reference](/spec/agents-list) or view the complete [OpenAPI specification](https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml).
+
+## Current Capabilities
+
+ACP currently provides the following features:
+
+| Capability                                    | Description                                                                             | Status       |
+| --------------------------------------------- | --------------------------------------------------------------------------------------- | ------------ |
+| Agent Discovery                               | Locate and understand ACP agents and their capabilities online or offline               | 🟢 Supported |
+| Agent Statefulness                            | Stateful agents are supported through sessions                                          | 🟢 Supported |
+| Agent Configuration                           | Define an agent’s capabilities, behavior, and API contract, including model dependency  | 🚧 WIP       |
+| Modality Support                              | Multi-modal messages (e.g. text, images, artifacts)  are defined as a sequence of parts | 🟢 Supported |
+| Synchronous Requests                          | Synchronous requests support simple interactions                                        | 🟢 Supported |
+| Asynchronous Requests                         | Csynchronous communication supports longer-running tasks                                | 🟢 Supported |
+| Awaits (HITL / function calling / interrupts) | Built in capability enables agents to await input from humans or other systems          | 🟢 Supported |
+| REST                                          | Clearly defined REST endpoints; align closely to standard HTTP patterns                 | 🟢 Supported |
+| Streaming (via SSE)                           | Real-time event processing;  ideal for agents that provide incremental outputs.         | 🟢 Supported |
+
+## Design Principles
+
+ACP’s design is guided by these core principles:
+
+- **Unopinionated**: ACP makes minimal assumptions about the internal design or implementation details of agents.
+- **Progressive complexity**: ACP starts simple, letting you progressively adopt advanced capabilities as your needs grow.
+- **Design-led**: ACP’s intuitive design guides developers naturally toward correct usage, minimizing the need to rely on extensive documentation. Clear design reduces ambiguity and confusion about how the protocol should be implemented and used.
+- **Simplicity**: ACP aims to be clear, straightforward, and intuitive, making it easy for developers to adopt and use.
+- **Flexibility**: ACP is designed to adapt easily across a wide variety of use cases and integration scenarios.
+- **Open source & community-driven**: ACP is developed openly within the Linux Foundation, fostering community collaboration, transparency, and trust. Our open governance ensures that ACP rapidly evolves to meet real-world needs.

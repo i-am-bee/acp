@@ -1,0 +1,623 @@
+openapi: 3.1.1
+info:
+  title: ACP - Agent Communication Protocol
+  description: >-
+    The Agent Communication Protocol (ACP) provides a standardized RESTful API to manage and execute AI agents. It supports synchronous, asynchronous, and streamed interactions as well as stateless and stateful agents.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+externalDocs:
+  description: Comprehensive documentation for ACP
+  url: https://agentcommunicationprotocol.dev
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: agent
+    description: Operations related to managing agent definitions and metadata.
+  - name: run
+    description: Operations for creating, managing, and controlling agent runs and their lifecycles.
+paths:
+  /agents:
+    get:
+      tags:
+        - agent
+      description: Returns a list of agents.
+      operationId: listAgents
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 1000
+        - name: offset
+          in: query
+          description: Offset to start from
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /agents/{name}:
+    get:
+      tags:
+        - agent
+      description: Get Agent
+      operationId: getAgent
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /runs:
+    post:
+      tags:
+        - run
+      description: Run an agent
+      operationId: createRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunCreateRequest"
+      responses:
+        "200":
+          description: Run created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "202":
+          description: Run created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /runs/{run_id}:
+    get:
+      tags:
+        - run
+      description: Read state of a run
+      operationId: getRun
+      responses:
+        "200":
+          description: Status successfully read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - run
+      description: Resume awaiting run.
+      operationId: resumeRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunResumeRequest"
+      responses:
+        "200":
+          description: Run resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "202":
+          description: Run resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /runs/{run_id}/cancel:
+    post:
+      tags:
+        - run
+      description: Cancel run
+      operationId: cancelRun
+      responses:
+        "202":
+          description: Run cancelling
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    # Errors
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - server_error
+            - invalid_input
+            - not_found
+        message:
+          type: string
+      required:
+        - code
+        - message
+    # Models
+    SessionId:
+      type: string
+      format: uuid
+      description: Identifier of a session
+    RunId:
+      type: string
+      format: uuid
+      description: Identifier of a run
+    RunStatus:
+      type: string
+      enum:
+        [
+          created,
+          in-progress,
+          awaiting,
+          cancelling,
+          cancelled,
+          completed,
+          failed,
+        ]
+      description: Status of the run
+    RunMode:
+      type: string
+      enum: [sync, async, stream]
+      default: sync
+      description: Mode of the request
+    MessagePart:
+      type: object
+      properties:
+        name:
+          type: string
+        content_type: 
+          type: string
+          default: "text/plain"
+        content:
+          type: string
+        content_encoding:
+          type: string
+          enum:
+            - plain
+            - base64
+        content_url:
+          type: string
+    Message:
+      type: object
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessagePart"
+      required:
+        - parts
+    AwaitRequest:
+      type: object
+    AwaitResume:
+      type: object
+    RunCreateRequest:
+      type: object
+      required:
+        - agent_name
+        - inputs
+      properties:
+        agent_name:
+          $ref: "#/components/schemas/AgentName"
+        session_id:
+          $ref: "#/components/schemas/SessionId"
+        inputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        mode:
+          $ref: "#/components/schemas/RunMode"
+    RunResumeRequest:
+      type: object
+      required:
+        - run_id
+        - await_resume
+        - mode
+      properties:
+        run_id:
+          $ref: "#/components/schemas/RunId"
+        await_resume:
+          $ref: "#/components/schemas/AwaitResume"
+        mode:
+          $ref: "#/components/schemas/RunMode"
+    Run:
+      type: object
+      properties:
+        agent_name:
+          $ref: "#/components/schemas/AgentName"
+        session_id:
+          $ref: "#/components/schemas/SessionId"
+        run_id:
+          $ref: "#/components/schemas/RunId"
+        status:
+          $ref: "#/components/schemas/RunStatus"
+        await_request:
+          description: Description of the awaited payload to resume the run, only available when status is **awaiting**
+          $ref: "#/components/schemas/AwaitRequest"
+          nullable: true
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        error:
+          $ref: "#/components/schemas/Error"
+          nullable: true
+      required:
+        - agent_name
+        - run_id
+        - status
+        - outputs
+    # Events
+    MessageCreatedEvent:
+      type: object
+      properties: 
+        type:
+          const: message.created
+        message:
+          $ref: "#/components/schemas/Message"
+      required:
+        - type
+        - message
+    MessagePartEvent:
+      type: object
+      properties: 
+        type:
+          const: message.part
+        part:
+          $ref: "#/components/schemas/MessagePart"
+      required:
+        - type
+        - part
+    MessageCompletedEvent:
+      type: object
+      properties: 
+        type:
+          const: message.completed
+        message:
+          $ref: "#/components/schemas/Message"
+      required:
+        - type
+        - message
+    GenericEvent:
+      type: object
+      properties: 
+        type:
+          const: generic
+        generic:
+          type: object
+      required:
+        - type
+        - generic
+    RunCreatedEvent:
+      type: object
+      properties: 
+        type:
+          const: run.created
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    RunInProgressEvent:
+      type: object
+      properties: 
+        type:
+          const: run.in-progress
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    RunAwaitingEvent:
+      type: object
+      properties: 
+        type:
+          const: run.awaiting
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    RunCompletedEvent:
+      type: object
+      properties: 
+        type:
+          const: run.completed
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    RunCancelledEvent:
+      type: object
+      properties: 
+        type:
+          const: run.cancelled
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    RunFailedEvent:
+      type: object
+      properties: 
+        type:
+          const: run.failed
+        run:
+          $ref: "#/components/schemas/Run"
+      required:
+        - type
+        - run
+    Event:
+      oneOf:
+        - $ref: "#/components/schemas/MessageCreatedEvent"
+        - $ref: "#/components/schemas/MessagePartEvent"
+        - $ref: "#/components/schemas/MessageCompletedEvent"
+        - $ref: "#/components/schemas/GenericEvent"
+        - $ref: "#/components/schemas/RunCreatedEvent"
+        - $ref: "#/components/schemas/RunInProgressEvent"
+        - $ref: "#/components/schemas/RunAwaitingEvent"
+        - $ref: "#/components/schemas/RunCompletedEvent"
+        - $ref: "#/components/schemas/RunFailedEvent"
+        - $ref: "#/components/schemas/RunCancelledEvent"
+    AgentName:
+      type: string
+      description: A unique identifier for the agent following the [RFC 1123](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names) DNS-label naming convention.
+      examples:
+        - chat
+    Agent:
+      required:
+        - name
+        - description
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/AgentName"
+        description:
+          type: string
+          description: A concise, human-readable description of the agent. This description may be utilized by Large Language Models (LLMs) and other AI systems to understand and interact with the agent appropriately.
+          examples:
+            - Conversational agent with memory, supporting real-time search, Wikipedia lookups, and weather updates through integrated tools
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        status:
+          $ref: "#/components/schemas/Status"
+    Status:
+       type: object
+       description: Dynamic runtime information provided and regularly updated by the system managing the agent. This includes current operational metrics, state information, and other real-time statistics.
+       properties:
+         avg_run_tokens:
+           type: number
+           format: integer
+         avg_run_time_seconds:
+           type: number
+           format: float
+         success_rate:
+           type: number
+           minimum: 0
+           maximum: 100
+    Tag:
+      anyOf:
+        - type: string
+        - enum:
+            - Chat
+            - RAG
+            - Canvas
+            - Code
+            - Researcher
+      examples:
+        - Chat
+    Metadata:
+      type: object
+      description: Optional static details about the agent, aiding in discovery, classification, and cataloging.
+      properties:
+        annotations:
+          type: object
+          description: Key-value pairs used by third-party tools and automation systems to add supplementary, non-identifying metadata to the agent object.
+        documentation:
+          type: string
+          description: Full agent documentation in markdown.
+          examples:
+            - "The agent is a conversational system designed to process user messages, maintain context, and generate..."
+        license:
+          type: string
+          description: >-
+            SPDX license ID: https://spdx.org/licenses/
+          examples:
+            - Apache-2.0
+        programming_language:
+          type: string
+          description: >-
+            Programming language, supported values: https://docs.github.com/en/get-started/learning-about-github/github-language-support
+          examples:
+            - Python
+        natural_languages:
+          type: array
+          description: >
+            List of human-readable languages supported by the agent for conversational interactions or content generation. Use ISO 639-1 codes.
+          items:
+            type: string
+            examples:
+              - en
+              - fr
+        framework:
+          type: string
+          description: For example BeeAI, crewAI, Autogen, AG2
+          examples:
+            - BeeAI
+            - AG2
+        use_cases:
+          type: array
+          description: >
+            A list of short plain-text strings describing use cases supported by the agent. This field might be consumed and interpreted by large language models (LLMs).
+          items:
+            type: string
+            examples:
+              - Conversational AI – Handles multi-turn conversations with memory.
+              - Tool Integration – Supports real-time search, Wikipedia lookups, and weather updates.
+        # TBD
+        examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/Example"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        created_at:
+          $ref: "#/components/schemas/Timestamp"
+        updated_at:
+          $ref: "#/components/schemas/Timestamp"
+        author:
+          $ref: "#/components/schemas/Person"
+        contributors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Person"
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/Link"
+        dependencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentDependency"
+        recommended_models:
+          type: array
+          items:
+            type: string
+            description: Model name ([ollama](https://github.com/ollama/ollama/blob/main/docs/api.md#model-names), [OpenAI](https://platform.openai.com/docs/models))
+            examples:
+              - llama3.3:70b-instruct-fp16
+              - llama3.3
+    GeneralSchema:
+      oneOf:
+        - $ref: "#/components/schemas/JsonSchema"
+        - enum:
+            - chat
+            - text
+          description: |
+            Predefined schema types:
+            - `chat`: Conversational input/output structured in a standard chat message format.
+            - `text`: Simple plain text input/output without additional metadata.
+    JsonSchema:
+      type: object
+    Link:
+      type: object
+      properties:
+        type:
+          enum:
+            - source-code
+            - container-image
+            - homepage
+            - documentation
+        url:
+          type: string
+          format: uri
+          examples:
+            - https://github.com/i-am-bee/beeai-platform.git
+    Timestamp:
+      type: string
+      format: date-time
+      description: >-
+        Timestamp in [RFC3339](https://www.rfc-editor.org/rfc/rfc3339.html) format (ISO8601-compatible).
+    Person:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          examples:
+            - John Smith
+        email:
+          type: string
+          format: email
+        url:
+          type: string
+          format: uri
+          examples:
+            - https://example.com
+    AgentDependency:
+      type: object
+      description: >
+        **Experimental:** Represents a dependency required by the agent, specifying external resources or capabilities it relies upon, such as other agents, tools, or AI models.
+      properties:
+        type:
+          enum:
+            - agent
+            - tool
+            - model
+          description: >
+            Type of dependency:
+            - `agent`: Another agent instance required to fulfill certain functionalities.
+            - `tool`: External tool or utility needed by the agent.
+            - `model`: Specific AI model that the agent depends on.
+          examples:
+            - tool
+        name:
+          type: string
+          description: >
+            Identifier or name of the dependency, such as an agent name, tool identifier, or model name.
+          examples:
+            - weather
