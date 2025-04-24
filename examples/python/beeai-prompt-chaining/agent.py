@@ -1,12 +1,11 @@
 from collections.abc import AsyncGenerator
 
-import beeai_framework
 from acp_sdk import Message
 from acp_sdk.client import Client
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
-from beeai_framework.backend.chat import ChatModel
 from beeai_framework.agents.react import ReActAgent
+from beeai_framework.backend.chat import ChatModel
 from beeai_framework.memory import TokenMemory
 
 server = Server()

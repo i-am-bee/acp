@@ -82,7 +82,7 @@ class Client:
         return AgentReadResponse.model_validate(response.json())
 
     async def ping(self) -> bool:
-        response = await self._client.get(f"/healthcheck")
+        response = await self._client.get("/healthcheck")
         self._raise_error(response)
         return response.json() == "OK"
 

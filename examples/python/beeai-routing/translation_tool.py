@@ -1,15 +1,16 @@
-from pydantic import BaseModel, Field
 from enum import Enum
 
 from acp_sdk import Message
 from acp_sdk.client import Client
 from acp_sdk.models import MessagePart
-from beeai_framework.tools.tool import Tool
-from beeai_framework.tools.types import ToolRunOptions
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import ToolOutput
+from beeai_framework.tools.tool import Tool
+from beeai_framework.tools.types import ToolRunOptions
 from beeai_framework.utils.strings import to_json
+from pydantic import BaseModel, Field
+
 
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
@@ -20,8 +21,8 @@ async def run_agent(agent: str, input: str) -> list[Message]:
     return run.outputs
 
 class Language(str, Enum):
-    spanish = 'spanish'
-    french = 'french'
+    spanish = "spanish"
+    french = "french"
 class TranslateToolInput(BaseModel):
     text: str = Field(description="The text to translate")
     language: Language = Field(description="The language to translate the text to")
@@ -34,7 +35,7 @@ class TranslateToolOutput(ToolOutput):
 
     def get_text_content(self) -> str:
         return to_json(self.result)
-    
+
     def is_empty(self) -> bool:
         return self.result.text == ""
 

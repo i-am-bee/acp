@@ -4,8 +4,8 @@ from functools import reduce
 from acp_sdk import Message
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
-from beeai_framework.backend.chat import ChatModel
 from beeai_framework.agents.react import ReActAgent
+from beeai_framework.backend.chat import ChatModel
 from beeai_framework.memory import TokenMemory
 from beeai_framework.utils.dicts import exclude_none
 from translation_tool import TranslationTool
@@ -34,7 +34,7 @@ async def translation_french(inputs: list[Message]) -> AsyncGenerator:
 @server.agent(name="router")
 async def main_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
-    
+
     agent = ReActAgent(
         llm=llm,
         tools=[TranslationTool()],

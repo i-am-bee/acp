@@ -14,7 +14,6 @@ from acp_sdk.server.app import create_app
 from acp_sdk.server.logging import configure_logger as configure_logger_func
 from acp_sdk.server.logging import logger
 from acp_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
-from acp_sdk.server.types import RunYield, RunYieldResume
 from acp_sdk.server.utils import async_request_with_retry
 
 

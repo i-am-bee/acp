@@ -1,14 +1,13 @@
 import asyncio
-from functools import reduce
 
 from acp_sdk.client import Client
-from acp_sdk.models import MessageAwaitResume, Message, MessagePart
+from acp_sdk.models import Message, MessageAwaitResume, MessagePart
 
 
 async def handle_resume(client, run_id):
     async for event in client.run_resume_stream(run_id=run_id, await_resume=MessageAwaitResume(message=Message(parts=[MessagePart(content="yes")]))):
         print(event)
-        
+
         if event.type == "run.completed":
             print()
             print(str(event.run.outputs[-1]))
