@@ -3,7 +3,7 @@ import logging
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from acp_sdk.instrumentation import get_tracer
 from acp_sdk.models import (
@@ -88,6 +88,13 @@ class RunBundle:
             run_logger = logging.LoggerAdapter(logger, {"run_id": str(self.run.run_id)})
 
             in_message = False
+
+            async def flush_message() -> None:
+                nonlocal in_message
+                if in_message:
+                    await self.emit(MessageCompletedEvent(message=self.run.outputs[-1]))
+                    in_message = False
+
             try:
                 await self.emit(RunCreatedEvent(run=self.run))
 
@@ -103,7 +110,9 @@ class RunBundle:
                 while True:
                     next = await generator.asend(await_resume)
 
-                    if isinstance(next, MessagePart):
+                    if isinstance(next, (MessagePart, str)):
+                        if isinstance(next, str):
+                            next = MessagePart(content=next)
                         if not in_message:
                             self.run.outputs.append(Message(parts=[]))
                             in_message = True
@@ -111,9 +120,7 @@ class RunBundle:
                         self.run.outputs[-1].parts.append(next)
                         await self.emit(MessagePartEvent(part=next))
                     elif isinstance(next, Message):
-                        if in_message:
-                            await self.emit(MessageCompletedEvent(message=self.run.outputs[-1]))
-                            in_message = False
+                        await flush_message()
                         self.run.outputs.append(next)
                         await self.emit(MessageCreatedEvent(message=next))
                         for part in next.parts:
@@ -130,7 +137,9 @@ class RunBundle:
                     elif isinstance(next, Error):
                         raise ACPError(error=next)
                     elif next is None:
-                        pass  # Do nothing
+                        await flush_message()
+                    elif isinstance(next, BaseModel):
+                        await self.emit(GenericEvent(generic=AnyModel(**next.model_dump())))
                     else:
                         try:
                             generic = AnyModel.model_validate(next)
@@ -138,8 +147,7 @@ class RunBundle:
                         except ValidationError:
                             raise TypeError("Invalid yield")
             except StopAsyncIteration:
-                if in_message:
-                    await self.emit(MessageCompletedEvent(message=self.run.outputs[-1]))
+                await flush_message()
                 self.run.status = RunStatus.COMPLETED
                 await self.emit(RunCompletedEvent(run=self.run))
                 run_logger.info("Run completed")

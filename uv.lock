@@ -48,7 +48,7 @@ requires-dist = [
 
 [[package]]
 name = "acp-sdk"
-version = "0.4.0"
+version = "0.6.0"
 source = { editable = "python" }
 dependencies = [
     { name = "cachetools" },
@@ -73,7 +73,7 @@ dev = [
 requires-dist = [
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.8" },
-    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "httpx", specifier = ">=0.26.0" },
     { name = "httpx-sse", specifier = ">=0.4.0" },
     { name = "janus", specifier = ">=2.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.31.1" },
