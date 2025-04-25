@@ -1,22 +1,22 @@
 [tool.uv.workspace]
-members = ["python", "examples/python/*"]
+members = ["python", "examples/python/*", "acp-2-mcp"]
 
 [tool.ruff]
 lint.select = [
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "F", # pyflakes
-    "UP", # pyupgrade
-    "I", # isort
-    "B", # bugbear
-    "ANN", # annotations
-    "N", # pep8-naming
-    "C4", # Comprehensions
-    "DTZ", # DatetimeZ
-    "Q", # Quotes
-    "SIM", # Simplify
-    "RUF", # Ruff
-    "TID", # tidy-imports
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "UP",    # pyupgrade
+    "I",     # isort
+    "B",     # bugbear
+    "ANN",   # annotations
+    "N",     # pep8-naming
+    "C4",    # Comprehensions
+    "DTZ",   # DatetimeZ
+    "Q",     # Quotes
+    "SIM",   # Simplify
+    "RUF",   # Ruff
+    "TID",   # tidy-imports
     "ASYNC", # async
 ]
 lint.ignore = ["ANN401", "B904"]
