@@ -47,6 +47,11 @@ class Dependency(BaseModel):
     name: str
 
 
+class Capability(BaseModel):
+    name: str
+    description: str
+
+
 class Metadata(BaseModel):
     annotations: AnyModel | None = None
     documentation: str | None = None
@@ -54,7 +59,8 @@ class Metadata(BaseModel):
     programming_language: str | None = None
     natural_languages: list[str] | None = None
     framework: str | None = None
-    use_cases: list[str] | None = None
+    capabilities: list[Capability] | None = None
+    domains: list[str] | None = None
     tags: list[str] | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -97,7 +103,9 @@ class Message(BaseModel):
 
     def __str__(self) -> str:
         return "".join(
-            part.content for part in self.parts if part.content is not None and part.content_type == "text/plain"
+            part.content
+            for part in self.parts
+            if part.content is not None and part.content_type == "text/plain"
         )
 
     def compress(self) -> "Message":

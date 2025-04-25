@@ -226,7 +226,7 @@ components:
       properties:
         name:
           type: string
-        content_type: 
+        content_type:
           type: string
           default: "text/plain"
         content:
@@ -310,7 +310,7 @@ components:
     # Events
     MessageCreatedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.created
         message:
@@ -320,7 +320,7 @@ components:
         - message
     MessagePartEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.part
         part:
@@ -330,7 +330,7 @@ components:
         - part
     MessageCompletedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: message.completed
         message:
@@ -340,7 +340,7 @@ components:
         - message
     GenericEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: generic
         generic:
@@ -350,7 +350,7 @@ components:
         - generic
     RunCreatedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.created
         run:
@@ -360,7 +360,7 @@ components:
         - run
     RunInProgressEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.in-progress
         run:
@@ -370,7 +370,7 @@ components:
         - run
     RunAwaitingEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.awaiting
         run:
@@ -380,7 +380,7 @@ components:
         - run
     RunCompletedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.completed
         run:
@@ -390,7 +390,7 @@ components:
         - run
     RunCancelledEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.cancelled
         run:
@@ -400,7 +400,7 @@ components:
         - run
     RunFailedEvent:
       type: object
-      properties: 
+      properties:
         type:
           const: run.failed
         run:
@@ -443,19 +443,19 @@ components:
         status:
           $ref: "#/components/schemas/Status"
     Status:
-       type: object
-       description: Dynamic runtime information provided and regularly updated by the system managing the agent. This includes current operational metrics, state information, and other real-time statistics.
-       properties:
-         avg_run_tokens:
-           type: number
-           format: integer
-         avg_run_time_seconds:
-           type: number
-           format: float
-         success_rate:
-           type: number
-           minimum: 0
-           maximum: 100
+      type: object
+      description: Dynamic runtime information provided and regularly updated by the system managing the agent. This includes current operational metrics, performance metrics, state information, and other real-time statistics.
+      properties:
+        avg_run_tokens:
+          type: number
+          format: integer
+        avg_run_time_seconds:
+          type: number
+          format: float
+        success_rate:
+          type: number
+          minimum: 0
+          maximum: 100
     Tag:
       anyOf:
         - type: string
@@ -465,6 +465,7 @@ components:
             - Canvas
             - Code
             - Researcher
+            - Orchestrator
       examples:
         - Chat
     Metadata:
@@ -506,20 +507,36 @@ components:
           examples:
             - BeeAI
             - AG2
-        use_cases:
+        capabilities:
           type: array
           description: >
-            A list of short plain-text strings describing use cases supported by the agent. This field might be consumed and interpreted by large language models (LLMs).
+            A structured list describing capabilities supported by the agent. Each capability includes a human-readable name and a brief description. This information might be consumed and interpreted by large language models (LLMs).
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Human-readable name of the capability.
+                example: "Conversational AI"
+              description:
+                type: string
+                description: Brief description of what the capability provides or enables.
+                example: "Handles multi-turn conversations with memory."
+            required:
+              - name
+              - description
+          example:
+            - name: "Conversational AI"
+              description: "Handles multi-turn conversations with memory."
+            - name: "Vacation Request"
+              description: "Handles submission and tracking of vacation requests."
+        domains:
+          type: array
+          description: >
+            Domains or functional areas applicable to the agent, such as 'finance', 'healthcare', 'supply-chain', or custom-defined domains relevant to your organization or team.
           items:
             type: string
-            examples:
-              - Conversational AI – Handles multi-turn conversations with memory.
-              - Tool Integration – Supports real-time search, Wikipedia lookups, and weather updates.
-        # TBD
-        examples:
-          type: array
-          items:
-            $ref: "#/components/schemas/Example"
+          example: ["finance", "healthcare", "supply-chain"]
         tags:
           type: array
           items:
