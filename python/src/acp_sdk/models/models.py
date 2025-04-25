@@ -103,9 +103,7 @@ class Message(BaseModel):
 
     def __str__(self) -> str:
         return "".join(
-            part.content
-            for part in self.parts
-            if part.content is not None and part.content_type == "text/plain"
+            part.content for part in self.parts if part.content is not None and part.content_type == "text/plain"
         )
 
     def compress(self) -> "Message":
