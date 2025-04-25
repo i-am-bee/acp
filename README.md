@@ -21,17 +21,17 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 - **📚 [Documentation](https://agentcommunicationprotocol.dev)**. Comprehensive guides and reference material for implementing and using ACP.
 - **📝 [OpenAPI Specification](https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml).** Defines the REST API endpoints, request/response formats, and data models to form the ACP protocol.
 - **🛠️ [Python SDK](https://github.com/i-am-bee/acp/blob/main/python).** Contains a server implementation, client libraries, and model definitions to easily create and interact with ACP agents.
-- **💻 [Examples](https://github.com/i-am-bee/acp/tree/main/examples).** Ready-to-run code samples demonstrating how to build agents and clients that communicate using ACP.
+- **💻 [Examples](https://github.com/i-am-bee/acp/tree/main/examples/python).** Ready-to-run code samples demonstrating how to build agents and clients that communicate using ACP.
 
 ## Core Concepts
 
 | **Concept**      | **Description**  |
 | ---------------- | -------------------------------------------------------------------------------------------- |
-| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | Metadata describing an agent’s capabilities—name, description, functions—for discovery and composition without exposing implementation. |
-| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | A single agent execution with specific inputs. Supports sync (`run_sync`) or streaming (`run_stream`), with intermediate and final outputs. |
-| **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | 	Core structure for communication, containing MessageParts and roles (e.g., "user", "assistant") to guide conversation flow. |
-| **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | 	Individual content units in a Message, supporting types like text or JSON. Combined, they form structured, multimodal messages. |
-| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | 	Lets agents pause to request info from the client via `MessageAwaitRequest` and resume with `MessageAwaitResume`, enabling interactive, stateful exchanges. |
+| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | A model describing an agent’s capabilities—its name, description, and optional metadata and status—for discovery and composition without exposing implementation details. |
+| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | A single agent execution with specific inputs. Supports sync or streaming, with intermediate and final output. |
+| **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The core structure for communication, consisting of a sequence of ordered components that form a complete, structured, and multi-modal exchange of information. |
+| **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | The individual content units within a `Message`, which can include types like text, image, or JSON. Together, they combine to create structured, multimodal communication. |
+| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | Let agents pause to request information from the client and resume, enabling interactive exchanges where the agent can wait for external input (data, actions, etc.) before continuing. |
 
 ---
 
