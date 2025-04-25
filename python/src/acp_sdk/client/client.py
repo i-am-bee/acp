@@ -1,3 +1,5 @@
+import ssl
+import typing
 import uuid
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
@@ -40,14 +42,49 @@ class Client:
     def __init__(
         self,
         *,
-        base_url: httpx.URL | str = "",
-        timeout: httpx.Timeout | None = None,
         session_id: SessionId | None = None,
         client: httpx.AsyncClient | None = None,
         instrument: bool = True,
+        auth: httpx._types.AuthTypes | None = None,
+        params: httpx._types.QueryParamTypes | None = None,
+        headers: httpx._types.HeaderTypes | None = None,
+        cookies: httpx._types.CookieTypes | None = None,
+        timeout: httpx._types.TimeoutTypes | None = None,
+        verify: ssl.SSLContext | str | bool = True,
+        cert: httpx._types.CertTypes | None = None,
+        http1: bool = True,
+        http2: bool = False,
+        proxy: httpx._types.ProxyTypes | None = None,
+        mounts: None | (typing.Mapping[str, httpx.AsyncBaseTransport | None]) = None,
+        follow_redirects: bool = False,
+        limits: httpx.Limits = httpx._config.DEFAULT_LIMITS,
+        max_redirects: int = httpx._config.DEFAULT_MAX_REDIRECTS,
+        event_hooks: None | (typing.Mapping[str, list[httpx._client.EventHook]]) = None,
+        base_url: httpx.URL | str = "",
+        transport: httpx.AsyncBaseTransport | None = None,
+        trust_env: bool = True,
     ) -> None:
         self._session_id = session_id
-        self._client = client or httpx.AsyncClient(base_url=base_url, timeout=timeout)
+        self._client = client or httpx.AsyncClient(
+            auth=auth,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            timeout=timeout,
+            verify=verify,
+            cert=cert,
+            http1=http1,
+            http2=http2,
+            proxy=proxy,
+            mounts=mounts,
+            follow_redirects=follow_redirects,
+            limits=limits,
+            max_redirects=max_redirects,
+            event_hooks=event_hooks,
+            base_url=base_url,
+            transport=transport,
+            trust_env=trust_env,
+        )
         if instrument:
             HTTPXClientInstrumentor.instrument_client(self._client)
 
