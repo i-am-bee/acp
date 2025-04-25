@@ -57,7 +57,7 @@ curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "input": [{"parts": [{"content": "Hello"}]}],
         "mode": "sync"
       }'
 ```
@@ -85,7 +85,7 @@ async def run_sync():
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
             agent="echo",
-            inputs=[Message(parts=[MessagePart(content="Hello")])]
+            input=[Message(parts=[MessagePart(content="Hello")])]
         )
         print(run.output)
 
@@ -106,7 +106,7 @@ curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "input": [{"parts": [{"content": "Hello"}]}],
         "mode": "async"
       }'
 ```
@@ -138,7 +138,7 @@ async def run_async():
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_async(
             agent="echo",
-            inputs=[Message(parts=[MessagePart(content="Hello")])]
+            input=[Message(parts=[MessagePart(content="Hello")])]
         )
         print("Run ID:", run.run_id)
 
@@ -159,7 +159,7 @@ curl -N -H "Accept: text/event-stream" -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [{"parts": [{"content": "Hello"}]}],
+        "input": [{"parts": [{"content": "Hello"}]}],
         "mode": "stream"
       }'
 ```
@@ -175,7 +175,7 @@ async def run_stream():
     async with Client(base_url="http://localhost:8000") as client:
         async for event in client.run_stream(
             agent="echo",
-            inputs=[Message(parts=[MessagePart(content="Hello")])]
+            input=[Message(parts=[MessagePart(content="Hello")])]
         ):
             print(event)
 

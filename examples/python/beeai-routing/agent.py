@@ -13,26 +13,26 @@ from translation_tool import TranslationTool
 server = Server()
 
 @server.agent()
-async def translation_spanish(inputs: list[Message]) -> AsyncGenerator:
+async def translation_spanish(input: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
 
     agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
-    response = await agent.run(prompt="Translate the given text to Spanish. The text is: " + str(inputs))
+    response = await agent.run(prompt="Translate the given text to Spanish. The text is: " + str(input))
 
     yield MessagePart(content=response.result.text)
 
 @server.agent()
-async def translation_french(inputs: list[Message]) -> AsyncGenerator:
+async def translation_french(input: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
 
     agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
-    response = await agent.run(prompt="Translate the given text to French. The text is: " + str(inputs))
+    response = await agent.run(prompt="Translate the given text to French. The text is: " + str(input))
 
     yield MessagePart(content=response.result.text)
 
 
 @server.agent(name="router")
-async def main_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
+async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
     
     agent = ReActAgent(
@@ -52,7 +52,7 @@ async def main_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
         memory=TokenMemory(llm)
     )
 
-    prompt = reduce(lambda x, y: x + y, inputs)
+    prompt = reduce(lambda x, y: x + y, input)
     response = await agent.run(str(prompt))
 
     yield MessagePart(content=response.result.text)

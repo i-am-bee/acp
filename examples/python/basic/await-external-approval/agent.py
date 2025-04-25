@@ -11,7 +11,7 @@ server = Server()
 
 
 @server.agent()
-async def approval_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
+async def approval_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """Request approval and respond to user's confirmation."""
 
     # Pause execution and wait for external confirmation

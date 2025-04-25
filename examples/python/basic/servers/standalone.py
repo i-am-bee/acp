@@ -9,9 +9,9 @@ from acp_sdk.server import RunYield, RunYieldResume, agent, create_app
 
 
 @agent()
-async def echo(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         yield message
 
 

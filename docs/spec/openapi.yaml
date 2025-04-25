@@ -255,13 +255,13 @@ components:
       type: object
       required:
         - agent_name
-        - inputs
+        - input
       properties:
         agent_name:
           $ref: "#/components/schemas/AgentName"
         session_id:
           $ref: "#/components/schemas/SessionId"
-        inputs:
+        input:
           type: array
           items:
             $ref: "#/components/schemas/Message"

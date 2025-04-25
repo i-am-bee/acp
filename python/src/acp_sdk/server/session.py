@@ -17,5 +17,5 @@ class Session:
     def history(self) -> Iterator[Message]:
         for bundle in self.bundles:
             if bundle.run.status == RunStatus.COMPLETED:
-                yield from bundle.inputs
+                yield from bundle.input
                 yield from bundle.run.output

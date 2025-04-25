@@ -127,7 +127,7 @@ class Client:
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=self._unify_inputs(input),
+                input=self._unify_input(input),
                 mode=RunMode.SYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -142,7 +142,7 @@ class Client:
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=self._unify_inputs(input),
+                input=self._unify_input(input),
                 mode=RunMode.ASYNC,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -159,7 +159,7 @@ class Client:
             "/runs",
             content=RunCreateRequest(
                 agent_name=agent,
-                input=self._unify_inputs(input),
+                input=self._unify_input(input),
                 mode=RunMode.STREAM,
                 session_id=self._session_id,
             ).model_dump_json(),
@@ -228,7 +228,7 @@ class Client:
     def _set_session(self, run: Run) -> None:
         self._session_id = run.session_id
 
-    def _unify_inputs(self, input: Input) -> list[Message]:
+    def _unify_input(self, input: Input) -> list[Message]:
         if isinstance(input, list):
             if len(input) == 0:
                 return []

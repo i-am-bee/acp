@@ -88,8 +88,8 @@ from acp_sdk.models import Message
 server = Server()
 
 @server.agent()
-async def echo(inputs: list[Message]):
-    for message in inputs:
+async def echo(input: list[Message]):
+    for message in input:
         yield message
 
 server.run(configure_telemetry=True)
@@ -126,7 +126,7 @@ async def main():
     async with Client(base_url="http://localhost:8000") as client, client.session() as session:
         await session.run_sync(
             agent="echo",
-            inputs=[
+            input=[
                 Message(
                     parts=[MessagePart(content="Howdy!", content_type="text/plain")]
                 )
@@ -134,7 +134,7 @@ async def main():
         )
         await session.run_sync(
             agent="echo",
-            inputs=[
+            input=[
                 Message(
                     parts=[MessagePart(content="Test 2", content_type="text/plain")]
                 )
@@ -251,9 +251,9 @@ server = Server()
 
 
 @server.agent()
-async def lang_graph_agent(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def lang_graph_agent(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """LangGraph agent that greets the user based on the current time."""
-    query = reduce(lambda x, y: x + y, inputs)
+    query = reduce(lambda x, y: x + y, input)
     output = None
     async for event in graph.astream({"name": str(query)}, stream_mode="updates"):
         for value in event.items():
@@ -302,7 +302,7 @@ async def client() -> None:
     async with Client(base_url="http://localhost:8000") as client, client.session() as session:
         run_milan = await session.run_sync(
             agent="lang_graph_agent", 
-            inputs=[Message(parts=[MessagePart(content="Milan", content_type="text/plain")])]
+            input=[Message(parts=[MessagePart(content="Milan", content_type="text/plain")])]
         )
         print(run_milan.output[0].parts[0].content)
 
