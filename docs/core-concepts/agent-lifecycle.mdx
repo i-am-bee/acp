@@ -20,14 +20,14 @@ Configuration is where you define an agent's capabilities, behavior, and API con
 
 ```python echo.py
 @server.agent()
-async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
     # Agent implementation here
 ```
 
 The configuration establishes several critical aspects of the agent:
 - **Function Definition:** The core functionality that determines what the agent does
-- **Input Parameter:** The `inputs` parameter accepts a list of `Message` objects
+- **Input Parameter:** The `input` parameter accepts a list of `Message` objects
 - **Context Parameter:** The `context` parameter provides access to the execution environment
 - **Return Type:** The `AsyncGenerator[RunYield, RunYieldResume]` return type enables both streaming responses and the await pattern
 - **Documentation:** The docstring provides a human-readable description of the agent
@@ -55,9 +55,9 @@ server = Server()
 
 
 @server.agent()
-async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
@@ -86,9 +86,9 @@ from acp_sdk.server import RunYield, RunYieldResume, agent, create_app
 
 
 @agent()
-async def echo(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         yield message
 
 
@@ -114,7 +114,7 @@ Execution is when your agent actively processes requests and generates responses
 The client's `run_sync` method executes an agent and waits for the complete response:
 
 ```python
-run = await client.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!")])])
+run = await client.run_sync(agent="echo", input=[Message(parts=[MessagePart(content="Howdy!")])])
 ```
 
 ### Streaming Execution
@@ -122,11 +122,11 @@ run = await client.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(con
 The `run_stream` method delivers incremental updates as the agent processes:
 
 ```python
-async for event in client.run_stream(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!")])]):
+async for event in client.run_stream(agent="echo", input=[Message(parts=[MessagePart(content="Howdy!")])]):
     print(event)
 ```
 
-Inside the agent function, execution happens as the agent processes inputs and yields results.
+Inside the agent function, execution happens as the agent processes input and yields results.
 
 ## Agent Runs and State Management
 
@@ -134,7 +134,7 @@ Individual agent executions are managed through "Agent Runs," which can be part 
 
 | **Method**               | **Endpoint**                  | **Description**                                                                                         |
 |--------------------------|-------------------------------|---------------------------------------------------------------------------------------------------------|
-| `POST`                   | `/runs`                       | Initiates a new agent run. Requires `agent_name`, `inputs`. Optional: `session_id`, `mode` (`sync`, `async`, `stream`). Returns the initial `Run` object or stream. |
+| `POST`                   | `/runs`                       | Initiates a new agent run. Requires `agent_name`, `input`. Optional: `session_id`, `mode` (`sync`, `async`, `stream`). Returns the initial `Run` object or stream. |
 | `GET`                    | `/runs/{run_id}`              | Retrieves the current state and details of a specific agent run.                                       |
 | `POST`                   | `/runs/{run_id}`              | Resumes an agent run in the `awaiting` state. Requires `await_resume` data. Optional: `mode` for the response. |
 | `POST`                   | `/runs/{run_id}/cancel`       | Requests cancellation of an ongoing agent run. Returns `202 Accepted` if cancellation is initiated.    |
@@ -179,12 +179,12 @@ Persistence refers to how agents maintain state across interactions. The ACP SDK
 
 State can be preserved across multiple agent runs using sessions. The client can create a session to ensure the agent is maintaining the internal state between runs, and thus holding a continuous conversation.
 
-When using the ACP SDK, the `inputs` argument will contain the full session history from all the previous runs in the same session. `context.session_id` holds the session id, allowing agents to store additional session-related data.
+When using the ACP SDK, the `input` argument will contain the full session history from all the previous runs in the same session. `context.session_id` holds the session id, allowing agents to store additional session-related data.
 
 ```python multi_turn.py
 @server.agent()
-async def multi_turn(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
-    ... # `inputs` has the full history, `context.session_id` can be used to reference extra data
+async def multi_turn(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+    ... # `input` has the full history, `context.session_id` can be used to reference extra data
 ```
 
 On the client, a session can be used like this:
@@ -192,9 +192,9 @@ On the client, a session can be used like this:
 ```python session.py
 async with Client(base_url="http://localhost:8000") as client, client.session() as session:
     # First interaction
-    run = await session.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!")])])
+    run = await session.run_sync(agent="echo", input=[Message(parts=[MessagePart(content="Howdy!")])])
     # Second interaction in same session
-    run = await session.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy again!")])])
+    run = await session.run_sync(agent="echo", input=[Message(parts=[MessagePart(content="Howdy again!")])])
 ```
 
 ### Single-turn (await)
@@ -203,7 +203,7 @@ The await pattern enables back-and-forth interactions within a single agent run:
 
 ```python awaiting.py
 @server.agent()
-async def awaiting(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def awaiting(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Greets and awaits for more data"""
     yield MessagePart(content="Hello!")
     
@@ -217,13 +217,13 @@ async def awaiting(inputs: list[Message], context: Context) -> AsyncGenerator[Ru
     yield MessagePart(content=f"Thanks for config: {resume.message}")
 ```
 
-This pattern allows the agent to begin processing with initial inputs, pause execution when it requires additional information, request that information, and resume from where it left off once the input is provided.
+This pattern allows the agent to begin processing with initial input, pause execution when it requires additional information, request that information, and resume from where it left off once the input is provided.
 
 ## Termination
 
 Termination is the final phase in an agent's lifecycle when processing concludes and system resources are released. The ACP SDK supports several types of termination:
 
-1. **Successful Completion.** This is the most common scenario, where the agent processes all inputs and finishes execution normally. In ACP SDK examples, this happens when the agent function yields all responses and returns control.
+1. **Successful Completion.** This is the most common scenario, where the agent processes the input and finishes execution normally. In ACP SDK examples, this happens when the agent function yields all responses and returns control.
 
 2. **Session Termination.** For stateful interactions, termination occurs when a session ends. The SDK uses context managers to ensure all session-related resources are properly released, which is critical for system stability during long-lived or high-volume operations.
 

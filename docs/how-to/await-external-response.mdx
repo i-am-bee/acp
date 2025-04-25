@@ -11,7 +11,7 @@ Here are several scenarios where `Await` significantly enhances agent behavior:
 
 - **Human-in-the-Loop Interactions:** Request explicit approval, qualitative feedback, or have the external party choose from provided options (e.g., selecting from multiple suggested actions).​
 - **Agent Coordination:** Pause execution to receive instructions, oversight, or validation from another agent acting as a supervisor or orchestrator.​
-- **Data Collection:** Request supplemental data when initial inputs are insufficient or ambiguous.​
+- **Data Collection:** Request supplemental data when initial input is insufficient or ambiguous.​
 - **Frontend or Browser Interactions:** Interact with frontend or browser environments (e.g., geolocation, device capabilities).​
 - **External System Integration:** Facilitate interactions with systems that cannot be directly invoked by an agent, prompting external parties to fulfill the awaited request.
 
@@ -42,7 +42,7 @@ server = Server()
 
 
 @server.agent()
-async def approval_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
+async def approval_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """Request approval and respond to user's confirmation."""
 
     # Pause execution and wait for external confirmation
@@ -80,14 +80,14 @@ async def handle_resume(client, run_id):
         
         if event.type == "run.completed":
             print()
-            print(str(event.run.outputs[-1]))
+            print(str(event.run.output[-1]))
 
 
 async def client():
     async with Client(base_url="http://localhost:8000") as client:
         initial_message = Message(parts=[MessagePart(content="Can you generate a password for me?")])
 
-        async for event in client.run_stream(agent="approval_agent", inputs=[initial_message]):
+        async for event in client.run_stream(agent="approval_agent", input=[initial_message]):
             print(event)
 
             if event.type == "run.awaiting":

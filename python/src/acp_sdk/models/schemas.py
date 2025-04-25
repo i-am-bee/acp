@@ -14,7 +14,7 @@ class AgentReadResponse(Agent):
 class RunCreateRequest(BaseModel):
     agent_name: AgentName
     session_id: SessionId | None = None
-    inputs: list[Message]
+    input: list[Message]
     mode: RunMode = RunMode.SYNC
 
 

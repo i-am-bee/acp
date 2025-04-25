@@ -12,13 +12,15 @@ from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
 
 
+
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
-            agent=agent, inputs=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
+            agent=agent, input=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
         )
 
-    return run.outputs
+    return run.output
+
 
 
 class Language(str, Enum):

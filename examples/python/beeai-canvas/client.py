@@ -18,7 +18,7 @@ async def run_client() -> None:
 
                 print("Assistant:", flush=True)
                 collected_artifacts = []
-                async for event in client.run_stream(agent="canvas_agent", inputs=[user_message_input]):
+                async for event in client.run_stream(agent="canvas_agent", input=[user_message_input]):
                     match event:
                         case ArtifactEvent(part=part):
                             print(f"\n--- Artifact Received: {part.name} ({part.content_type}) ---", flush=True)

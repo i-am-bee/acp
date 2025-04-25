@@ -27,11 +27,9 @@ Here's a quick table for common commands. For the full list of commands, see the
 
 Note that `uv` commands do not require the virtual environment to be "activated", they will always work with the project virtual environment.
 
-| Task                         | `uv` command                  | Legacy command                    |
-| ---------------------------- | ----------------------------- | --------------------------------- |
-| Set up a new project         | `uv init --python '>=3.11'`\* | `python -m venv .venv`            |
-| Run a Python file            | `uv run script.py`            | `python script.py`                |
-| Install a package            | `uv add <package>`            | `pip install <package>`           |
-| Install all project packages | `uv sync`                     | `pip install -r requirements.txt` |
-
-<small>*ACP SDK requires Python 3.11 or higher.</small>
+| Task                         | `uv` command                                                           | Legacy command                    |
+| ---------------------------- | ---------------------------------------------------------------------- | --------------------------------- |
+| Set up a new project         | `uv init --python '>=3.11'` <br/><small>(ACP SDK requires Python 3.11 or higher.)</small> | `python -m venv .venv`            |
+| Run a Python file            | `uv run script.py`                                                     | `python script.py`                |
+| Install a package            | `uv add <package>`                                                     | `pip install <package>`           |
+| Install all project packages | `uv sync`                                                              | `pip install -r requirements.txt` |

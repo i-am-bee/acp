@@ -48,9 +48,10 @@ requires-dist = [
 
 [[package]]
 name = "acp-sdk"
-version = "0.4.0"
+version = "0.7.1"
 source = { editable = "python" }
 dependencies = [
+    { name = "cachetools" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "httpx-sse" },
@@ -63,10 +64,16 @@ dependencies = [
     { name = "pydantic" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest-httpx" },
+]
+
 [package.metadata]
 requires-dist = [
+    { name = "cachetools", specifier = ">=5.5.2" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.8" },
-    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "httpx", specifier = ">=0.26.0" },
     { name = "httpx-sse", specifier = ">=0.4.0" },
     { name = "janus", specifier = ">=2.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.31.1" },
@@ -76,6 +83,9 @@ requires-dist = [
     { name = "opentelemetry-sdk", specifier = ">=1.31.1" },
     { name = "pydantic", specifier = ">=2.11.1" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest-httpx", specifier = ">=0.35.0" }]
 
 [[package]]
 name = "aiofiles"
@@ -3772,6 +3782,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8e/c4/453c52c659521066969523e87d85d54139bbd17b78f09532fb8eb8cdb58e/pytest_asyncio-0.26.0.tar.gz", hash = "sha256:c4df2a697648241ff39e7f0e4a73050b03f123f760673956cf0d72a4990e312f", size = 54156, upload_time = "2025-03-25T06:22:28.883Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/20/7f/338843f449ace853647ace35870874f69a764d251872ed1b4de9f234822c/pytest_asyncio-0.26.0-py3-none-any.whl", hash = "sha256:7b51ed894f4fbea1340262bdae5135797ebbe21d8638978e35d31c6d19f72fb0", size = 19694, upload_time = "2025-03-25T06:22:27.807Z" },
+]
+
+[[package]]
+name = "pytest-httpx"
+version = "0.35.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/89/5b12b7b29e3d0af3a4b9c071ee92fa25a9017453731a38f08ba01c280f4c/pytest_httpx-0.35.0.tar.gz", hash = "sha256:d619ad5d2e67734abfbb224c3d9025d64795d4b8711116b1a13f72a251ae511f", size = 54146, upload_time = "2024-11-28T19:16:54.237Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/ed/026d467c1853dd83102411a78126b4842618e86c895f93528b0528c7a620/pytest_httpx-0.35.0-py3-none-any.whl", hash = "sha256:ee11a00ffcea94a5cbff47af2114d34c5b231c326902458deed73f9c459fd744", size = 19442, upload_time = "2024-11-28T19:16:52.787Z" },
 ]
 
 [[package]]

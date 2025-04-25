@@ -21,19 +21,19 @@
 
 <br>
 
-The **Agent Communication Protocol (ACP)** is an open standard with open governance enabling  **seamless communication** between AI agents, regardless of their implementation details. In ACP, an **agent** is a software service that communicates through multimodal messages, primarily driven by natural language. The protocol is **agnostic** to how agents function internally, specifying only the **minimum assumptions** necessary for smooth interoperability. ACP defines a **standardized RESTful API** for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streaming** interactions.
+The **Agent Communication Protocol (ACP)** is an open standard with open governance enabling **seamless communication** between AI agents, regardless of their implementation details. In ACP, an **agent** is a software service that communicates through multimodal messages, primarily driven by natural language. The protocol is **agnostic** to how agents function internally, specifying only the **minimum assumptions** necessary for smooth interoperability. ACP defines a **standardized RESTful API** for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streaming** interactions.
 
 ## Core Components
 
-| **Concept**      | **Description** |
-|------------------|-----------------|
+| **Concept**      | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Agent Detail** | **Agent Detail** refers to the metadata that describes an **agent**, including its **name**, **description**, and defined set of **functions** or **behaviors**. It is used in the capability-based model for discovery and communication, allowing other components to understand what an agent can do without accessing its implementation. This metadata enables agents to be found, invoked, and composed into larger systems through their well-defined behaviors. |
-| **ACP Server**   | The **ACP Server** is the server-side component that exposes agents through a **REST API**. It consists of an **agent interface**, a **FastAPI app factory**, and a **Uvicorn-based server**. Users can either use the full stack for development or integrate their own **ASGI server** for production environments. |
-| **ACP Client**   | The **ACP Client** is a lightweight, **httpx-based client** that supports session management. It provides features like session support via **context managers**, the ability to handle simple requests, maintain persistent sessions, and support **streaming responses**. It is designed to closely mirror the **REST API** for ease of use. |
-| **Run**          | A **Run** represents a single execution of an agent with specific **inputs**. It can be executed synchronously using **`run_sync`**, or asynchronously in streams using **`run_stream`**, providing flexibility in how agents are invoked and how results are consumed. A run can also produce **intermediate thoughts** and **final outputs**. |
-| **Message**      | A **Message** is the primary data structure for communication between agents and clients. Each message contains one or more **MessageParts** and is associated with a role (e.g., **"user"** or **"assistant"**) to define the perspective of the content. Messages are used to pass information in an agent-to-agent or agent-to-client context. |
-| **MessagePart**  | A **MessagePart** is a granular unit of content within a message. Each part has **content** and an optional **role**. It supports various content types, such as **text**, **JSON**, etc. Multiple **MessageParts** are combined to form a complete message that conveys structured information. |
-| **Await**        | **Await** is a mechanism that allows agents to pause execution and request additional information from the client before continuing. This creates interactive, **stateful conversations** where agents can ask for clarification or further data as needed. It is implemented using **`MessageAwaitRequest`** and **`MessageAwaitResume`** objects. |
+| **ACP Server**   | The **ACP Server** is the server-side component that exposes agents through a **REST API**. It consists of an **agent interface**, a **FastAPI app factory**, and a **Uvicorn-based server**. Users can either use the full stack for development or integrate their own **ASGI server** for production environments.                                                                                                                                                   |
+| **ACP Client**   | The **ACP Client** is a lightweight, **httpx-based client** that supports session management. It provides features like session support via **context managers**, the ability to handle simple requests, maintain persistent sessions, and support **streaming responses**. It is designed to closely mirror the **REST API** for ease of use.                                                                                                                          |
+| **Run**          | A **Run** represents a single execution of an agent with specific **input**. It can be executed synchronously using **`run_sync`**, or asynchronously in streams using **`run_stream`**, providing flexibility in how agents are invoked and how results are consumed. A run can also produce **intermediate thoughts** and **final output**.                                                                                                                         |
+| **Message**      | A **Message** is the primary data structure for communication between agents and clients. Each message contains one or more **MessageParts** and is associated with a role (e.g., **"user"** or **"assistant"**) to define the perspective of the content. Messages are used to pass information in an agent-to-agent or agent-to-client context.                                                                                                                       |
+| **MessagePart**  | A **MessagePart** is a granular unit of content within a message. Each part has **content** and an optional **role**. It supports various content types, such as **text**, **JSON**, etc. Multiple **MessageParts** are combined to form a complete message that conveys structured information.                                                                                                                                                                        |
+| **Await**        | **Await** is a mechanism that allows agents to pause execution and request additional information from the client before continuing. This creates interactive, **stateful conversations** where agents can ask for clarification or further data as needed. It is implemented using **`MessageAwaitRequest`** and **`MessageAwaitResume`** objects.                                                                                                                     |
 
 ## Quickstart
 
@@ -43,7 +43,8 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 **1. Initialize your project**
 
 ```sh
-uv init --python '>=3.11'
+uv init --python '>=3.11' my_acp_project
+cd my_acp_project
 ```
 
 **2. Add the ACP SDK**
@@ -54,7 +55,8 @@ uv add acp-sdk
 
 **3. Create an agent**
 
-Let’s create a simple "echo agent" that returns any message it receives.
+Let’s create a simple "echo agent" that returns any message it receives.  
+Create an `agent.py` file in your project directory with the following code:
 
 ```python
 # agent.py
@@ -69,10 +71,10 @@ server = Server()
 
 @server.agent()
 async def echo(
-    inputs: list[Message], context: Context
+    input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
@@ -88,16 +90,18 @@ server.run()
 uv run agent.py
 ```
 
-Your server should now be running at `http://localhost:8000`.
+Your server should now be running at http://localhost:8000.
 
 **5. Verify your agent is available**
 
-*Request:*
+In another terminal, run the following `curl` command:
+
 ```sh
 curl http://localhost:8000/agents
 ```
 
-*Response:*
+You should see a JSON response containing your `echo` agent, confirming it's available:
+
 ```json
 {
   "agents": [
@@ -106,17 +110,16 @@ curl http://localhost:8000/agents
 }
 ```
 
-You should see a JSON response containing your `echo` agent, confirming it's available.
-
 **6. Run the agent via HTTP**
 
-*Request:*
+Run the following `curl` command:
+
 ```sh
 curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [
+        "input": [
           {
             "parts": [
               {
@@ -129,7 +132,8 @@ curl -X POST http://localhost:8000/runs \
       }'
 ```
 
-*Response:*
+Your response should include the echoed message “Howdy!”:
+
 ```json
 {
   "run_id": "44e480d6-9a3e-4e35-8a03-faa759e19588",
@@ -137,7 +141,7 @@ curl -X POST http://localhost:8000/runs \
   "session_id": "b30b1946-6010-4974-bd35-89a2bb0ce844",
   "status": "completed",
   "await_request": null,
-  "outputs": [
+  "output": [
     {
       "parts": [
         {
@@ -158,7 +162,8 @@ Your response should include the echoed message "Howdy!".
 
 **7. Build an ACP client**
 
-Here’s a simple ACP client to interact with your `echo` agent:
+Here’s a simple ACP client to interact with your `echo` agent.  
+Create a `client.py` file in your project directory with the following code:
 
 ```python
 # client.py
@@ -172,13 +177,13 @@ async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
             agent="echo",
-            inputs=[
+            input=[
                 Message(
-                    parts=[MessagePart(content="Howdy!", content_type="text/plain")]
+                    parts=[MessagePart(content="Howdy to echo from client!!", content_type="text/plain")]
                 )
             ],
         )
-        print(run.outputs)
+        print(run.output)
 
 
 if __name__ == "__main__":

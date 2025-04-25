@@ -1,6 +1,6 @@
 [project]
 name = "acp-sdk"
-version = "0.4.0"
+version = "0.7.1"
 description = "Agent Communication Protocol SDK"
 license = "Apache-2.0"
 readme = "README.md"
@@ -10,7 +10,7 @@ requires-python = ">=3.11, <4.0"
 dependencies = [
     "opentelemetry-api>=1.31.1",
     "pydantic>=2.11.1",
-    "httpx>=0.28.1",
+    "httpx>=0.26.0",
     "httpx-sse>=0.4.0",
     "opentelemetry-instrumentation-httpx>=0.52b1",
     "fastapi[standard]>=0.115.8",
@@ -18,8 +18,12 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.52b1",
     "opentelemetry-sdk>=1.31.1",
     "janus>=2.0.0",
+    "cachetools>=5.5.2",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest-httpx>=0.35.0"]

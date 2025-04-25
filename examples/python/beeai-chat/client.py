@@ -15,7 +15,7 @@ async def run_client() -> None:
                 user_message_input = Message(parts=[MessagePart(content=user_message, role="user")])
 
                 log_type = None
-                async for event in client.run_stream(agent="chat_agent", inputs=[user_message_input]):
+                async for event in client.run_stream(agent="chat_agent", input=[user_message_input]):
                     match event:
                         case MessagePartEvent(part=MessagePart(content=content)):
                             if log_type:

@@ -23,9 +23,9 @@ Register an agent and run the server:
 server = Server()
 
 @server.agent()
-async def echo(inputs: list[Message]):
+async def echo(input: list[Message]):
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         yield message
 
 server.run(port=8000)
@@ -35,7 +35,7 @@ From another process, connect to the server and run the agent:
 
 ```py
 async with Client(base_url="http://localhost:8000") as client:
-    run = await client.run_sync(agent="echo", inputs=[Message(parts=[MessagePart(content="Howdy!")])])
+    run = await client.run_sync(agent="echo", input=[Message(parts=[MessagePart(content="Howdy!")])])
     print(run)
 
 ```

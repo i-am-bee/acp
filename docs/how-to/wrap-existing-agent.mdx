@@ -30,9 +30,9 @@ server = Server()
 
 
 @server.agent()
-async def echo(inputs: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         yield message
 
 # Start the ACP server
@@ -58,15 +58,15 @@ from beeai_framework.memory.token_memory import TokenMemory
 server = Server()
 
 @server.agent()
-async def llm(inputs: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
-    """LLM agent that processes inputs and returns a response"""
+async def llm(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+    """LLM agent that processes input and returns a response"""
     
     # Create a llm instance
     llm = ChatModel.from_name("ollama:llama3.1")
     # Create a memory instance
     memory = TokenMemory(llm)
     # Add messages to memory
-    for message in inputs:
+    for message in input:
         await memory.add(UserMessage(str(message)))
         
     # Create agent with memory and tools

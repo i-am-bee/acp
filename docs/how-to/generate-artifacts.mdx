@@ -27,7 +27,7 @@ server = Server()
 
 @server.agent()
 async def pil_image_generator(
-    inputs: list[Message], context: Context
+    input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Generates a simple PNG image using PIL and returns it."""
     img = Image.new("RGB", (100, 100), color="red")
@@ -71,7 +71,7 @@ server = Server()
 
 @server.agent()
 async def json_artifact_generator(
-    inputs: list[Message], context: Context
+    input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Generates a JSON artifact."""
     data = {

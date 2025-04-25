@@ -71,15 +71,15 @@ async with Client(base_url="http://localhost:8000") as client:
   message = Message(parts=[MessagePart(content="Hello")])
 
   # Async
-  run = await client.run_async(agent_name="agent", inputs=[message])
+  run = await client.run_async(agent="agent", input=[message])
   print(run.status)
 
   # Sync - waits for completion, failure, cancellation or await
-  run = await client.run_sync(agent_name="agent", inputs=[message])
-  print(run.outputs)
+  run = await client.run_sync(agent="agent", input=[message])
+  print(run.output)
   
   # Stream - as sync but also receives events
-  async for event in client.run_stream(agent_name="agent", inputs=[message])
+  async for event in client.run_stream(agent="agent", input=[message])
     print(event)
 ```
 
@@ -95,5 +95,5 @@ async with Client(base_url="http://localhost:8000" as client:
 
     async with client.session() as session:
         for agent in agents:
-            await session.run_sync(agent_name=agent.name, inputs=[Message(parts=[MessagePart(content="Hello!")])])
+            await session.run_sync(agent=agent.name, input=[Message(parts=[MessagePart(content="Hello!")])])
 ```

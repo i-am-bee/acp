@@ -6,14 +6,16 @@ description: "Get up and running with ACP"
 This guide will walk you through using the Agent Communication Protocol (ACP) to create and run your first agent, interact with it using HTTP requests, and build a basic client.
 
 <Note>
-This guide uses `uv`. See the [`uv` primer](/introduction/uv-primer) for more details.
+  This guide uses `uv`. See the [`uv` primer](/introduction/uv-primer) for more
+  details.
 </Note>
 
 <Steps>
 <Step title="Initialize your project">
 
 ```sh
-uv init --python '>=3.11'
+uv init --python '>=3.11' my_acp_project
+cd my_acp_project
 ```
 
 </Step>
@@ -27,6 +29,7 @@ uv add acp-sdk
 <Step title="Create an agent">
 
 Let’s create a simple "echo agent" that returns any message it receives.
+Create an `agent.py` file in your project directory with the following code:
 
 ```python agent.py
 import asyncio
@@ -40,10 +43,10 @@ server = Server()
 
 @server.agent()
 async def echo(
-    inputs: list[Message], context: Context
+    input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
@@ -65,6 +68,8 @@ Your server should now be running at http://localhost:8000.
 
 </Step>
 <Step title="Verify your agent is available">
+In another terminal, run the following `curl` command:
+
 <CodeGroup>
 
 ```sh Request
@@ -92,7 +97,7 @@ curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [
+        "input": [
           {
             "parts": [
               {
@@ -112,7 +117,7 @@ curl -X POST http://localhost:8000/runs \
   "session_id": "b30b1946-6010-4974-bd35-89a2bb0ce844",
   "status": "completed",
   "await_request": null,
-  "outputs": [
+  "output": [
     {
       "parts": [
         {
@@ -136,7 +141,8 @@ Your response should include the echoed message "Howdy!".
 </Step>
 <Step title="Build an ACP client">
 
-Here’s a simple ACP client to interact with your `echo` agent:
+Here’s a simple ACP client to interact with your `echo` agent.
+Create a `client.py` file in your project directory with the following code:
 
 ```python client.py
 import asyncio
@@ -149,13 +155,13 @@ async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
             agent="echo",
-            inputs=[
+            input=[
                 Message(
-                    parts=[MessagePart(content="Howdy!", content_type="text/plain")]
+                    parts=[MessagePart(content="Howdy to echo from client!", content_type="text/plain")]
                 )
             ],
         )
-        print(run.outputs)
+        print(run.output)
 
 
 if __name__ == "__main__":

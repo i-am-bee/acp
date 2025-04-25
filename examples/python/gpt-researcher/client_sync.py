@@ -8,7 +8,7 @@ async def client() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
             agent="gpt_researcher",
-            inputs=[Message(parts=[MessagePart(content="Protocols focused on agent to agent communication")])],
+            input=[Message(parts=[MessagePart(content="Protocols focused on agent to agent communication")])],
         )
         print(run)
 
