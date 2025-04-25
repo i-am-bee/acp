@@ -295,7 +295,7 @@ components:
           description: Description of the awaited payload to resume the run, only available when status is **awaiting**
           $ref: "#/components/schemas/AwaitRequest"
           nullable: true
-        outputs:
+        output:
           type: array
           items:
             $ref: "#/components/schemas/Message"
@@ -306,7 +306,7 @@ components:
         - agent_name
         - run_id
         - status
-        - outputs
+        - output
     # Events
     MessageCreatedEvent:
       type: object

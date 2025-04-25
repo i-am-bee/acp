@@ -177,7 +177,7 @@ class Run(BaseModel):
     session_id: SessionId | None = None
     status: RunStatus = RunStatus.CREATED
     await_request: AwaitRequest | None = None
-    outputs: list[Message] = []
+    output: list[Message] = []
     error: Error | None = None
 
 

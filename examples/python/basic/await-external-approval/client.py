@@ -13,7 +13,7 @@ async def handle_resume(client, run_id):
 
         if event.type == "run.completed":
             print()
-            print(str(event.run.outputs[-1]))
+            print(str(event.run.output[-1]))
 
 
 async def client():

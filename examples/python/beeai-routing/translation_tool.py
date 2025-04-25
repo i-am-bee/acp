@@ -18,7 +18,7 @@ async def run_agent(agent: str, input: str) -> list[Message]:
             agent=agent, input=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
         )
 
-    return run.outputs
+    return run.output
 
 
 class Language(str, Enum):

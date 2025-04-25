@@ -23,16 +23,16 @@ async def example() -> None:
                 )
             ],
         )
-        print(str(reduce(lambda x, y: x + y, run.outputs)))
+        print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(
             agent="chat_agent", input=[Message(parts=[MessagePart(content="What is my favourite fruit?", role="user")])]
         )
-        print(str(reduce(lambda x, y: x + y, run.outputs)))
+        print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(
             agent="chat_agent",
             input=[Message(parts=[MessagePart(content="Update the revious answer with my name.", role="user")])],
         )
-        print(str(reduce(lambda x, y: x + y, run.outputs)))
+        print(str(reduce(lambda x, y: x + y, run.output)))
 
 
 if __name__ == "__main__":

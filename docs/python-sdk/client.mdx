@@ -62,7 +62,7 @@ async with Client(base_url="http://localhost:8000") as client:
 
   # Sync - waits for completion, failure, cancellation or await
   run = await client.run_sync(agent_name="agent", inputs=[message])
-  print(run.outputs)
+  print(run.output)
   
   # Stream - as sync but also receives events
   async for event in client.run_stream(agent_name="agent", inputs=[message])

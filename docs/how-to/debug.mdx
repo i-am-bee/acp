@@ -303,7 +303,7 @@ async def client() -> None:
             agent="lang_graph_agent", 
             inputs=[Message(parts=[MessagePart(content="Milan", content_type="text/plain")])]
         )
-        print(run_milan.outputs[0].parts[0].content)
+        print(run_milan.output[0].parts[0].content)
 
 if __name__ == "__main__":
     asyncio.run(client())

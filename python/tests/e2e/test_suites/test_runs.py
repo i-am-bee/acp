@@ -27,7 +27,7 @@ await_resume = MessageAwaitResume(message=Message(parts=[]))
 async def test_run_sync(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="echo", input=inputs)
     assert run.status == RunStatus.COMPLETED
-    assert run.outputs == inputs
+    assert run.output == inputs
 
 
 @pytest.mark.asyncio
@@ -102,18 +102,18 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
 async def test_run_session(server: Server, client: Client) -> None:
     async with client.session() as session:
         run = await session.run_sync(agent="echo", input=inputs)
-        assert run.outputs == inputs
+        assert run.output == inputs
         run = await session.run_sync(agent="echo", input=inputs)
-        assert run.outputs == inputs + inputs + inputs
+        assert run.output == inputs + inputs + inputs
 
 
 @pytest.mark.asyncio
 async def test_mime_types(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="mime_types", input=inputs)
     assert run.status == RunStatus.COMPLETED
-    assert len(run.outputs) == 1
+    assert len(run.output) == 1
 
-    message_parts = run.outputs[0].parts
+    message_parts = run.output[0].parts
     content_types = [part.content_type for part in message_parts]
 
     assert "text/html" in content_types
@@ -132,9 +132,9 @@ async def test_mime_types(server: Server, client: Client) -> None:
 async def test_base64_encoding(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="base64_encoding", input=inputs)
     assert run.status == RunStatus.COMPLETED
-    assert len(run.outputs) == 1
+    assert len(run.output) == 1
 
-    message_parts = run.outputs[0].parts
+    message_parts = run.output[0].parts
     assert len(message_parts) == 2
 
     base64_part = next((part for part in message_parts if part.content_encoding == "base64"), None)
@@ -153,14 +153,14 @@ async def test_artifacts(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="artifact_producer", input=inputs)
     assert run.status == RunStatus.COMPLETED
 
-    assert len(run.outputs) == 1
-    assert run.outputs[0].parts[0].content == "Processing with artifacts"
+    assert len(run.output) == 1
+    assert run.output[0].parts[0].content == "Processing with artifacts"
 
-    assert len(run.outputs[0].parts) == 4
+    assert len(run.output[0].parts) == 4
 
-    text_artifact = next((a for a in run.outputs[0].parts if a.name == "text-result.txt"), None)
-    json_artifact = next((a for a in run.outputs[0].parts if a.name == "data.json"), None)
-    image_artifact = next((a for a in run.outputs[0].parts if a.name == "image.png"), None)
+    text_artifact = next((a for a in run.output[0].parts if a.name == "text-result.txt"), None)
+    json_artifact = next((a for a in run.output[0].parts if a.name == "data.json"), None)
+    image_artifact = next((a for a in run.output[0].parts if a.name == "image.png"), None)
 
     assert text_artifact is not None
     assert text_artifact.content_type == "text/plain"
@@ -221,7 +221,7 @@ async def test_session_ttl(server: Server, client: Client) -> None:
         run = await session.run_sync(agent="echo", input=inputs)
         await asyncio.sleep(3)
         run = await session.run_sync(agent="echo", input=inputs)
-        assert len(run.outputs) == 3
+        assert len(run.output) == 3
         await asyncio.sleep(3)
         run = await session.run_sync(agent="echo", input=inputs)
-        assert len(run.outputs) == 7  # First run shall be forgotten
+        assert len(run.output) == 7  # First run shall be forgotten

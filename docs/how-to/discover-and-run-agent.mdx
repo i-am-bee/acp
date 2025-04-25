@@ -66,7 +66,7 @@ curl -X POST http://localhost:8000/runs \
 {
   "agent_name": "echo",
   "status": "completed",
-  "outputs": [
+  "output": [
     { "parts": [{ "content_type": "text/plain", "content": "Hello" }] }
   ]
 }
@@ -87,7 +87,7 @@ async def run_sync():
             agent="echo",
             inputs=[Message(parts=[MessagePart(content="Hello")])]
         )
-        print(run.outputs)
+        print(run.output)
 
 if __name__ == "__main__":
     asyncio.run(run_sync())

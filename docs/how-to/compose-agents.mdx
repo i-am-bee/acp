@@ -40,7 +40,7 @@ async def run_agent(agent: str, input: str) -> list[Message]:
             inputs=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
         )
 
-    return run.outputs
+    return run.output
 
 @server.agent(name="translation")
 async def translation_agent(inputs: list[Message]) -> AsyncGenerator:
@@ -168,7 +168,7 @@ async def run_agent(agent: str, input: str) -> list[Message]:
             agent=agent, inputs=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
         )
 
-    return run.outputs
+    return run.output
 
 class Language(str, Enum):
     spanish = 'spanish'

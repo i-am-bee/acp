@@ -3,7 +3,7 @@ from acp_sdk.client import Client
 from acp_sdk.models import Message, MessagePart, Run, RunCompletedEvent
 from pytest_httpx import HTTPXMock
 
-mock_run = Run(agent_name="mock", outputs=[Message(parts=[MessagePart(content="Hello!")])])
+mock_run = Run(agent_name="mock", output=[Message(parts=[MessagePart(content="Hello!")])])
 
 
 @pytest.mark.asyncio

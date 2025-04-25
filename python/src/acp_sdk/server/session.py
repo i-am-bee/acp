@@ -18,4 +18,4 @@ class Session:
         for bundle in self.bundles:
             if bundle.run.status == RunStatus.COMPLETED:
                 yield from bundle.inputs
-                yield from bundle.run.outputs
+                yield from bundle.run.output

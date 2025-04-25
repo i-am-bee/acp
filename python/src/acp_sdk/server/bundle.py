@@ -92,7 +92,7 @@ class RunBundle:
             async def flush_message() -> None:
                 nonlocal in_message
                 if in_message:
-                    await self.emit(MessageCompletedEvent(message=self.run.outputs[-1]))
+                    await self.emit(MessageCompletedEvent(message=self.run.output[-1]))
                     in_message = False
 
             try:
@@ -114,14 +114,14 @@ class RunBundle:
                         if isinstance(next, str):
                             next = MessagePart(content=next)
                         if not in_message:
-                            self.run.outputs.append(Message(parts=[]))
+                            self.run.output.append(Message(parts=[]))
                             in_message = True
-                            await self.emit(MessageCreatedEvent(message=self.run.outputs[-1]))
-                        self.run.outputs[-1].parts.append(next)
+                            await self.emit(MessageCreatedEvent(message=self.run.output[-1]))
+                        self.run.output[-1].parts.append(next)
                         await self.emit(MessagePartEvent(part=next))
                     elif isinstance(next, Message):
                         await flush_message()
-                        self.run.outputs.append(next)
+                        self.run.output.append(next)
                         await self.emit(MessageCreatedEvent(message=next))
                         for part in next.parts:
                             await self.emit(MessagePartEvent(part=part))

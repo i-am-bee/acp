@@ -141,7 +141,7 @@ Your response should include the echoed message “Howdy!”:
   "session_id": "b30b1946-6010-4974-bd35-89a2bb0ce844",
   "status": "completed",
   "await_request": null,
-  "outputs": [
+  "output": [
     {
       "parts": [
         {
@@ -183,7 +183,7 @@ async def example() -> None:
                 )
             ],
         )
-        print(run.outputs)
+        print(run.output)
 
 
 if __name__ == "__main__":

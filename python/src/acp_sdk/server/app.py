@@ -105,7 +105,7 @@ def create_app(*agents: Agent, run_limit: int = 1000, run_ttl: timedelta = timed
         bundle = RunBundle(
             agent=agent,
             run=Run(agent_name=agent.name, session_id=session.id),
-            inputs=request.inputs,
+            inputs=request.input,
             history=list(session.history()),
             executor=executor,
         )
