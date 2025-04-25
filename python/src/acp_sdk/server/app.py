@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 from cachetools import TTLCache
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -47,7 +47,12 @@ class Headers(str, Enum):
     RUN_ID = "Run-ID"
 
 
-def create_app(*agents: Agent, run_limit: int = 1000, run_ttl: timedelta = timedelta(hours=1)) -> FastAPI:
+def create_app(
+    *agents: Agent,
+    run_limit: int = 1000,
+    run_ttl: timedelta = timedelta(hours=1),
+    dependencies: list[Depends] | None = None,
+) -> FastAPI:
     executor: ThreadPoolExecutor
 
     @asynccontextmanager
@@ -57,7 +62,10 @@ def create_app(*agents: Agent, run_limit: int = 1000, run_ttl: timedelta = timed
             executor = exec
             yield
 
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(
+        lifespan=lifespan,
+        dependencies=dependencies,
+    )
 
     FastAPIInstrumentor.instrument_app(app)
 
