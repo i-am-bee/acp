@@ -12,28 +12,28 @@
 
 </div>
 
-<p align="center">
-  <strong><a href="https://agentcommunicationprotocol.dev">Documentation</a></strong> •
-  <strong><a href="https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml">OpenAPI Spec</a></strong> •
-  <strong><a href="https://github.com/i-am-bee/acp/blob/main/python">Python SDK</a></strong> •
-  <strong><a href="https://github.com/i-am-bee/acp/tree/main/examples">Examples</a></strong>
-</p>
-
 <br>
 
-The **Agent Communication Protocol (ACP)** is an open standard with open governance enabling **seamless communication** between AI agents, regardless of their implementation details. In ACP, an **agent** is a software service that communicates through multimodal messages, primarily driven by natural language. The protocol is **agnostic** to how agents function internally, specifying only the **minimum assumptions** necessary for smooth interoperability. ACP defines a **standardized RESTful API** for managing and executing agents, supporting **synchronous**, **asynchronous**, and **streaming** interactions.
+The **Agent Communication Protocol (ACP)** is an open standard with open governance for agent interoperability. It defines a standardized RESTful API supporting synchronous, asynchronous, and streaming interactions. In ACP, agents are services that exchange multimodal messages, with the protocol remaining agnostic to their internal implementations and requiring only minimal specifications for compatibility.
 
-## Core Components
+## ACP Toolkit
 
-| **Concept**      | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Agent Detail** | **Agent Detail** refers to the metadata that describes an **agent**, including its **name**, **description**, and defined set of **functions** or **behaviors**. It is used in the capability-based model for discovery and communication, allowing other components to understand what an agent can do without accessing its implementation. This metadata enables agents to be found, invoked, and composed into larger systems through their well-defined behaviors. |
-| **ACP Server**   | The **ACP Server** is the server-side component that exposes agents through a **REST API**. It consists of an **agent interface**, a **FastAPI app factory**, and a **Uvicorn-based server**. Users can either use the full stack for development or integrate their own **ASGI server** for production environments.                                                                                                                                                   |
-| **ACP Client**   | The **ACP Client** is a lightweight, **httpx-based client** that supports session management. It provides features like session support via **context managers**, the ability to handle simple requests, maintain persistent sessions, and support **streaming responses**. It is designed to closely mirror the **REST API** for ease of use.                                                                                                                          |
-| **Run**          | A **Run** represents a single execution of an agent with specific **input**. It can be executed synchronously using **`run_sync`**, or asynchronously in streams using **`run_stream`**, providing flexibility in how agents are invoked and how results are consumed. A run can also produce **intermediate thoughts** and **final output**.                                                                                                                         |
-| **Message**      | A **Message** is the primary data structure for communication between agents and clients. Each message contains one or more **MessageParts** and is associated with a role (e.g., **"user"** or **"assistant"**) to define the perspective of the content. Messages are used to pass information in an agent-to-agent or agent-to-client context.                                                                                                                       |
-| **MessagePart**  | A **MessagePart** is a granular unit of content within a message. Each part has **content** and an optional **role**. It supports various content types, such as **text**, **JSON**, etc. Multiple **MessageParts** are combined to form a complete message that conveys structured information.                                                                                                                                                                        |
-| **Await**        | **Await** is a mechanism that allows agents to pause execution and request additional information from the client before continuing. This creates interactive, **stateful conversations** where agents can ask for clarification or further data as needed. It is implemented using **`MessageAwaitRequest`** and **`MessageAwaitResume`** objects.                                                                                                                     |
+- **📚 [Documentation](https://agentcommunicationprotocol.dev)**. Comprehensive guides and reference material for implementing and using ACP.
+- **📝 [OpenAPI Specification](https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml).** Defines the REST API endpoints, request/response formats, and data models to form the ACP protocol.
+- **🛠️ [Python SDK](https://github.com/i-am-bee/acp/blob/main/python).** Contains a server implementation, client libraries, and model definitions to easily create and interact with ACP agents.
+- **💻 [Examples](https://github.com/i-am-bee/acp/tree/main/examples).** Ready-to-run code samples demonstrating how to build agents and clients that communicate using ACP.
+
+## Key Protocol Concepts
+
+| **Concept**      | **Description**  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | Metadata that describes an agent's capabilities, including its name, description, and functions. This enables discovery and communication in a capability-based model, allowing agents to be found and composed without accessing their implementation details. |
+| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | Represents a single execution of an agent with specific inputs. Runs can be executed synchronously (`run_sync`) or as streams (`run_stream`), and can produce both intermediate thoughts and final outputs, offering flexibility in how agents are invoked. |
+| **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The primary data structure for agent communication. Messages contain one or more MessageParts and are associated with roles (e.g., "user" or "assistant") to define the perspective of the content, creating a structured conversation flow. |
+| **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | Granular content units within a Message. Each part has content and an optional role, supporting various content types like text and JSON. Multiple MessageParts combine to form complete messages that convey structured, multimodal information. |
+| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | 	A mechanism that allows agents to pause execution and request additional information from the client before continuing. This creates interactive, stateful conversations using `MessageAwaitRequest` and `MessageAwaitResume` objects, enabling agents to ask for clarification or more data as needed. |
+
+---
 
 ## Quickstart
 
@@ -197,6 +197,8 @@ uv run client.py
 ```
 
 You should see the echoed response printed to your console. 🎉
+
+---
 
 ## Contributors
 
