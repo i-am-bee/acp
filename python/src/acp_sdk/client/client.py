@@ -49,7 +49,7 @@ class Client:
         params: httpx._types.QueryParamTypes | None = None,
         headers: httpx._types.HeaderTypes | None = None,
         cookies: httpx._types.CookieTypes | None = None,
-        timeout: httpx._types.TimeoutTypes | None = None,
+        timeout: httpx._types.TimeoutTypes = None,
         verify: ssl.SSLContext | str | bool = True,
         cert: httpx._types.CertTypes | None = None,
         http1: bool = True,
