@@ -27,11 +27,11 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 
 | **Concept**      | **Description**  |
 | ---------------- | -------------------------------------------------------------------------------------------- |
-| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | Metadata that describes an agent's capabilities, including its name, description, and functions. This enables discovery and communication in a capability-based model, allowing agents to be found and composed without accessing their implementation details. |
-| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | Represents a single execution of an agent with specific inputs. Runs can be executed synchronously (`run_sync`) or as streams (`run_stream`), and can produce both intermediate thoughts and final outputs, offering flexibility in how agents are invoked. |
-| **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The primary data structure for agent communication. Messages contain one or more MessageParts and are associated with roles (e.g., "user" or "assistant") to define the perspective of the content, creating a structured conversation flow. |
-| **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | Granular content units within a Message. Each part has content and an optional role, supporting various content types like text and JSON. Multiple MessageParts combine to form complete messages that convey structured, multimodal information. |
-| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | 	A mechanism that allows agents to pause execution and request additional information from the client before continuing. This creates interactive, stateful conversations using `MessageAwaitRequest` and `MessageAwaitResume` objects, enabling agents to ask for clarification or more data as needed. |
+| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | Metadata describing an agent’s capabilities—name, description, functions—for discovery and composition without exposing implementation. |
+| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | A single agent execution with specific inputs. Supports sync (`run_sync`) or streaming (`run_stream`), with intermediate and final outputs. |
+| **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | 	Core structure for communication, containing MessageParts and roles (e.g., "user", "assistant") to guide conversation flow. |
+| **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | 	Individual content units in a Message, supporting types like text or JSON. Combined, they form structured, multimodal messages. |
+| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | 	Lets agents pause to request info from the client via `MessageAwaitRequest` and resume with `MessageAwaitResume`, enabling interactive, stateful exchanges. |
 
 ---
 
