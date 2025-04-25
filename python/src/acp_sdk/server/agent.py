@@ -32,14 +32,14 @@ class Agent(abc.ABC):
 
     @abc.abstractmethod
     def run(
-        self, inputs: list[Message], context: Context
+        self, input: list[Message], context: Context
     ) -> (
         AsyncGenerator[RunYield, RunYieldResume] | Generator[RunYield, RunYieldResume] | Coroutine[RunYield] | RunYield
     ):
         pass
 
     async def execute(
-        self, inputs: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
+        self, input: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
@@ -49,13 +49,13 @@ class Agent(abc.ABC):
         )
 
         if inspect.isasyncgenfunction(self.run):
-            run = asyncio.create_task(self._run_async_gen(inputs, context))
+            run = asyncio.create_task(self._run_async_gen(input, context))
         elif inspect.iscoroutinefunction(self.run):
-            run = asyncio.create_task(self._run_coro(inputs, context))
+            run = asyncio.create_task(self._run_coro(input, context))
         elif inspect.isgeneratorfunction(self.run):
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, inputs, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
         else:
-            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, inputs, context)
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
 
         try:
             while True:
@@ -66,7 +66,7 @@ class Agent(abc.ABC):
         finally:
             await run  # Raise exceptions
 
-    async def _run_async_gen(self, input: Message, context: Context) -> None:
+    async def _run_async_gen(self, input: list[Message], context: Context) -> None:
         try:
             gen: AsyncGenerator[RunYield, RunYieldResume] = self.run(input, context)
             value = None
@@ -77,13 +77,13 @@ class Agent(abc.ABC):
         finally:
             context.shutdown()
 
-    async def _run_coro(self, input: Message, context: Context) -> None:
+    async def _run_coro(self, input: list[Message], context: Context) -> None:
         try:
             await context.yield_async(await self.run(input, context))
         finally:
             context.shutdown()
 
-    def _run_gen(self, input: Message, context: Context) -> None:
+    def _run_gen(self, input: list[Message], context: Context) -> None:
         try:
             gen: Generator[RunYield, RunYieldResume] = self.run(input, context)
             value = None
@@ -94,7 +94,7 @@ class Agent(abc.ABC):
         finally:
             context.shutdown()
 
-    def _run_func(self, input: Message, context: Context) -> None:
+    def _run_func(self, input: list[Message], context: Context) -> None:
         try:
             context.yield_sync(self.run(input, context))
         finally:
@@ -139,7 +139,7 @@ def agent(
         if inspect.isasyncgenfunction(fn):
 
             class AsyncGenDecoratorAgent(DecoratorAgentBase):
-                async def run(self, input: Message, context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
+                async def run(self, input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
                     try:
                         gen: AsyncGenerator[RunYield, RunYieldResume] = (
                             fn(input, context) if has_context_param else fn(input)
@@ -154,21 +154,21 @@ def agent(
         elif inspect.iscoroutinefunction(fn):
 
             class CoroDecoratorAgent(DecoratorAgentBase):
-                async def run(self, input: Message, context: Context) -> Coroutine[RunYield]:
+                async def run(self, input: list[Message], context: Context) -> Coroutine[RunYield]:
                     return await (fn(input, context) if has_context_param else fn(input))
 
             agent = CoroDecoratorAgent()
         elif inspect.isgeneratorfunction(fn):
 
             class GenDecoratorAgent(DecoratorAgentBase):
-                def run(self, input: Message, context: Context) -> Generator[RunYield, RunYieldResume]:
+                def run(self, input: list[Message], context: Context) -> Generator[RunYield, RunYieldResume]:
                     yield from (fn(input, context) if has_context_param else fn(input))
 
             agent = GenDecoratorAgent()
         else:
 
             class FuncDecoratorAgent(DecoratorAgentBase):
-                def run(self, input: Message, context: Context) -> RunYield:
+                def run(self, input: list[Message], context: Context) -> RunYield:
                     return fn(input, context) if has_context_param else fn(input)
 
             agent = FuncDecoratorAgent()

@@ -46,7 +46,7 @@ server = Server()
 
 
 @server.agent()
-async def canvas_agent(inputs: list[Message], context: Context) -> AsyncGenerator:
+async def canvas_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """
     An agent that processes user input and generates named artifacts based on the request.
     It instructs the LLM to create named markdown code blocks like:
@@ -62,7 +62,7 @@ async def canvas_agent(inputs: list[Message], context: Context) -> AsyncGenerato
         SystemMessage(SYSTEM_PROMPT),
         *(
             (UserMessage if getattr(message.parts[0], "role", None) == "user" else AssistantMessage)(str(message))
-            for message in inputs
+            for message in input
         ),
     ])
     response_text = response.get_text_content()

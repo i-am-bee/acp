@@ -43,10 +43,10 @@ server = Server()
 
 @server.agent()
 async def echo(
-    inputs: list[Message], context: Context
+    input: list[Message], context: Context
 ) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
-    for message in inputs:
+    for message in input:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everything"}
         await asyncio.sleep(0.5)
@@ -97,7 +97,7 @@ curl -X POST http://localhost:8000/runs \
   -H "Content-Type: application/json" \
   -d '{
         "agent_name": "echo",
-        "inputs": [
+        "input": [
           {
             "parts": [
               {
@@ -155,7 +155,7 @@ async def example() -> None:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
             agent="echo",
-            inputs=[
+            input=[
                 Message(
                     parts=[MessagePart(content="Howdy to echo from client!", content_type="text/plain")]
                 )

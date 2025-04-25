@@ -35,11 +35,11 @@ from acp_sdk.server.logging import logger
 
 class RunBundle:
     def __init__(
-        self, *, agent: Agent, run: Run, inputs: list[Message], history: list[Message], executor: ThreadPoolExecutor
+        self, *, agent: Agent, run: Run, input: list[Message], history: list[Message], executor: ThreadPoolExecutor
     ) -> None:
         self.agent = agent
         self.run = run
-        self.inputs = inputs
+        self.input = input
         self.history = history
 
         self.stream_queue: asyncio.Queue[Event] = asyncio.Queue()
@@ -47,7 +47,7 @@ class RunBundle:
         self.await_queue: asyncio.Queue[AwaitResume] = asyncio.Queue(maxsize=1)
         self.await_or_terminate_event = asyncio.Event()
 
-        self.task = asyncio.create_task(self._execute(inputs, executor=executor))
+        self.task = asyncio.create_task(self._execute(input, executor=executor))
 
     async def stream(self) -> AsyncGenerator[Event]:
         while True:
@@ -83,7 +83,7 @@ class RunBundle:
     async def join(self) -> None:
         await self.await_or_terminate_event.wait()
 
-    async def _execute(self, inputs: list[Message], *, executor: ThreadPoolExecutor) -> None:
+    async def _execute(self, input: list[Message], *, executor: ThreadPoolExecutor) -> None:
         with get_tracer().start_as_current_span("run"):
             run_logger = logging.LoggerAdapter(logger, {"run_id": str(self.run.run_id)})
 
@@ -99,7 +99,7 @@ class RunBundle:
                 await self.emit(RunCreatedEvent(run=self.run))
 
                 generator = self.agent.execute(
-                    inputs=self.history + inputs, session_id=self.run.session_id, executor=executor
+                    input=self.history + input, session_id=self.run.session_id, executor=executor
                 )
                 run_logger.info("Run started")
 
