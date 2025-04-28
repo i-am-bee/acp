@@ -120,6 +120,11 @@ class Client:
         response = AgentReadResponse.model_validate(response.json())
         return Agent(**response.model_dump())
 
+    async def ping(self) -> bool:
+        response = await self._client.get("/healthcheck")
+        self._raise_error(response)
+        return response.json() == "OK"
+
     async def run_sync(self, input: Input, *, agent: AgentName) -> Run:
         response = await self._client.post(
             "/runs",

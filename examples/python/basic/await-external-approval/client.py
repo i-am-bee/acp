@@ -1,8 +1,7 @@
 import asyncio
-from functools import reduce
 
 from acp_sdk.client import Client
-from acp_sdk.models import MessageAwaitResume, Message, MessagePart
+from acp_sdk.models import Message, MessageAwaitResume, MessagePart
 
 
 async def handle_resume(client, run_id):

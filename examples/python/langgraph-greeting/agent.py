@@ -1,15 +1,14 @@
 from collections.abc import AsyncGenerator
-from functools import reduce
 from datetime import datetime
+from functools import reduce
 from typing import TypedDict
 
-
-from acp_sdk.models.models import MessagePart
 from acp_sdk.models import Message
+from acp_sdk.models.models import MessagePart
 from acp_sdk.server import RunYield, RunYieldResume, Server
-
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import StateGraph
+
 
 class AgentState(TypedDict):
     name: str
@@ -17,11 +16,13 @@ class AgentState(TypedDict):
     hour: int
     greeting: str
 
-def get_current_hour(state: AgentState):
+
+def get_current_hour(state: AgentState) -> dict[str, int]:
     now = datetime.now()
     return {"hour": now.hour}
 
-def decide_greeting(state: AgentState):
+
+def decide_greeting(state: AgentState) -> dict[str, str]:
     hour = state["hour"]
     if 6 <= hour < 12:
         return {"greeting": "Good morning"}
@@ -30,8 +31,10 @@ def decide_greeting(state: AgentState):
     else:
         return {"greeting": "Good evening"}
 
-def format_response(state: AgentState):
-    return {"final_response": f'{state["greeting"]} {state["name"]}'}
+
+def format_response(state: AgentState) -> dict[str, str]:
+    return {"final_response": f"{state['greeting']} {state['name']}"}
+
 
 # create graph
 workflow = StateGraph(AgentState)
