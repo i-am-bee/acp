@@ -3,6 +3,25 @@ from acp_sdk.models.models import Message, MessagePart
 
 
 @pytest.mark.parametrize(
+    "first,second,result",
+    [
+        (
+            Message(parts=[MessagePart(content_type="text/plain", content="Foo")]),
+            Message(parts=[MessagePart(content_type="text/plain", content="Bar")]),
+            Message(
+                parts=[
+                    MessagePart(content_type="text/plain", content="Foo"),
+                    MessagePart(content_type="text/plain", content="Bar"),
+                ]
+            ),
+        )
+    ],
+)
+def test_message_add(first: Message, second: Message, result: Message) -> None:
+    assert first + second == result
+
+
+@pytest.mark.parametrize(
     "uncompressed,compressed",
     [
         (

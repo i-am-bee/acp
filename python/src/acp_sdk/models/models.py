@@ -99,7 +99,7 @@ class Message(BaseModel):
     def __add__(self, other: "Message") -> "Message":
         if not isinstance(other, Message):
             raise TypeError(f"Cannot concatenate Message with {type(other).__name__}")
-        return Message(*(self.parts + other.parts))
+        return Message(parts=self.parts + other.parts)
 
     def __str__(self) -> str:
         return "".join(
