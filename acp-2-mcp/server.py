@@ -4,12 +4,6 @@ from functools import reduce
 from acp_sdk.client import Client
 from acp_sdk.models import Agent, RunStatus
 from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.resources import Resource
-
-
-class AgentResource(Resource):
-    def read(self) -> str | bytes:
-        return super().read()
 
 
 async def serve(acp_url: str) -> None:
@@ -47,7 +41,7 @@ async def serve(acp_url: str) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(prog="mcp2acp", description="Serve ACP agents as MCP tools")
+    parser = argparse.ArgumentParser(prog="mcp2acp", description="Serve ACP agents over MCP")
     parser.add_argument("url", type=str, help="The URL of an ACP server")
 
     args = parser.parse_args()
