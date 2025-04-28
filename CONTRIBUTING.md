@@ -19,6 +19,9 @@ No contribution is too small!
 
 ## Fork the repository
 
+> [!TIP]
+> To ensure you are using compatible tool versions, you can use [Mise-en-place](https://mise.jdx.dev), for which the repo contains a `mise.toml` file.
+
 To contribute code:
 
 1. Fork this repository.
