@@ -6,3 +6,7 @@ Lightweght standalone MCP server acting as an adapter for ACP agents into the MC
 
 - Agents as Resources
 - Agents as Tools
+
+## Transports
+
+- Stdio
