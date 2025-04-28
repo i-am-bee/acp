@@ -25,7 +25,6 @@ from acp_sdk.models import (
     Event,
     Run,
     RunCancelResponse,
-    RunCreatedEvent,
     RunCreateRequest,
     RunCreateResponse,
     RunId,
@@ -137,7 +136,6 @@ class Client:
         )
         self._raise_error(response)
         response = RunCreateResponse.model_validate(response.json())
-        self._set_session(response)
         return Run(**response.model_dump())
 
     async def run_async(self, input: Input, *, agent: AgentName) -> Run:
@@ -152,7 +150,6 @@ class Client:
         )
         self._raise_error(response)
         response = RunCreateResponse.model_validate(response.json())
-        self._set_session(response)
         return Run(**response.model_dump())
 
     async def run_stream(self, input: Input, *, agent: AgentName) -> AsyncIterator[Event]:
@@ -168,8 +165,6 @@ class Client:
             ).model_dump_json(),
         ) as event_source:
             async for event in self._validate_stream(event_source):
-                if isinstance(event, RunCreatedEvent):
-                    self._set_session(event.run)
                 yield event
 
     async def run_status(self, *, run_id: RunId) -> Run:
@@ -227,6 +222,3 @@ class Client:
             response.raise_for_status()
         except httpx.HTTPError:
             raise ACPError(Error.model_validate(response.json()))
-
-    def _set_session(self, run: Run) -> None:
-        self._session_id = run.session_id

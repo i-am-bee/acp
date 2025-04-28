@@ -143,3 +143,17 @@ async def test_session(httpx_mock: HTTPXMock) -> None:
 
     body = json.loads(requests[1].content)
     assert body["session_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_no_session(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(url="http://test/runs", method="POST", content=mock_run.model_dump_json(), is_reusable=True)
+
+    async with Client(base_url="http://test") as client:
+        await client.run_sync("Howdy!", agent=mock_run.agent_name)
+        await client.run_sync("Howdy!", agent=mock_run.agent_name)
+
+    requests = httpx_mock.get_requests()
+
+    body = json.loads(requests[1].content)
+    assert body["session_id"] is None
