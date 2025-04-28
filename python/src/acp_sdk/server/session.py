@@ -7,8 +7,8 @@ from acp_sdk.server.bundle import RunBundle
 
 
 class Session:
-    def __init__(self) -> None:
-        self.id: SessionId = uuid.uuid4()
+    def __init__(self, id: SessionId | None = None) -> None:
+        self.id: SessionId = id or uuid.uuid4()
         self.bundles: list[RunBundle] = []
 
     def append(self, bundle: RunBundle) -> None:

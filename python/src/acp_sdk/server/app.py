@@ -112,7 +112,7 @@ def create_app(
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
-        session = sessions.get(request.session_id, Session()) if request.session_id else Session()
+        session = sessions.get(request.session_id, Session(id=request.session_id)) if request.session_id else Session()
         nonlocal executor
         bundle = RunBundle(
             agent=agent,
