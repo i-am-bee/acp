@@ -193,13 +193,13 @@ class Server:
             try:
                 await async_request_with_retry(
                     lambda client, data=request_data: client.post(
-                        f"{url}/api/v1/provider/register/unmanaged", json=data
+                        f"{url}/api/v1/providers/register/unmanaged", json=data
                     )
                 )
                 logger.info("Agent registered to the beeai server.")
 
                 # check missing env keyes
-                envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/env"))
+                envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/config_vafiables"))
                 envs = envs_request.get("env")
 
                 # register all available envs
