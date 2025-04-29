@@ -8,4 +8,3 @@ class SessionStorage:
     
     def get(self, session_id: str) -> list[Message]:
         return self.messages.get(session_id, [])
-    
