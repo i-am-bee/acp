@@ -9,8 +9,8 @@ from acp_sdk.models import (
     ErrorCode,
     Message,
     MessageAwaitResume,
-    MessageCreatedEvent,
     MessagePart,
+    MessagePartEvent,
     RunCompletedEvent,
     RunCreatedEvent,
     RunInProgressEvent,
@@ -202,11 +202,11 @@ async def test_artifact_streaming(server: Server, client: Client) -> None:
     assert isinstance(events[0], RunCreatedEvent)
     assert isinstance(events[-1], RunCompletedEvent)
 
-    message_events = [e for e in events if isinstance(e, MessageCreatedEvent)]
+    message_part_events = [e for e in events if isinstance(e, MessagePartEvent)]
     artifact_events = [e for e in events if isinstance(e, ArtifactEvent)]
 
-    assert len(message_events) == 1
-    assert message_events[0].message.parts[0].content == "Processing with artifacts"
+    assert len(message_part_events) == 1
+    assert message_part_events[0].part.content == "Processing with artifacts"
 
     assert len(artifact_events) == 3
 
