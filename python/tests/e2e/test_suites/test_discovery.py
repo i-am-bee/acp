@@ -5,6 +5,12 @@ from acp_sdk.server import Server
 
 
 @pytest.mark.asyncio
+async def test_ping(server: Server, client: Client) -> None:
+    await client.ping()
+    assert True
+
+
+@pytest.mark.asyncio
 async def test_agents_list(server: Server, client: Client) -> None:
     async for agent in client.agents():
         assert isinstance(agent, Agent)

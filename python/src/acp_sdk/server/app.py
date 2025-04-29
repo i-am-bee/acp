@@ -29,6 +29,7 @@ from acp_sdk.models import (
     SessionId,
 )
 from acp_sdk.models.errors import ACPError
+from acp_sdk.models.schemas import PingResponse
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.bundle import RunBundle
 from acp_sdk.server.errors import (
@@ -104,9 +105,9 @@ def create_app(
         agent = find_agent(name)
         return AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
 
-    @app.get("/healthcheck")
-    async def healthcheck() -> str:
-        return "OK"
+    @app.get("/ping")
+    async def ping() -> PingResponse:
+        return PingResponse()
 
     @app.post("/runs")
     async def create_run(request: RunCreateRequest) -> RunCreateResponse:

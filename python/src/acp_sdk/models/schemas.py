@@ -3,6 +3,10 @@ from pydantic import BaseModel
 from acp_sdk.models.models import Agent, AgentName, AwaitResume, Message, Run, RunMode, SessionId
 
 
+class PingResponse(BaseModel):
+    pass
+
+
 class AgentsListResponse(BaseModel):
     agents: list[Agent]
 

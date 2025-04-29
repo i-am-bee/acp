@@ -18,6 +18,23 @@ tags:
   - name: run
     description: Operations for creating, managing, and controlling agent runs and their lifecycles.
 paths:
+  /ping:
+    get:
+      description: Returns a ping.
+      operationId: ping
+      responses:
+        "200":
+          description: Ping successful
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /agents:
     get:
       tags:
