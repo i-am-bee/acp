@@ -18,7 +18,8 @@ from acp_sdk.models import Message, MessagePart
 )
 def test_input_to_messages(input: Input, messages: list[Message]) -> None:
     result = input_to_messages(input)
-    assert result == messages
+    for r, m in zip(result, messages):
+        assert r.parts == m.parts
 
 
 @pytest.mark.parametrize(

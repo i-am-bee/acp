@@ -96,7 +96,7 @@ class Artifact(MessagePart):
 class Message(BaseModel):
     parts: list[MessagePart]
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime | None = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __add__(self, other: "Message") -> "Message":
         if not isinstance(other, Message):
@@ -140,7 +140,7 @@ class Message(BaseModel):
                 parts[-1] = join(parts[-1], part)
             else:
                 parts.append(part)
-        return Message(parts=parts)
+        return Message(parts=parts, created_at=self.created_at, completed_at=self.completed_at)
 
 
 AgentName = str
