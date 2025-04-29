@@ -1,5 +1,7 @@
 import textwrap
 from collections.abc import AsyncGenerator
+from collections import defaultdict
+
 
 import beeai_framework
 from acp_sdk import Message
@@ -11,10 +13,9 @@ from beeai_framework.backend.chat import ChatModel
 from beeai_framework.memory import TokenMemory
 
 from run_agent_tool import HandoffTool
-from session_storage import SessionStorage
 
 server = Server()
-session_storage = SessionStorage()
+session_storage = defaultdict(list[Message])
 
 def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
     match role:
@@ -82,7 +83,7 @@ async def english_agent(input: list[Message]) -> AsyncGenerator:
 
 @server.agent(name="assistant")
 async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
-    session_storage.append(context.session_id, input)
+    session_storage[context.session_id].extend(input)
 
     llm = ChatModel.from_name("ollama:llama3.1:8b")
     agent = ReActAgent(

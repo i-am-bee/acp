@@ -7,7 +7,7 @@ from beeai_framework.tools.tool import Tool
 from beeai_framework.tools.types import ToolRunOptions
 from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
-from session_storage import SessionStorage
+from collections import defaultdict
 
 async def run_agent(agent: str, input: list[Message]) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
@@ -20,7 +20,6 @@ class HandoffInput(BaseModel):
     pass
 class HandoffResult(BaseModel):
     result: list[Message] = Field(description="Result of the handoff")
-
 
 class HandoffToolOutput(ToolOutput):
     result: HandoffResult = Field(description="Result of the handoff")
@@ -37,7 +36,7 @@ class HandoffToolOutput(ToolOutput):
 
 
 class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
-    def __init__(self, agent: str, session_id: str, session_storage: SessionStorage) -> None:
+    def __init__(self, agent: str, session_id: str, session_storage: defaultdict[str, list[Message]]) -> None:
         self.agent = agent
         self.session_id = session_id
         self.session_storage = session_storage
