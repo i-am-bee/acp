@@ -21,6 +21,7 @@ from acp_sdk.models import (
     RunCancelResponse,
     RunCreateRequest,
     RunCreateResponse,
+    RunEventsListResponse,
     RunId,
     RunMode,
     RunReadResponse,
@@ -155,6 +156,11 @@ def create_app(
     async def read_run(run_id: RunId) -> RunReadResponse:
         bundle = find_run_bundle(run_id)
         return bundle.run
+
+    @app.get("/runs/{run_id}/events")
+    async def list_run_events(run_id: RunId) -> RunEventsListResponse:
+        bundle = find_run_bundle(run_id)
+        return RunEventsListResponse(events=bundle.events)
 
     @app.post("/runs/{run_id}")
     async def resume_run(run_id: RunId, request: RunResumeRequest) -> RunResumeResponse:

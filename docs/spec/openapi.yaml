@@ -63,9 +63,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Agent"
+                $ref: "#/components/schemas/AgentsListResponse"
         default:
           description: Error
           content:
@@ -194,6 +192,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /runs/{run_id}/events:
+    get:
+      tags:
+        - run
+      description: List events of a run
+      operationId: listRunEvents
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunEventsListResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     # Errors
@@ -304,6 +321,24 @@ components:
           $ref: "#/components/schemas/AwaitResume"
         mode:
           $ref: "#/components/schemas/RunMode"
+    RunEventsListResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    AgentsListResponse:
+      type: object
+      required:
+        - agents
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Agent"
     Run:
       type: object
       properties:

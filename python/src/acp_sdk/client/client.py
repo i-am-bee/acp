@@ -28,6 +28,7 @@ from acp_sdk.models import (
     RunCancelResponse,
     RunCreateRequest,
     RunCreateResponse,
+    RunEventsListResponse,
     RunId,
     RunMode,
     RunResumeRequest,
@@ -173,6 +174,13 @@ class Client:
         response = await self._client.get(f"/runs/{run_id}")
         self._raise_error(response)
         return Run.model_validate(response.json())
+
+    async def run_events(self, *, run_id: RunId) -> AsyncIterator[Event]:
+        response = await self._client.get(f"/runs/{run_id}/events")
+        self._raise_error(response)
+        response = RunEventsListResponse.model_validate(response.json())
+        for event in response.events:
+            yield event
 
     async def run_cancel(self, *, run_id: RunId) -> Run:
         response = await self._client.post(f"/runs/{run_id}/cancel")

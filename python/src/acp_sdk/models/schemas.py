@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from acp_sdk.models.models import Agent, AgentName, AwaitResume, Message, Run, RunMode, SessionId
+from acp_sdk.models.models import Agent, AgentName, AwaitResume, Event, Message, Run, RunMode, SessionId
 
 
 class PingResponse(BaseModel):
@@ -41,3 +41,7 @@ class RunReadResponse(Run):
 
 class RunCancelResponse(Run):
     pass
+
+
+class RunEventsListResponse(BaseModel):
+    events: list[Event]
