@@ -23,6 +23,7 @@ from acp_sdk.models import (
     AwaitResume,
     Error,
     Event,
+    PingResponse,
     Run,
     RunCancelResponse,
     RunCreateRequest,
@@ -122,6 +123,7 @@ class Client:
     async def ping(self) -> bool:
         response = await self._client.get("/ping")
         self._raise_error(response)
+        PingResponse.model_validate(response.json())
         return
 
     async def run_sync(self, input: Input, *, agent: AgentName) -> Run:
