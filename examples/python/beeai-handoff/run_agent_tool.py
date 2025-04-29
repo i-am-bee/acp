@@ -9,17 +9,21 @@ from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
 from collections import defaultdict
 
+
 async def run_agent(agent: str, input: list[Message]) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
-        run = await client.run_sync(
-            agent=agent, input=input
-        )
+        run = await client.run_sync(agent=agent, input=input)
 
     return run.output
+
+
 class HandoffInput(BaseModel):
     pass
+
+
 class HandoffResult(BaseModel):
     result: list[Message] = Field(description="Result of the handoff")
+
 
 class HandoffToolOutput(ToolOutput):
     result: HandoffResult = Field(description="Result of the handoff")
@@ -41,7 +45,7 @@ class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
         self.session_id = session_id
         self.session_storage = session_storage
         super().__init__()
-        
+
     @property
     def name(self) -> str:
         return f"{self.agent}"
@@ -58,11 +62,9 @@ class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
             creator=self,
         )
 
-    async def _run(
-        self, _: HandoffInput, options: ToolRunOptions | None, context: RunContext
-    ) -> HandoffToolOutput:
+    async def _run(self, _: HandoffInput, options: ToolRunOptions | None, context: RunContext) -> HandoffToolOutput:
         history = self.session_storage.get(self.session_id)
-        if (history is None):
+        if history is None:
             raise ValueError("No input found for session")
 
         result = await run_agent(self.agent, history)

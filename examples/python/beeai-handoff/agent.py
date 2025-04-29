@@ -2,7 +2,6 @@ import textwrap
 from collections.abc import AsyncGenerator
 from collections import defaultdict
 
-
 import beeai_framework
 from acp_sdk import Message
 from acp_sdk.models import MessagePart
@@ -16,6 +15,7 @@ from run_agent_tool import HandoffTool
 
 server = Server()
 session_storage = defaultdict(list[Message])
+
 
 def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
     match role:
@@ -88,11 +88,16 @@ async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
     agent = ReActAgent(
         llm=llm,
-        tools=[HandoffTool("spanish_agent", context.session_id,session_storage), HandoffTool("english_agent", context.session_id, session_storage)],
+        tools=[
+            HandoffTool("spanish_agent", context.session_id, session_storage),
+            HandoffTool("english_agent", context.session_id, session_storage),
+        ],
         templates={
             "system": lambda template: template.update(
                 defaults={
-                    "instructions": textwrap.dedent("You've got two agents to handoff to, one is Spanish, the other is English. Based on the language of the request, handoff to the appropriate agent. Once the handoff is done, you should return the result to the user."),
+                    "instructions": textwrap.dedent(
+                        "You've got two agents to handoff to, one is Spanish, the other is English. Based on the language of the request, handoff to the appropriate agent. Once the handoff is done, you should return the result to the user."
+                    ),
                     "role": "system",
                 }
             )
@@ -101,5 +106,6 @@ async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
     )
     response = await agent.run(prompt=str(input[0]))
     yield MessagePart(content=response.result.text)
+
 
 server.run()
