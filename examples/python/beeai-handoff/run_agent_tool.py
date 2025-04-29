@@ -7,6 +7,7 @@ from beeai_framework.tools.tool import Tool
 from beeai_framework.tools.types import ToolRunOptions
 from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
+from session_storage import SessionStorage
 
 async def run_agent(agent: str, input: list[Message]) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
@@ -15,11 +16,8 @@ async def run_agent(agent: str, input: list[Message]) -> list[Message]:
         )
 
     return run.output
-
 class HandoffInput(BaseModel):
-    history: list[Message] = Field(description="History of the conversation")
-
-
+    pass
 class HandoffResult(BaseModel):
     result: list[Message] = Field(description="Result of the handoff")
 
@@ -39,8 +37,10 @@ class HandoffToolOutput(ToolOutput):
 
 
 class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
-    def __init__(self, agent: str) -> None:
+    def __init__(self, agent: str, session_id: str, session_storage: SessionStorage) -> None:
         self.agent = agent
+        self.session_id = session_id
+        self.session_storage = session_storage
         super().__init__()
         
     @property
@@ -60,7 +60,11 @@ class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
         )
 
     async def _run(
-        self, input: HandoffInput, options: ToolRunOptions | None, context: RunContext
+        self, _: HandoffInput, options: ToolRunOptions | None, context: RunContext
     ) -> HandoffToolOutput:
-        result = await run_agent(self.agent, input.history)
+        history = self.session_storage.get(self.session_id)
+        if (history is None):
+            raise ValueError("No input found for session")
+
+        result = await run_agent(self.agent, history)
         return HandoffToolOutput(result=HandoffToolOutput(result=result))
