@@ -61,7 +61,6 @@ async def spanish_agent(input: list[Message]) -> AsyncGenerator:
 async def english_agent(input: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")
     print("Calling English agent")
-    
     agent = ReActAgent(
         llm=llm,
         tools=[],
