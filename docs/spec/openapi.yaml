@@ -262,8 +262,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MessagePart"
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
       required:
         - parts
+        - created_at
     AwaitRequest:
       type: object
     AwaitResume:
@@ -319,11 +326,18 @@ components:
         error:
           $ref: "#/components/schemas/Error"
           nullable: true
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
       required:
         - agent_name
         - run_id
         - status
         - output
+        - created_at
     # Events
     MessageCreatedEvent:
       type: object
