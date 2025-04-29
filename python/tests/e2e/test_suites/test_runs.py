@@ -52,6 +52,24 @@ async def test_run_status(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
+async def test_run_events(server: Server, client: Client) -> None:
+    run = await client.run_sync(agent="echo", input=input)
+    events = [event async for event in client.run_events(run_id=run.run_id)]
+    assert isinstance(events[0], RunCreatedEvent)
+    assert isinstance(events[-1], RunCompletedEvent)
+
+
+@pytest.mark.asyncio
+async def test_run_events_are_stream(server: Server, client: Client) -> None:
+    stream = [event async for event in client.run_stream(agent="echo", input=input)]
+    print(stream)
+    assert isinstance(stream[0], RunCreatedEvent)
+    events = [event async for event in client.run_events(run_id=stream[0].run.run_id)]
+    print(events)
+    assert stream == events
+
+
+@pytest.mark.asyncio
 async def test_failure(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="failer", input=input)
     assert run.status == RunStatus.FAILED

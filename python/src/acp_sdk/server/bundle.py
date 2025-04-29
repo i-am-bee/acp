@@ -60,8 +60,9 @@ class RunBundle:
             self.stream_queue.task_done()
 
     async def emit(self, event: Event) -> None:
-        self.events.append(event)
-        await self.stream_queue.put(event)
+        freeze = event.model_copy(deep=True)
+        self.events.append(freeze)
+        await self.stream_queue.put(freeze)
 
     async def await_(self) -> AwaitResume:
         await self.stream_queue.put(None)

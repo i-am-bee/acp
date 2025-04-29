@@ -3,8 +3,16 @@ import uuid
 
 import pytest
 from acp_sdk.client import Client
-from acp_sdk.models import Agent, AgentsListResponse, Message, MessagePart, Run, RunCompletedEvent
-from acp_sdk.models.models import MessageAwaitResume
+from acp_sdk.models import (
+    Agent,
+    AgentsListResponse,
+    Message,
+    MessageAwaitResume,
+    MessagePart,
+    Run,
+    RunCompletedEvent,
+    RunEventsListResponse,
+)
 from pytest_httpx import HTTPXMock
 
 mock_agent = Agent(name="mock")
@@ -125,6 +133,20 @@ async def test_run_resume_stream(httpx_mock: HTTPXMock) -> None:
         async for event in client.run_resume_stream(
             MessageAwaitResume(message=Message(parts=[])), run_id=mock_run.run_id
         ):
+            assert event == mock_event
+
+
+@pytest.mark.asyncio
+async def test_run_events(httpx_mock: HTTPXMock) -> None:
+    mock_event = RunCompletedEvent(run=mock_run)
+    httpx_mock.add_response(
+        url=f"http://test/runs/{mock_run.run_id}/events",
+        method="GET",
+        content=RunEventsListResponse(events=[mock_event]).model_dump_json(),
+    )
+
+    async with Client(base_url="http://test") as client:
+        async for event in client.run_events(run_id=mock_run.run_id):
             assert event == mock_event
 
 
