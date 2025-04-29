@@ -2,6 +2,7 @@ import asyncio
 import logging
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 from pydantic import BaseModel, ValidationError
 
@@ -92,7 +93,9 @@ class RunBundle:
             async def flush_message() -> None:
                 nonlocal in_message
                 if in_message:
-                    await self.emit(MessageCompletedEvent(message=self.run.output[-1]))
+                    message = self.run.output[-1]
+                    message.completed_at = datetime.now(timezone.utc)
+                    await self.emit(MessageCompletedEvent(message=message))
                     in_message = False
 
             try:
@@ -114,7 +117,7 @@ class RunBundle:
                         if isinstance(next, str):
                             next = MessagePart(content=next)
                         if not in_message:
-                            self.run.output.append(Message(parts=[]))
+                            self.run.output.append(Message(parts=[], completed_at=None))
                             in_message = True
                             await self.emit(MessageCreatedEvent(message=self.run.output[-1]))
                         self.run.output[-1].parts.append(next)
@@ -149,10 +152,12 @@ class RunBundle:
             except StopAsyncIteration:
                 await flush_message()
                 self.run.status = RunStatus.COMPLETED
+                self.run.finished_at = datetime.now(timezone.utc)
                 await self.emit(RunCompletedEvent(run=self.run))
                 run_logger.info("Run completed")
             except asyncio.CancelledError:
                 self.run.status = RunStatus.CANCELLED
+                self.run.finished_at = datetime.now(timezone.utc)
                 await self.emit(RunCancelledEvent(run=self.run))
                 run_logger.info("Run cancelled")
             except Exception as e:
@@ -161,6 +166,7 @@ class RunBundle:
                 else:
                     self.run.error = Error(code=ErrorCode.SERVER_ERROR, message=str(e))
                 self.run.status = RunStatus.FAILED
+                self.run.finished_at = datetime.now(timezone.utc)
                 await self.emit(RunFailedEvent(run=self.run))
                 run_logger.exception("Run failed")
                 raise

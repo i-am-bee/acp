@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional, Union
 
@@ -95,11 +95,17 @@ class Artifact(MessagePart):
 
 class Message(BaseModel):
     parts: list[MessagePart]
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __add__(self, other: "Message") -> "Message":
         if not isinstance(other, Message):
             raise TypeError(f"Cannot concatenate Message with {type(other).__name__}")
-        return Message(parts=self.parts + other.parts)
+        return Message(
+            parts=self.parts + other.parts,
+            created_at=min(self.created_at, other.created_at),
+            completed_at=max(self.completed_at, other.completed_at),
+        )
 
     def __str__(self) -> str:
         return "".join(
@@ -185,6 +191,8 @@ class Run(BaseModel):
     await_request: AwaitRequest | None = None
     output: list[Message] = []
     error: Error | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    finished_at: datetime | None = None
 
 
 class MessageCreatedEvent(BaseModel):
