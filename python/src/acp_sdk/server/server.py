@@ -186,22 +186,19 @@ class Server:
             return
 
         url = os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
-        for agent in self._agents:
-            request_data = {
-                "location": f"http://{self._server.config.host}:{self._server.config.port}",
-            }
-            try:
-                await async_request_with_retry(
-                    lambda client, data=request_data: client.post(
-                        f"{url}/api/v1/providers/register/unmanaged", json=data
-                    )
-                )
-                logger.info("Agent registered to the beeai server.")
+        request_data = {
+            "location": f"http://{self._server.config.host}:{self._server.config.port}",
+        }
+        try:
+            await async_request_with_retry(
+                lambda client, data=request_data: client.post(f"{url}/api/v1/providers/register/unmanaged", json=data)
+            )
+            logger.info("Agent registered to the beeai server.")
 
-                # check missing env keyes
-                envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/variables"))
-                envs = envs_request.get("env")
-
+            # check missing env keyes
+            envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/variables"))
+            envs = envs_request.get("env")
+            for agent in self._agents:
                 # register all available envs
                 missing_keyes = []
                 for env in agent.metadata.model_dump().get("env", []):
@@ -215,7 +212,7 @@ class Server:
                     logger.error(f"Can not run agent, missing required env variables: {missing_keyes}")
                     raise Exception("Missing env variables")
 
-            except requests.exceptions.ConnectionError as e:
-                logger.warning(f"Can not reach server, check if running on {url} : {e}")
-            except (requests.exceptions.HTTPError, Exception) as e:
-                logger.warning(f"Agent can not be registered to beeai server: {e}")
+        except requests.exceptions.ConnectionError as e:
+            logger.warning(f"Can not reach server, check if running on {url} : {e}")
+        except (requests.exceptions.HTTPError, Exception) as e:
+            logger.warning(f"Agent can not be registered to beeai server: {e}")

@@ -35,7 +35,7 @@ async def async_request_with_retry(
                 if e.response.status_code in [429, 500, 502, 503, 504, 509]:
                     retries += 1
                     backoff = backoff_factor * (2 ** (retries - 1))
-                    logger.warning(f"Request retry (try {retries}/{max_retries}), waiting {backoff} seconds...")
+                    logger.debug(f"Request retry (try {retries}/{max_retries}), waiting {backoff} seconds...")
                     await asyncio.sleep(backoff)
                 else:
                     logger.debug("A non-retryable error was encountered.")
@@ -43,7 +43,7 @@ async def async_request_with_retry(
             except httpx.RequestError:
                 retries += 1
                 backoff = backoff_factor * (2 ** (retries - 1))
-                logger.warning(f"Request retry (try {retries}/{max_retries}), waiting {backoff} seconds...")
+                logger.debug(f"Request retry (try {retries}/{max_retries}), waiting {backoff} seconds...")
                 await asyncio.sleep(backoff)
 
         raise requests.exceptions.ConnectionError(f"Request failed after {max_retries} retries.")
