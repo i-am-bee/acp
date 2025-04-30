@@ -14,6 +14,29 @@
 
 <br>
 
+```mermaid
+flowchart TD
+    subgraph "Basic Setup"
+        Client1["ACP Client"] <-->|REST| Server1["ACP Server"]
+        Server1 --- Agent1["Agent"]
+    end
+
+    subgraph "Advanced Multi-Agent Setup"
+        Client2["ACP Client"] <-->|REST| RouterAgent["Router Agent"]
+        
+        %% Router is both Server and Client
+        RouterAgent <-->|REST| AgentA["Agent A"]
+        RouterAgent <-->|REST| AgentB["Agent B"]
+        RouterAgent <-->|REST| AgentC["Agent C"]
+        
+        %% MCP Tool Integrations
+        RouterAgent <-->|"MCP"| ToolR["Router Tools"]
+        AgentA <-->|"MCP"| ToolA["Agent A Tools"]
+        AgentB <-->|"MCP"| ToolB["Agent B Tools"]
+        AgentC <-->|"MCP"| ToolC["Agent C Tools"]
+    end
+```
+
 The **Agent Communication Protocol (ACP)** is an open standard with open governance for agent interoperability. It defines a standardized RESTful API supporting synchronous, asynchronous, and streaming interactions. In ACP, agents are services that exchange multimodal messages, with the protocol remaining agnostic to their internal implementations and requiring only minimal specifications for compatibility.
 
 ## ACP Toolkit
