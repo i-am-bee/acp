@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   build:
-    name: Build
+    name: Generate API Reference
     runs-on: ubuntu-latest
 
     steps:
@@ -31,10 +31,10 @@ jobs:
       - name: Upload Documentation Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/_build
+          path: ./python/docs/_build
 
   deploy:
-    name: Deploy
+    name: Deploy GitHub Pages
     needs: build
     runs-on: ubuntu-latest
     permissions:
