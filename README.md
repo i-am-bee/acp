@@ -12,8 +12,6 @@
 
 </div>
 
-<br>
-
 ```mermaid
 flowchart TD
     subgraph "Basic Setup"
