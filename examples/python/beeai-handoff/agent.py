@@ -1,6 +1,5 @@
-import textwrap
-from collections.abc import AsyncGenerator
 from collections import defaultdict
+from collections.abc import AsyncGenerator
 
 import beeai_framework
 from acp_sdk import Message
@@ -10,7 +9,6 @@ from beeai_framework.agents.react import ReActAgent
 from beeai_framework.backend import AssistantMessage, Role, UserMessage
 from beeai_framework.backend.chat import ChatModel
 from beeai_framework.memory import TokenMemory
-
 from run_agent_tool import HandoffTool
 
 server = Server()
@@ -95,8 +93,10 @@ async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
         templates={
             "system": lambda template: template.update(
                 defaults={
-                    "instructions": textwrap.dedent(
-                        "You've got two agents to handoff to, one is Spanish, the other is English. Based on the language of the request, handoff to the appropriate agent. Once the handoff is done, you should return the result to the user."
+                    "instructions": (
+                        "You've got two agents to handoff to, one is Spanish, the other is English. "
+                        "Based on the language of the request, handoff to the appropriate agent. "
+                        "Once the handoff is done, you should return the result to the user."
                     ),
                     "role": "system",
                 }

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from acp_sdk import Message
 from acp_sdk.client import Client
 from beeai_framework.context import RunContext
@@ -7,7 +9,6 @@ from beeai_framework.tools.tool import Tool
 from beeai_framework.tools.types import ToolRunOptions
 from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
-from collections import defaultdict
 
 
 async def run_agent(agent: str, input: list[Message]) -> list[Message]:
@@ -63,9 +64,6 @@ class HandoffTool(Tool[HandoffInput, ToolRunOptions, HandoffToolOutput]):
         )
 
     async def _run(self, _: HandoffInput, options: ToolRunOptions | None, context: RunContext) -> HandoffToolOutput:
-        history = self.session_storage.get(self.session_id)
-        if history is None:
-            raise ValueError("No input found for session")
-
-        result = await run_agent(self.agent, history)
-        return HandoffToolOutput(result=HandoffToolOutput(result=result))
+        return HandoffToolOutput(
+            result=HandoffToolOutput(result=await run_agent(self.agent, self.session_storage[self.session_id]))
+        )
