@@ -26,4 +26,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = ["pytest-httpx>=0.35.0"]
+dev = [
+    "pytest-httpx>=0.35.0",
+    "sphinx>=8.2.3",
+    "sphinx-autoapi>=3.6.0",
+]

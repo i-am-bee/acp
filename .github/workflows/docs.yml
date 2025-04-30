@@ -1,4 +1,4 @@
-name: Docs
+name: Reference
 
 on:
   workflow_dispatch:
@@ -7,41 +7,31 @@ on:
       - main
   pull_request:
 
+defaults:
+  run:
+    working-directory: python
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.12"
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-      - name: Copy root
-        run: cp *.md docs/
-
-      - name: Copy Python Documentation
-        run: |
-          cp -r ./python/docs docs/python
-          cp ./python/*.md docs/python
-
-      # - name: Link Checker
-      #   id: lychee
-      #   uses: lycheeverse/lychee-action@v2
-      #   with:
-      #     fail: true
-      #     # Only check docs
-      #     args: |
-      #       --verbose
-      #       --no-progress
-      #       --include-fragments
-      #       --exclude-path docs/typescript/CHANGELOG.md
-      #       './docs/**/*.md'
-      #       './docs/**/*.html'
+      - name: Generate API reference
+        run: uv run sphinx-build -b html ./docs ./docs/_build
 
       - name: Upload Documentation Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./docs/_build
 
   deploy:
     name: Deploy
