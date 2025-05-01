@@ -58,7 +58,7 @@ class Agent(abc.ABC):
             run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
 
         try:
-            while True:
+            while not run.done or yield_queue.async_q.qsize() > 0:
                 value = yield await yield_queue.async_q.get()
                 await yield_resume_queue.async_q.put(value)
         except janus.AsyncQueueShutDown:

@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import time
 from collections.abc import AsyncGenerator, AsyncIterator, Generator
@@ -19,6 +20,12 @@ def server(request: pytest.FixtureRequest) -> Generator[None]:
     @server.agent()
     async def echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
         for message in input:
+            yield message
+
+    @server.agent()
+    async def slow_echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
+        for message in input:
+            await asyncio.sleep(1)
             yield message
 
     @server.agent()

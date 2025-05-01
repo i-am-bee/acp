@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
@@ -5,7 +6,7 @@ from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
-from acp_sdk.models.errors import Error
+from acp_sdk.models.errors import ACPError, Error
 
 
 class AnyModel(BaseModel):
@@ -195,6 +196,15 @@ class Run(BaseModel):
     error: Error | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     finished_at: datetime | None = None
+
+    def raise_for_status(self) -> "Run":
+        match self.status:
+            case RunStatus.CANCELLED:
+                raise asyncio.CancelledError()
+            case RunStatus.FAILED:
+                raise ACPError(error=self.error)
+            case _:
+                return self
 
 
 class MessageCreatedEvent(BaseModel):

@@ -5,18 +5,19 @@ from datetime import timedelta
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
+    ACPError,
     ArtifactEvent,
     ErrorCode,
     Message,
     MessageAwaitResume,
     MessagePart,
     MessagePartEvent,
+    RunCancelledEvent,
     RunCompletedEvent,
     RunCreatedEvent,
     RunInProgressEvent,
     RunStatus,
 )
-from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Server
 
 input = [Message(parts=[MessagePart(content="Hello!")])]
@@ -79,10 +80,23 @@ async def test_failure(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_cancel(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="awaiter", input=input)
-    assert run.status == RunStatus.AWAITING
+    run = await client.run_async(agent="awaiter", input=input)
     run = await client.run_cancel(run_id=run.run_id)
     assert run.status == RunStatus.CANCELLING
+    await asyncio.sleep(1)
+    run = await client.run_status(run_id=run.run_id)
+    assert run.status == RunStatus.CANCELLED
+
+
+@pytest.mark.asyncio
+async def test_run_cancel_stream(server: Server, client: Client) -> None:
+    last_event = None
+    async for event in client.run_stream(agent="slow_echo", input=input):
+        last_event = event
+        if isinstance(event, RunCreatedEvent):
+            run = await client.run_cancel(run_id=event.run.run_id)
+            assert run.status == RunStatus.CANCELLING
+    assert isinstance(last_event, RunCancelledEvent)
 
 
 @pytest.mark.asyncio
