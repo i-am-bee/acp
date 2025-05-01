@@ -29,10 +29,8 @@ jobs:
         run: |
           uv run make docs
           touch documentation/build/.nojekyll
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload Documentation artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "documentation/build"
   deploy:
