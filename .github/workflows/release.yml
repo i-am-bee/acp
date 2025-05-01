@@ -7,10 +7,11 @@ on:
 permissions:
   contents: read
   id-token: write
+  pages: write
 
 jobs:
-  publish-pypi:
-    name: Upload release to PyPI
+  publish:
+    name: PyPI package
     runs-on: ubuntu-latest
     environment: release
     steps:
@@ -25,3 +26,26 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+  reference:
+    name: API Reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.12"
+      - name: Install dependencies
+        run: uv sync --all-extras
+      - name: Build documentation
+        working-directory: docs/sdks/python
+        run: |
+          uv run make docs
+          touch build/.nojekyll
+      - name: Upload Documentation artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "docs/sdks/python/build"
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
