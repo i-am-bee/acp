@@ -60,16 +60,7 @@
       },
       {
         "group": "Python SDK",
-        "pages": [
-          {
-            "group": "Documentation",
-            "pages": [
-              "/python-sdk/server",
-              "/python-sdk/client",
-              "/python-sdk/models"
-            ]
-          }
-        ]
+        "pages": ["/sdks/python/api-reference"]
       },
       {
         "group": "About",

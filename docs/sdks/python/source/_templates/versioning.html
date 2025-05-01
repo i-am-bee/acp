@@ -1,0 +1,16 @@
+{% if versions %}
+<div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">{{ _('Versions') }}</span></p>
+  <ul>
+    {%- for item in versions.in_development + versions.releases|sort(attribute='name', reverse=true) %}
+    {% set is_active = current_version.name == item.name %}
+    {% set is_unreleased = not item.is_released %}
+    <li class="toctree-l1 {% if is_active %}current current-page{% endif %}">
+      <a class="reference internal {% if is_active %}current{% endif %}" href="{{ item.url }}">
+        {{ item.name }} {% if is_unreleased %}(unreleased){% endif %}
+      </a>
+    </li>
+    {%- endfor %}
+  </ul>
+</div>
+{% endif %}

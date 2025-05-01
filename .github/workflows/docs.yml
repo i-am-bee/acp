@@ -1,4 +1,4 @@
-name: Reference
+name: Docs
 
 on:
   workflow_dispatch:
@@ -7,15 +7,16 @@ on:
       - main
   pull_request:
 
-defaults:
-  run:
-    working-directory: python
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
-    name: Generate API Reference
+    name: Python Build
     runs-on: ubuntu-latest
-
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -24,17 +25,18 @@ jobs:
           version: "0.6.12"
       - name: Install dependencies
         run: uv sync --all-extras
-
-      - name: Generate API reference
-        run: uv run sphinx-build -b html ./docs ./docs/_build
-
-      - name: Upload Documentation Artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Build documentation
+        run: |
+          uv run make docs
+          touch documentation/build/.nojekyll
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          path: ./python/docs/_build
-
+          path: "documentation/build"
   deploy:
-    name: Deploy GitHub Pages
+    name: Python Deploy
     needs: build
     runs-on: ubuntu-latest
     permissions:

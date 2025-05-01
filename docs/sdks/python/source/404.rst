@@ -1,0 +1,10 @@
+:orphan:
+
+.. _404:
+
+404: Page Not Found
+===================
+
+Oops! The page you are looking for cannot be found.
+
+Please continue to the :doc:`Home Page <index>`.

@@ -34,8 +34,12 @@ ban-relative-imports = "all"
 
 [tool.uv]
 dev-dependencies = [
+    "autodoc-pydantic>=2.2.0",
+    "furo>=2024.8.6",
     "pyright>=1.1.391",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.26.0",
     "ruff>=0.8.5",
+    "sphinx>=8.2.3",
+    "sphinx-toolbox>=3.9.0",
 ]
