@@ -28,11 +28,11 @@ jobs:
       - name: Build documentation
         run: |
           uv run make docs
-          touch docs/build/.nojekyll
+          touch docs/sdks/python/build/.nojekyll
       - name: Upload Documentation artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "docs/build"
+          path: "docs/sdks/python/build"
   deploy:
     name: Python Deploy
     needs: build
