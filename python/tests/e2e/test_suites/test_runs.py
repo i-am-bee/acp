@@ -80,10 +80,10 @@ async def test_failure(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_run_cancel(server: Server, client: Client) -> None:
-    run = await client.run_async(agent="awaiter", input=input)
+    run = await client.run_async(agent="slow_echo", input=input)
     run = await client.run_cancel(run_id=run.run_id)
     assert run.status == RunStatus.CANCELLING
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
     run = await client.run_status(run_id=run.run_id)
     assert run.status == RunStatus.CANCELLED
 

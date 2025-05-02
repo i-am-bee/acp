@@ -58,13 +58,13 @@ class Agent(abc.ABC):
             run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
 
         try:
-            while not run.done or yield_queue.async_q.qsize() > 0:
+            while not run.done() or yield_queue.async_q.qsize() > 0:
                 value = yield await yield_queue.async_q.get()
+                if isinstance(value, Exception):
+                    raise value
                 await yield_resume_queue.async_q.put(value)
         except janus.AsyncQueueShutDown:
             pass
-        finally:
-            await run  # Raise exceptions
 
     async def _run_async_gen(self, input: list[Message], context: Context) -> None:
         try:
@@ -74,12 +74,16 @@ class Agent(abc.ABC):
                 value = await context.yield_async(await gen.asend(value))
         except StopAsyncIteration:
             pass
+        except Exception as e:
+            await context.yield_async(e)
         finally:
             context.shutdown()
 
     async def _run_coro(self, input: list[Message], context: Context) -> None:
         try:
             await context.yield_async(await self.run(input, context))
+        except Exception as e:
+            await context.yield_async(e)
         finally:
             context.shutdown()
 
@@ -91,12 +95,16 @@ class Agent(abc.ABC):
                 value = context.yield_sync(gen.send(value))
         except StopIteration:
             pass
+        except Exception as e:
+            context.yield_sync(e)
         finally:
             context.shutdown()
 
     def _run_func(self, input: list[Message], context: Context) -> None:
         try:
             context.yield_sync(self.run(input, context))
+        except Exception as e:
+            context.yield_sync(e)
         finally:
             context.shutdown()
 
