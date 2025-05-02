@@ -215,4 +215,11 @@ class Server:
         except requests.exceptions.ConnectionError as e:
             logger.warning(f"Can not reach server, check if running on {url} : {e}")
         except (requests.exceptions.HTTPError, Exception) as e:
-            logger.warning(f"Agent can not be registered to beeai server: {e}")
+            try:
+                error_message = e.response.json().get("detail")
+                if error_message:
+                    logger.warning(f"Agent can not be registered to beeai server: {error_message}")
+                else:
+                    logger.warning(f"Agent can not be registered to beeai server: {e}")
+            except Exception:
+                logger.warning(f"Agent can not be registered to beeai server: {e}")
