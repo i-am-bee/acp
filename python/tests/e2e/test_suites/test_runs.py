@@ -72,8 +72,9 @@ async def test_run_events_are_stream(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_failure(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="failer", input=input)
+@pytest.mark.parametrize("agent", ["failer", "raiser"])
+async def test_failure(server: Server, client: Client, agent: AgentName) -> None:
+    run = await client.run_sync(agent=agent, input=input)
     assert run.status == RunStatus.FAILED
     assert run.error is not None
     assert run.error.code == ErrorCode.INVALID_INPUT

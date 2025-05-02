@@ -7,6 +7,7 @@ from threading import Thread
 
 import pytest
 from acp_sdk.models import Artifact, AwaitResume, Error, ErrorCode, Message, MessageAwaitRequest, MessagePart
+from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Context, Server
 
 from e2e.config import Config
@@ -38,6 +39,11 @@ def server(request: pytest.FixtureRequest) -> Generator[None]:
     @server.agent()
     async def failer(input: list[Message], context: Context) -> AsyncIterator[Message]:
         yield Error(code=ErrorCode.INVALID_INPUT, message="Wrong question buddy!")
+        raise RuntimeError("Unreachable code")
+
+    @server.agent()
+    async def raiser(input: list[Message], context: Context) -> AsyncIterator[Message]:
+        raise ACPError(Error(code=ErrorCode.INVALID_INPUT, message="Wrong question buddy!"))
 
     @server.agent()
     async def sessioner(input: list[Message], context: Context) -> AsyncIterator[Message]:

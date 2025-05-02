@@ -142,6 +142,8 @@ class RunBundle:
                         run_logger.info("Run resumed")
                     elif isinstance(next, Error):
                         raise ACPError(error=next)
+                    elif isinstance(next, ACPError):
+                        raise next
                     elif next is None:
                         await flush_message()
                     elif isinstance(next, BaseModel):
@@ -176,3 +178,5 @@ class RunBundle:
             finally:
                 self.await_or_terminate_event.set()
                 await self.stream_queue.put(None)
+                if not self.task.done():
+                    self.task.cancel()
