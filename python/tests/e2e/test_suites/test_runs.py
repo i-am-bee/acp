@@ -6,6 +6,7 @@ import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
     ACPError,
+    AgentName,
     ArtifactEvent,
     ErrorCode,
     Message,
@@ -79,8 +80,9 @@ async def test_failure(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_cancel(server: Server, client: Client) -> None:
-    run = await client.run_async(agent="slow_echo", input=input)
+@pytest.mark.parametrize("agent", ["awaiter", "slow_echo"])
+async def test_run_cancel(server: Server, client: Client, agent: AgentName) -> None:
+    run = await client.run_async(agent=agent, input=input)
     run = await client.run_cancel(run_id=run.run_id)
     assert run.status == RunStatus.CANCELLING
     await asyncio.sleep(2)
@@ -89,9 +91,10 @@ async def test_run_cancel(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_cancel_stream(server: Server, client: Client) -> None:
+@pytest.mark.parametrize("agent", ["slow_echo"])
+async def test_run_cancel_stream(server: Server, client: Client, agent: AgentName) -> None:
     last_event = None
-    async for event in client.run_stream(agent="slow_echo", input=input):
+    async for event in client.run_stream(agent=agent, input=input):
         last_event = event
         if isinstance(event, RunCreatedEvent):
             run = await client.run_cancel(run_id=event.run.run_id)
