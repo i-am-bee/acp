@@ -1,0 +1,26 @@
+---
+title: "MCP Adapter"
+description: "Bridge the gap between ACP and MCP"
+---
+
+[**Model Context Protocol (MCP)**](https://modelcontextprotocol.io/introduction) is a popular open standard from Anthropic that provides AI **models** (usually LLMs) with **context**: resources, tools and more.
+
+Agents can be viewed as **MCP resources** and further invoked as **MCP tools**. Such look at ACP agents allows MCP clients to discover and run ACP agents at a cost of reduced interface compared to full ACP.
+
+## Adapter
+
+[ACP-MCP Adapter](https://github.com/i-am-bee/acp-mcp) is a production-ready **MCP server** that can be deployed in front of any **ACP server** to make the aforementioned bridging. It exposes agents as resources and defines tools to run them.
+
+To run the adapter, there are currently two options:
+
+1. Use PyPI package
+```sh
+uvx acp-mcp <acp-server-url> # e.g. http://localhost:8000
+```
+
+1. Use Docker image
+```sh
+docker run -i --rm ghcr.io/i-am-bee/acp-mcp <acp-server-url> # e.g. http://host.docker.internal:8000
+```
+
+The adapter currently supports [stdio transport](https://modelcontextprotocol.io/docs/concepts/transports#standard-input%2Foutput-stdio). Follow the documentation of your client to integrate one of the commands above (e.g. [Claude tutorial](https://modelcontextprotocol.io/quickstart/user)).
