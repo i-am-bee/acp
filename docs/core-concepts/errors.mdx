@@ -1,0 +1,35 @@
+---
+title: "Errors"
+description: "Error structure and handling in the Agent Communication Protocol"
+---
+
+The **Agent Communication Protocol (ACP)** provides a clear, unified error structure and guidance to promote ease of use for both clients and servers.
+
+## Error structure
+
+Each error contains a predefined **code** and an arbitrary **message**. Codes are designed to drive error-handling logic, while messages are intended for display or logging by the receiving system. For the current set of error codes, see the [specification](https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml).
+
+## Error handling
+
+Errors can be sent by the server via multiple mechanisms: as the response body of a failed HTTP request, within a failed run, or as an event in a broken stream. Clients must monitor these places and handle errors appropriately.
+
+When using an SDK client, it should expose errors to the SDK caller in a unified manner that is natural for the programming language and library making the request. This typically takes the form of an exception in the programming language.
+
+<Tabs>
+    <Tab title="Python">
+        ```python
+        try:
+            run = await client.run_sync(...)
+            run.raise_for_status()
+        except ACPError as e:
+            error = e.error
+            # Logic that handles the error
+        ```
+    </Tab>
+</Tabs>
+
+### Guidance
+
+Once an error object is received, the **code** should be used for programmatic decisions, and the **message** should be treated as a natural-language description of the error. Further handling depends on the application.
+
+For example, a chat UI should display the message of an error with an **invalid_input** code to the end user, but an error with a **server_error** code should be logged to the console, as its message may be too technical for non-technical users. A CLI, however, would likely display all error messages, regardless of the code.

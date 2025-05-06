@@ -26,6 +26,7 @@
           "/core-concepts/agent-discovery",
           "/core-concepts/agent-lifecycle",
           "/core-concepts/message-structure",
+          "/core-concepts/errors",
           "/core-concepts/production-grade"
         ]
       },
