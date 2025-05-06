@@ -1,10 +1,8 @@
 name: Bug Report
 description: File a bug report.
-title: "[Bug]: "
-labels: ["bug", "triage"]
-projects: ["octo-org/1", "octo-org/44"]
-assignees:
-  - octocat
+title: "[Bug] <title>"
+labels: ["Bug"]
+projects: ["ACP"]
 body:
   - type: markdown
     attributes:
@@ -18,6 +16,13 @@ body:
       placeholder: ex. email@example.com
     validations:
       required: false
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
   - type: textarea
     id: what-happened
     attributes:
@@ -33,6 +38,15 @@ body:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: shell
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!
+
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+    validations:
+      required: false
   - type: checkboxes
     id: terms
     attributes:
