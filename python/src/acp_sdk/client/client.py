@@ -22,6 +22,7 @@ from acp_sdk.models import (
     AgentsListResponse,
     AwaitResume,
     Error,
+    ErrorEvent,
     Event,
     PingResponse,
     Run,
@@ -224,7 +225,9 @@ class Client:
             await event_source.response.aread()
             self._raise_error(event_source.response)
         async for event in event_source.aiter_sse():
-            event = TypeAdapter(Event).validate_json(event.data)
+            event: Event = TypeAdapter(Event).validate_json(event.data)
+            if isinstance(event, ErrorEvent):
+                raise ACPError(error=event.error)
             yield event
 
     def _raise_error(self, response: httpx.Response) -> None:

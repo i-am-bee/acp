@@ -473,6 +473,16 @@ components:
       required:
         - type
         - run
+    ErrorEvent:
+      type: object
+      properties:
+        type:
+          const: error
+        error:
+          $ref: "#/components/schemas/Error"
+      required:
+        - type
+        - error
     Event:
       oneOf:
         - $ref: "#/components/schemas/MessageCreatedEvent"
@@ -485,6 +495,7 @@ components:
         - $ref: "#/components/schemas/RunCompletedEvent"
         - $ref: "#/components/schemas/RunFailedEvent"
         - $ref: "#/components/schemas/RunCancelledEvent"
+        - $ref: "#/components/schemas/ErrorEvent"
     AgentName:
       type: string
       description: A unique identifier for the agent following the [RFC 1123](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names) DNS-label naming convention.

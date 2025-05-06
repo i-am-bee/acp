@@ -262,7 +262,13 @@ class RunCompletedEvent(BaseModel):
     run: Run
 
 
+class ErrorEvent(BaseModel):
+    type: Literal["error"] = "error"
+    error: Error
+
+
 Event = Union[
+    ErrorEvent,
     RunCreatedEvent,
     RunInProgressEvent,
     MessageCreatedEvent,

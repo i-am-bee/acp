@@ -4,8 +4,12 @@ import uuid
 import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
+    ACPError,
     Agent,
     AgentsListResponse,
+    Error,
+    ErrorCode,
+    ErrorEvent,
     Message,
     MessageAwaitResume,
     MessagePart,
@@ -75,6 +79,24 @@ async def test_run_stream(httpx_mock: HTTPXMock) -> None:
     async with Client(base_url="http://test") as client:
         async for event in client.run_stream("Howdy!", agent=mock_run.agent_name):
             assert event == mock_event
+
+
+@pytest.mark.asyncio
+async def test_run_stream_error(httpx_mock: HTTPXMock) -> None:
+    error = Error(code=ErrorCode.SERVER_ERROR, message="whoops")
+    mock_event = ErrorEvent(error=error)
+    httpx_mock.add_response(
+        url="http://test/runs",
+        method="POST",
+        headers={"content-type": "text/event-stream"},
+        content=f"data: {mock_event.model_dump_json()}\n\n",
+    )
+
+    async with Client(base_url="http://test") as client:
+        with pytest.raises(ACPError) as e:
+            async for _ in client.run_stream("Howdy!", agent=mock_run.agent_name):
+                raise AssertionError()
+        assert e.value.error == error
 
 
 @pytest.mark.asyncio
