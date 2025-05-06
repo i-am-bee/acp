@@ -2,7 +2,7 @@ name: Feature request
 description: Request a Feature to be added.
 title: "[Feature] <title> "
 labels: ["Feature"]
-projects: ["acp"]
+projects: ["ACP"]
 body:
    - type: markdown
      attributes:
