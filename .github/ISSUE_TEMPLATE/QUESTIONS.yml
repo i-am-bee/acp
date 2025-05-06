@@ -1,0 +1,36 @@
+name: Questions
+description: Ask a question about the ACP, other Issues, contributing or anything else.
+title: "[Question] <title>"
+labels: [Question]
+body:
+  - type: input
+    id: related-issue
+    attributes:
+      label: Related issue number (optional)
+      description: If this question relates to a previous issue, paste the number (e.g., `#123`) here.
+      placeholder: "#123"
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        Ask a Question
+
+        Thank you for being part of the community! Please use this form to ask a clear and specific question.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Ask a question about the ACP, other Issues, contributing or anything else.
+      description: Provide as much detail as you can. Include any context, code examples, or references that might help others understand and answer.
+      placeholder: "How does X work when Y is true?"
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What have you tried?
+      description: Tell us what you've already tried to solve or answer your question.
+      placeholder: "I checked the documentation on..., and I tried..."
+    validations:
+      required: false
