@@ -3,8 +3,7 @@ description: Request a Feature to be added.
 title: "[Feature] <title> "
 labels: ["Feature"]
 projects: ["acp"]
-assignees:
-  - ""
+assignees: ""
 body:
   - type: markdown
     attributes:
