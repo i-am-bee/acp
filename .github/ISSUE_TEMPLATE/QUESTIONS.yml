@@ -1,7 +1,8 @@
 name: Questions
-description: Ask a question about the ACP, other Issues, contributing or anything else.
+description: Form for asking a question.
 title: "[Question] <title>"
 labels: [Question]
+projects: ["ACP"]
 body:
   - type: input
     id: related-issue
@@ -16,12 +17,12 @@ body:
       value: |
         Ask a Question
 
-        Thank you for being part of the community! Please use this form to ask a clear and specific question.
+        Thank you for being part of the community! Ask a question about the ACP, other Issues, contributing or anything else. 
 
   - type: textarea
     id: question
     attributes:
-      label: Ask a question about the ACP, other Issues, contributing or anything else.
+      label: Please use this form to ask a clear and specific question.
       description: Provide as much detail as you can. Include any context, code examples, or references that might help others understand and answer.
       placeholder: "How does X work when Y is true?"
     validations:
@@ -31,6 +32,6 @@ body:
     attributes:
       label: What have you tried?
       description: Tell us what you've already tried to solve or answer your question.
-      placeholder: "I checked the documentation on..., and I tried..."
+      placeholder: "I checked the documentation on..., and I read through previous issues..."
     validations:
       required: false
