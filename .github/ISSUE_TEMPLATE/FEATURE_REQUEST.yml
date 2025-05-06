@@ -1,0 +1,43 @@
+name: Feature request
+description: Request a feature to be added.
+title: "[Feature]: "
+labels: ["feature"]
+projects: ["acp"]
+assignees:
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info (optional)?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: describe-problem
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: Add as much detail as you can, if not related to a problem skip this section and explain your feature request below.
+      placeholder: Statement of the problem to fix.
+      value: "Problem fix with a feature."
+    validations:
+      required: false
+  - type: textarea
+    id: feature
+    attributes:
+      label: Describe the solution you'd like
+      description: Please provide a detailed description of the feature you propose.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
