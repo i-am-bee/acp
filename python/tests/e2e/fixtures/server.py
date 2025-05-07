@@ -84,6 +84,13 @@ def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
             yield message
 
     @server.agent()
+    async def history_echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
+        async for message in context.session.load_history():
+            yield message
+        for message in input:
+            yield message
+
+    @server.agent()
     async def awaiter(
         input: list[Message], context: Context
     ) -> AsyncGenerator[Message | MessageAwaitRequest, AwaitResume]:
@@ -101,9 +108,9 @@ def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
 
     @server.agent()
     async def sessioner(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        assert context.session_id is not None
+        assert context.session is not None
 
-        yield MessagePart(content=str(context.session_id), content_type="text/plain")
+        yield MessagePart(content=str(context.session.id), content_type="text/plain")
 
     @server.agent()
     async def mime_types(input: list[Message], context: Context) -> AsyncIterator[Message]:
@@ -143,7 +150,9 @@ def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
             content_encoding="base64",
         )
 
-    thread = Thread(target=server.run, kwargs={"store": store, "port": Config.PORT}, daemon=True)
+    thread = Thread(
+        target=server.run, kwargs={"self_registration": False, "store": store, "port": Config.PORT}, daemon=True
+    )
     thread.start()
 
     time.sleep(1)
@@ -152,3 +161,35 @@ def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
 
     server.should_exit = True
     thread.join(timeout=2)
+
+
+@pytest.fixture(scope="module")
+def multi_server(request: pytest.FixtureRequest) -> Generator[None]:
+    server_one = Server()
+    server_two = Server()
+
+    @server_one.agent()
+    @server_two.agent()
+    async def history_echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
+        async for message in context.session.load_history():
+            yield message
+        for message in input:
+            yield message
+
+    thread_one = Thread(
+        target=server_one.run, kwargs={"self_registration": False, "port": Config.PORT + 1}, daemon=True
+    )
+    thread_two = Thread(
+        target=server_two.run, kwargs={"self_registration": False, "port": Config.PORT + 2}, daemon=True
+    )
+    thread_one.start()
+    thread_two.start()
+
+    time.sleep(1)
+
+    yield (server_one, server_two)
+
+    server_one.should_exit = True
+    server_two.should_exit = True
+    thread_one.join(timeout=2)
+    thread_two.join(timeout=2)

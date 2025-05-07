@@ -210,6 +210,28 @@ paths:
                 $ref: "#/components/schemas/RunEventsListResponse"
         default:
           $ref: "#/components/responses/Error"
+  /session/{session_id}:
+    get:
+      tags: [session]
+      summary: Session
+      description: Returns details of the specified session.
+      operationId: getSession
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The id of the session to retrieve.
+          schema:
+            $ref: "#/components/schemas/SessionId"
+      responses:
+        "200":
+          description: Session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Error"
 components:
   responses:
     Error:
@@ -307,6 +329,8 @@ components:
           $ref: "#/components/schemas/AgentName"
         session_id:
           $ref: "#/components/schemas/SessionId"
+        session:
+          $ref: "#/components/schemas/Session"
         input:
           type: array
           items:
@@ -381,6 +405,22 @@ components:
         - status
         - output
         - created_at
+    Session:
+      type: object
+      properties:
+        id: 
+          $ref: "#/components/schemas/SessionId"
+        history:
+          type: array
+          items:
+            type: string
+            format: uri
+        state:
+          type: string
+          format: uri
+      required:
+        - id
+        - history
     MessageCreatedEvent:
       type: object
       properties:

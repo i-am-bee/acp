@@ -134,15 +134,6 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_session(server: Server, client: Client) -> None:
-    async with client.session() as session:
-        run = await session.run_sync(agent="echo", input=input)
-        assert run.output == input
-        run = await session.run_sync(agent="echo", input=input)
-        assert run.output == input + input + input
-
-
-@pytest.mark.asyncio
 async def test_mime_types(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="mime_types", input=input)
     assert run.status == RunStatus.COMPLETED

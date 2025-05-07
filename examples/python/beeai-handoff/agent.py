@@ -81,14 +81,14 @@ async def english_agent(input: list[Message]) -> AsyncGenerator:
 
 @server.agent(name="assistant")
 async def main_agent(input: list[Message], context: Context) -> AsyncGenerator:
-    session_storage[context.session_id].extend(input)
+    session_storage[context.session.id].extend(input)
 
     llm = ChatModel.from_name("ollama:llama3.1:8b")
     agent = ReActAgent(
         llm=llm,
         tools=[
-            HandoffTool("spanish_agent", context.session_id, session_storage),
-            HandoffTool("english_agent", context.session_id, session_storage),
+            HandoffTool("spanish_agent", context.session.id, session_storage),
+            HandoffTool("english_agent", context.session.id, session_storage),
         ],
         templates={
             "system": lambda template: template.update(
