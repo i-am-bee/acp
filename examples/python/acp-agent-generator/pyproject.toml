@@ -1,0 +1,19 @@
+[project]
+name = "acp-agent-generator"
+version = "0.1.0"
+description = "Allows users quickly prototype ACP agents, without the need to read the documentation extensively"
+readme = "README.md"
+requires-python = ">=3.11, <4.0"
+dependencies = [
+    "acp-sdk",
+    "langchain>=0.3.23",
+    "langchain-anthropic>=0.3.12",
+    "langchain-aws>=0.2.22",
+    "langchain-mcp-adapters>=0.0.10",
+    "langchain-openai>=0.2.14",
+    "langgraph>=0.3.31",
+    "mcpdoc>=0.0.8",
+]
+
+[tool.uv.sources]
+acp-sdk = { workspace = true }
