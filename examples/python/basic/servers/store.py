@@ -3,16 +3,17 @@ from collections.abc import AsyncGenerator
 from acp_sdk.models import (
     Message,
 )
-from acp_sdk.server import RunYield, RunYieldResume, agent, create_app
-from acp_sdk.server.store import RedisStore
+from acp_sdk.server import Context, RedisStore, RunYield, RunYieldResume, agent, create_app
 from redis.asyncio import Redis
 
 # This example demonstrates how to serve agents with you own server
 
 
 @agent()
-async def echo(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
     """Echoes everything"""
+    # async for message in context.session.load_history():
+    #     yield message
     for message in input:
         yield message
 

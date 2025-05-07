@@ -7,14 +7,10 @@ from typing import Callable
 
 import janus
 
-from acp_sdk.models import (
-    AgentName,
-    Message,
-    SessionId,
-)
-from acp_sdk.models.models import Metadata
+from acp_sdk.models import AgentName, Message, Metadata, Session
 from acp_sdk.server.context import Context
 from acp_sdk.server.types import RunYield, RunYieldResume
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class Agent(abc.ABC):
@@ -39,13 +35,23 @@ class Agent(abc.ABC):
         pass
 
     async def execute(
-        self, input: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
+        self,
+        input: list[Message],
+        session: Session,
+        storage: ResourceStore,
+        loader: ResourceLoader,
+        executor: ThreadPoolExecutor,
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
 
         context = Context(
-            session_id=session_id, executor=executor, yield_queue=yield_queue, yield_resume_queue=yield_resume_queue
+            session=session,
+            storage=storage,
+            loader=loader,
+            executor=executor,
+            yield_queue=yield_queue,
+            yield_resume_queue=yield_resume_queue,
         )
 
         if inspect.isasyncgenfunction(self.run):

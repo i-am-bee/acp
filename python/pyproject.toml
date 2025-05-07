@@ -9,7 +9,7 @@ maintainers = [{ name = "Tomas Pilar", email = "thomas7pilar@gmail.com" }]
 requires-python = ">=3.11, <4.0"
 dependencies = [
     "opentelemetry-api>=1.31",
-    "pydantic>=2.0",
+    "pydantic>=2.5",
     "httpx>=0.26",
     "httpx-sse>=0.4",
     "opentelemetry-instrumentation-httpx>=0.52b1",
@@ -21,6 +21,7 @@ dependencies = [
     "cachetools>=5.5",
     "redis>=6.1",
     "psycopg[binary]>=3.2",
+    "obstore>=0.6",
 ]
 
 [build-system]
