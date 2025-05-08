@@ -1,7 +1,7 @@
 name: Bug Report
 description: File a bug report.
 title: <Brief summary of the issue>
-type: "Bug"
+labels: "Bug"
 projects: ["ACP"]
 body:
   - type: markdown
