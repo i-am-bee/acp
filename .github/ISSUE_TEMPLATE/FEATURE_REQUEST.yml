@@ -8,18 +8,10 @@ body:
      attributes:
        value: |
         Thanks for taking the time to fill out this feature request!
-   - type: input
-     id: contact
-     attributes:
-       label: Contact Details (optional)
-       description: How can we get in touch with you if we need more info?
-       placeholder: ex. email@example.com
-     validations:
-      required: false
    - type: textarea
      id: describe-problem
      attributes:
-       label: Is your feature request related to a problem? Please describe.
+       label: Describe the problem this feature would solve.
        description: Add as much detail as you can, if not related to a problem skip this section and explain your feature request below.
        placeholder: Statement of the problem to fix.
        value: "Problem fix with a feature."
@@ -28,20 +20,20 @@ body:
    - type: textarea
      id: feature
      attributes:
-      label: Describe the solution you'd like
+      label: What solution do you propose?
       description: Please provide a detailed description of the feature you propose.
      validations:
       required: true
    - type: textarea
      id: alternatives
      attributes:
-       label: Describe alternatives you've considered
+       label: What alternatives have you considered?
        description: List and explain any or all alternatives you've investigated.
      validations:
       required: true
    - type: textarea
      attributes:
-       label: Additional Context (optional)?
+       label: Additional Context?
        description: |
          Links? References? Anything that will give us more context about the issue you are encountering!
 
