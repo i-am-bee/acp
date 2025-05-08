@@ -25,6 +25,17 @@ body:
     validations:
       required: true
   - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        1. With this config...
+        1. Run '...'
+        1. See error...
+    validations:
+      required: false
+  - type: textarea
     id: logs
     attributes:
       label: Relevant log output
