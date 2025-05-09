@@ -47,9 +47,9 @@ def server(request: pytest.FixtureRequest) -> Generator[None]:
 
     @server.agent()
     async def sessioner(input: list[Message], context: Context) -> AsyncIterator[Message]:
-        assert context.session_id is not None
+        assert context.session is not None
 
-        yield MessagePart(content=str(context.session_id), content_type="text/plain")
+        yield MessagePart(content=str(context.session), content_type="text/plain")
 
     @server.agent()
     async def mime_types(input: list[Message], context: Context) -> AsyncIterator[Message]:

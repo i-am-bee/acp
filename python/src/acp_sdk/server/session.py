@@ -1,21 +1,39 @@
 import uuid
-from collections.abc import Iterator
+from types import TracebackType
+from typing import Self
 
-from acp_sdk.models import Message, SessionId
-from acp_sdk.models.models import RunStatus
-from acp_sdk.server.bundle import RunBundle
+from obstore.store import ObjectStore
+
+from acp_sdk.models import SessionId
+from acp_sdk.server.resource import Resource
 
 
 class Session:
-    def __init__(self, id: SessionId | None = None) -> None:
+    def __init__(
+        self,
+        storage: ObjectStore,
+        id: SessionId | None = None,
+    ) -> None:
         self.id: SessionId = id or uuid.uuid4()
-        self.bundles: list[RunBundle] = []
+        self.storage = storage
 
-    def append(self, bundle: RunBundle) -> None:
-        self.bundles.append(bundle)
+    def add(self, resource: Resource) -> None:
+        self.history.append(resource)
 
-    def history(self) -> Iterator[Message]:
-        for bundle in self.bundles:
-            if bundle.run.status == RunStatus.COMPLETED:
-                yield from bundle.input
-                yield from bundle.run.output
+    async def __aenter__(self) -> Self:
+        self.history: list[Resource] = []
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: TracebackType | None = None,
+    ) -> None:
+        for resource in self.history:
+            print("STOING")
+            try:
+                await self.storage.put_async(str(resource.id), resource.content)
+                resource.url = f"file://{self.storage.prefix}/{resource.id}"
+            except Exception as e:
+                print(e)

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import AnyHttpUrl, AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
 
@@ -149,6 +149,8 @@ class Message(BaseModel):
 AgentName = str
 SessionId = uuid.UUID
 RunId = uuid.UUID
+SessionUrl = AnyHttpUrl
+ResourceUrl = AnyUrl
 
 
 class RunMode(str, Enum):
@@ -189,7 +191,7 @@ AwaitResume = Union[MessageAwaitResume]
 class Run(BaseModel):
     run_id: RunId = Field(default_factory=uuid.uuid4)
     agent_name: AgentName
-    session_id: SessionId | None = None
+    session_url: SessionUrl | None = None
     status: RunStatus = RunStatus.CREATED
     await_request: AwaitRequest | None = None
     output: list[Message] = []
@@ -288,3 +290,9 @@ class Agent(BaseModel):
     name: str
     description: str | None = None
     metadata: Metadata = Metadata()
+
+
+class Session(BaseModel):
+    id: SessionId
+    url: AnyHttpUrl
+    history: list[ResourceUrl]
