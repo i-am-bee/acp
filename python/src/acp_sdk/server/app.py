@@ -6,6 +6,7 @@ from enum import Enum
 
 from cachetools import TTLCache
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.applications import AppType, Lifespan
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -53,19 +54,24 @@ def create_app(
     *agents: Agent,
     run_limit: int = 1000,
     run_ttl: timedelta = timedelta(hours=1),
+    lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
     executor: ThreadPoolExecutor
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    async def internal_lifespan(app: FastAPI) -> AsyncGenerator[None]:
         nonlocal executor
         with ThreadPoolExecutor() as exec:
             executor = exec
-            yield
+            if not lifespan:
+                yield None
+            else:
+                async with lifespan(app) as state:
+                    yield state
 
     app = FastAPI(
-        lifespan=lifespan,
+        lifespan=internal_lifespan,
         dependencies=dependencies,
     )
 

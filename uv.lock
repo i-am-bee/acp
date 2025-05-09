@@ -48,6 +48,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "langgraph" },
     { name = "mcpdoc" },
+    { name = "pydantic-settings" },
 ]
 
 [package.metadata]
@@ -60,6 +61,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.2.14" },
     { name = "langgraph", specifier = ">=0.3.31" },
     { name = "mcpdoc", specifier = ">=0.0.8" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
 [[package]]
