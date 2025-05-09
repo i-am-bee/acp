@@ -13,6 +13,7 @@ dependencies = [
     "langchain-openai>=0.2.14",
     "langgraph>=0.3.31",
     "mcpdoc>=0.0.8",
+    "pydantic-settings>=2.9.0",
 ]
 
 [tool.uv.sources]
