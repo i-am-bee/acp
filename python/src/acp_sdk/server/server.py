@@ -170,7 +170,7 @@ class Server:
         self._server = uvicorn.Server(config)
         await self._serve(self_registration=self_registration)
 
-    async def run(
+    def run(
         self,
         configure_logger: bool = True,
         configure_telemetry: bool = False,
