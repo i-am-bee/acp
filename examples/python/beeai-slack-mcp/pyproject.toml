@@ -1,0 +1,15 @@
+[project]
+name = "beeai-slack-mcp"
+version = "0.1.0"
+description = "Agent which interacts with Slack using MCP tools, available via ACP"
+readme = "README.md"
+requires-python = ">=3.11, <4.0"
+dependencies = [
+    "acp-sdk",
+    "mcp>=1.7.1",
+    "beeai-framework>=0.1.17",
+    "pydantic-settings>=2.9.0",
+]
+
+[tool.uv.sources]
+acp-sdk = { workspace = true }
