@@ -11,7 +11,7 @@ async def run_client() -> None:
             input=[
                 Message(
                     # Pass your instructions below 
-                    parts=[MessagePart(content="Post a funny message in C08RV1XUZQA slack channel", content_type="text/plain")]
+                    parts=[MessagePart(content="Post a funny message in CXXXXXX slack channel", content_type="text/plain")]
                 )
             ],
         )
