@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ACP Discussions
+    url: https://github.com/i-am-bee/acp/discussions
+    about: Please ask and answer questions here.
+  - name: BeeAI Discord
+    url: https://discord.gg/NradeA6ZNF
+    about: Get support here.
