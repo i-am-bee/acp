@@ -17,6 +17,7 @@ members = [
     "beeai-canvas",
     "beeai-framework-chat",
     "beeai-handoff",
+    "beeai-slack-mcp",
     "crewai-song-writer",
     "lang-graph-greeting",
     "prompt-chaining",
@@ -568,6 +569,25 @@ dependencies = [
 requires-dist = [
     { name = "acp-sdk", editable = "python" },
     { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
+]
+
+[[package]]
+name = "beeai-slack-mcp"
+version = "0.1.0"
+source = { virtual = "examples/python/beeai-slack-mcp" }
+dependencies = [
+    { name = "acp-sdk" },
+    { name = "beeai-framework" },
+    { name = "mcp" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acp-sdk", editable = "python" },
+    { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "mcp", specifier = ">=1.7.1" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
