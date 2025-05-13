@@ -74,7 +74,7 @@ const BaseMessagePart =
 const refineMessagePart = (
   val: z.infer<typeof BaseMessagePart>,
   ctx: z.RefinementCtx
-) => {
+): never => {
   if (val.content == null && val.content_url == null) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -105,10 +105,12 @@ export const Message = z.object({
   created_at: z
     .string()
     .datetime()
+    .nullable()
     .default(() => new Date().toISOString()),
   completed_at: z
     .string()
     .datetime()
+    .nullable()
     .default(() => new Date().toISOString()),
 });
 

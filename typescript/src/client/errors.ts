@@ -23,6 +23,17 @@ export class FetchError extends BaseError {
   }
 }
 
+export class SSEError extends BaseError {
+  constructor(
+    message: string,
+    public response: Response,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
+    this.name = "SSEError";
+  }
+}
+
 export class HTTPError extends BaseError {
   statusCode: number;
   headers: Headers;

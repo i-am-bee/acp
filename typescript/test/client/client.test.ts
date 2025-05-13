@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { Client } from "../../src/client/client";
-import { Agent, Message, MessageAwaitResume } from '../../src/models/models';
+import { Agent, Message, MessageAwaitResume, Event } from '../../src/models/models';
 
 describe("client", () => {
   const createClient = () => new Client({ baseUrl: `http://localhost:8000` });
@@ -73,6 +73,18 @@ describe("client", () => {
       expect(run.status).toBe('completed');
     });
 
+    test('stream run, generates created and completed events', async () => {
+      const client = createClient();
+
+      const events: Event[] = [];
+      for await (const event of client.runStream('echo', input)) {
+        events.push(event);
+      }
+
+      expect(events.at(0)?.type).toBe('run.created');
+      expect(events.at(-1)?.type).toBe('run.completed');
+    });
+
     test('run events contain created and completed', async () => {
       const client = createClient();
 
@@ -107,6 +119,20 @@ describe("client", () => {
       expect(run.status).toBe('cancelled');
     });
 
+    test('run cancel during a streaming works', async () => {
+      const client = createClient();
+
+      let lastEvent: Event | undefined;
+      for await (const event of client.runStream('slow_echo', input)) {
+        lastEvent = event;
+        if (event.type === 'run.created') {
+          const run = await client.runCancel(event.run.run_id);
+          expect(run.status).toBe('cancelling');
+        }
+      }
+      expect(lastEvent?.type).toBe('run.cancelled');
+    })
+
     test('awaiter run is resumed sync', async () => {
       const client = createClient();
 
@@ -130,6 +156,23 @@ describe("client", () => {
 
       run = await client.runResumeAsync(run.run_id, awaitResume);
       expect(run.status).toBe('in-progress');
+    });
+
+    test('awaiter run is resumed stream', async () => {
+      const client = createClient();
+
+      let run = await client.runSync('awaiter', input);
+
+      expect(run.status).toBe('awaiting');
+      expect(run.await_request).toBeDefined();
+
+      const events: Event[] = [];
+      for await (const event of client.runResumeStream(run.run_id, awaitResume)) {
+        events.push(event);
+      }
+
+      expect(events.at(0)?.type).toBe('run.in-progress');
+      expect(events.at(-1)?.type).toBe('run.completed');
     });
   });
 });

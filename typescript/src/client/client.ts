@@ -1,5 +1,13 @@
 import { ErrorModel } from "../models/errors.js";
-import { Agent, AgentName, AwaitResume, Event, Run, RunId, RunMode } from "../models/models.js";
+import {
+  Agent,
+  AgentName,
+  AwaitResume,
+  Event,
+  Run,
+  RunId,
+  RunMode,
+} from "../models/models.js";
 import {
   AgentsListResponse,
   AgentsReadResponse,
@@ -12,6 +20,7 @@ import {
   RunResumeResponse,
 } from "../models/schemas.js";
 import { ACPError, BaseError, FetchError, HTTPError } from "./errors.js";
+import { createEventSource, EventSource } from "./sse.js";
 import { Input } from "./types.js";
 import { inputToMessages } from "./utils.js";
 
@@ -32,7 +41,7 @@ export class Client {
 
   constructor(init?: ClientInit) {
     this.#fetch = init?.fetch ?? globalThis.fetch;
-    this.#baseUrl = normalizeBaseUrl(init?.baseUrl ?? '');
+    this.#baseUrl = normalizeBaseUrl(init?.baseUrl ?? "");
   }
 
   async #fetcher(url: string, options?: RequestInit) {
@@ -54,6 +63,27 @@ export class Client {
     }
   }
 
+  async #fetchEventSource(url: string, options?: RequestInit) {
+    let eventSource: EventSource;
+    try {
+      eventSource = await createEventSource({
+        url: this.#baseUrl + url,
+        fetch: this.#fetch,
+        options,
+      });
+    } catch (err) {
+      throw new FetchError(
+        (err as Error).message ?? "fetch failed",
+        undefined,
+        {
+          cause: err,
+        }
+      );
+    }
+    await this.#handleErrorResponse(eventSource.response);
+    return eventSource;
+  }
+
   async #handleErrorResponse(response: Response) {
     if (response.ok) return;
 
@@ -70,6 +100,16 @@ export class Client {
       throw new ACPError(result.data);
     }
     throw new HTTPError(response, data);
+  }
+
+  async *#processEventSource(eventSource: EventSource) {
+    for await (const message of eventSource.consume()) {
+      const event = Event.parse(JSON.parse(message.data));
+      if (event.type === "error") {
+        throw new ACPError(event.error);
+      }
+      yield event;
+    }
   }
 
   async ping() {
@@ -91,11 +131,13 @@ export class Client {
     const data = await this.#fetcher("/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(RunCreateRequest.parse({
-        agent_name: agentName,
-        input: inputToMessages(input),
-        mode: RunMode.enum.sync,
-      })),
+      body: JSON.stringify(
+        RunCreateRequest.parse({
+          agent_name: agentName,
+          input: inputToMessages(input),
+          mode: RunMode.enum.sync,
+        })
+      ),
     });
     return RunCreateResponse.parse(data);
   }
@@ -104,27 +146,53 @@ export class Client {
     const data = await this.#fetcher("/runs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(RunCreateRequest.parse({
-        agent_name: agentName,
-        input: inputToMessages(input),
-        mode: RunMode.enum.async,
-      })),
+      body: JSON.stringify(
+        RunCreateRequest.parse({
+          agent_name: agentName,
+          input: inputToMessages(input),
+          mode: RunMode.enum.async,
+        })
+      ),
     });
     return RunCreateResponse.parse(data);
   }
 
+  async *runStream(
+    agentName: AgentName,
+    input: Input
+  ): AsyncGenerator<Event, void, unknown> {
+    const eventSource = await this.#fetchEventSource("/runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        RunCreateRequest.parse({
+          agent_name: agentName,
+          input: inputToMessages(input),
+          mode: RunMode.enum.stream,
+        })
+      ),
+    });
+    for await (const event of this.#processEventSource(eventSource)) {
+      yield event;
+    }
+  }
+
   async runStatus(runId: RunId): Promise<Run> {
-    const data = await this.#fetcher(`/runs/${runId}`, { method: 'GET' });
+    const data = await this.#fetcher(`/runs/${runId}`, { method: "GET" });
     return RunReadResponse.parse(data);
   }
 
   async runEvents(runId: RunId): Promise<Event[]> {
-    const data = await this.#fetcher(`/runs/${runId}/events`, { method: 'GET' });
+    const data = await this.#fetcher(`/runs/${runId}/events`, {
+      method: "GET",
+    });
     return RunEventsListResponse.parse(data).events;
   }
 
   async runCancel(runId: RunId): Promise<Run> {
-    const data = await this.#fetcher(`/runs/${runId}/cancel`, { method: 'POST' });
+    const data = await this.#fetcher(`/runs/${runId}/cancel`, {
+      method: "POST",
+    });
     return RunReadResponse.parse(data);
   }
 
@@ -132,10 +200,12 @@ export class Client {
     const data = await this.#fetcher(`/runs/${runId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(RunResumeRequest.parse({
-        await_resume: awaitResume,
-        mode: RunMode.enum.sync,
-      })),
+      body: JSON.stringify(
+        RunResumeRequest.parse({
+          await_resume: awaitResume,
+          mode: RunMode.enum.sync,
+        })
+      ),
     });
     return RunResumeResponse.parse(data);
   }
@@ -144,18 +214,39 @@ export class Client {
     const data = await this.#fetcher(`/runs/${runId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(RunResumeRequest.parse({
-        await_resume: awaitResume,
-        mode: RunMode.enum.async,
-      })),
+      body: JSON.stringify(
+        RunResumeRequest.parse({
+          await_resume: awaitResume,
+          mode: RunMode.enum.async,
+        })
+      ),
     });
     return RunResumeResponse.parse(data);
+  }
+
+  async *runResumeStream(
+    runId: RunId,
+    awaitResume: AwaitResume
+  ): AsyncGenerator<Event, void, unknown> {
+    const eventSource = await this.#fetchEventSource(`/runs/${runId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        RunResumeRequest.parse({
+          await_resume: awaitResume,
+          mode: RunMode.enum.stream,
+        })
+      ),
+    });
+    for await (const event of this.#processEventSource(eventSource)) {
+      yield event;
+    }
   }
 }
 
 const normalizeBaseUrl = (url: string) => {
-  if (url.endsWith('/')) {
+  if (url.endsWith("/")) {
     return url.slice(0, -1);
   }
   return url;
-}
+};
