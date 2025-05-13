@@ -12,7 +12,7 @@ export function inputToMessages(input: Input): Message[] {
       return [];
     }
     if (input.every((i) => isMessage(i))) {
-      return input;
+      return input.map(i => Message.parse(i));
     }
     if (input.every((i) => isMessagePart(i))) {
       return [Message.parse({ parts: input })];
@@ -33,7 +33,7 @@ export function inputToMessages(input: Input): Message[] {
       input = Message.parse({ parts: [input] });
     }
     if (isMessage(input)) {
-      input = [input];
+      input = [Message.parse(input)];
     }
     return input as Message[];
   }

@@ -1,20 +1,20 @@
 import * as z from "zod";
-import { Simplify } from 'type-fest';
+import { Simplify } from "type-fest";
 import { ErrorModel } from "./errors.js";
-import { createSchemaTypePredicate } from "./utils.js";
+import { createSchemaTypePredicate, nullishObject } from "./utils.js";
 
 export const AnyModel = z.record(z.any());
 
 export const Author = z.object({
   name: z.string(),
-  email: z.string().optional(),
-  url: z.string().url().optional(),
+  email: z.string().nullish(),
+  url: z.string().url().nullish(),
 });
 
 export const Contributor = z.object({
   name: z.string(),
-  email: z.string().optional(),
-  url: z.string().url().optional(),
+  email: z.string().nullish(),
+  url: z.string().url().nullish(),
 });
 
 export const LinkType = z.enum([
@@ -41,8 +41,8 @@ export const Capability = z.object({
   description: z.string(),
 });
 
-export const Metadata = z
-  .object({
+export const Metadata = nullishObject(
+  z.object({
     annotations: AnyModel,
     documentation: z.string(),
     license: z.string(),
@@ -60,19 +60,16 @@ export const Metadata = z
     dependencies: z.array(Dependency),
     recommended_models: z.array(z.string()),
   })
-  .partial()
-  .passthrough();
+).passthrough();
 
-const BaseMessagePart = z
-  .object({
-    name: z.string(),
-    content_type: z.string().default("text/plain"),
-    content: z.string(),
-    content_encoding: z.enum(["plain", "base64"]).default("plain"),
-    content_url: z.string().url(),
-  })
-  .partial()
-  .passthrough();
+const BaseMessagePart =
+  z.object({
+    name: z.string().nullish(),
+    content_type: z.string().nullish().default("text/plain"),
+    content: z.string().nullish(),
+    content_encoding: z.enum(["plain", "base64"]).nullish().default("plain"),
+    content_url: z.string().url().nullish(),
+  }).passthrough();
 
 const refineMessagePart = (
   val: z.infer<typeof BaseMessagePart>,
@@ -169,23 +166,23 @@ export type AwaitResume = z.infer<typeof AwaitResume>;
 export const Run = z.object({
   run_id: RunId,
   agent_name: AgentName,
-  session_id: z.optional(SessionId),
+  session_id: SessionId.nullish(),
   status: RunStatus.default("created"),
-  await_request: AwaitRequest,
-  output: z.array(Message),
-  error: z.optional(ErrorModel),
+  await_request: AwaitRequest.nullish(),
+  output: z.array(Message).default([]),
+  error: ErrorModel.nullish(),
   created_at: z
     .string()
     .datetime()
     .default(() => new Date().toISOString()),
-  finished_at: z.string().datetime().optional(),
+  finished_at: z.string().datetime().nullish(),
 });
 
 export type Run = z.infer<typeof Run>;
 
 export const Agent = z.object({
   name: AgentName,
-  description: z.string().optional(),
+  description: z.string().nullish(),
   metadata: Metadata.default({}),
 });
 

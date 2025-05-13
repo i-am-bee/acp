@@ -39,7 +39,7 @@ export class Client {
     let response: Response | undefined;
     try {
       response = await this.#fetch(this.#baseUrl + url, options);
-      this.#handleErrorResponse(response);
+      await this.#handleErrorResponse(response);
       return await response.json();
     } catch (err) {
       if (
@@ -94,7 +94,7 @@ export class Client {
       body: JSON.stringify(RunCreateRequest.parse({
         agent_name: agentName,
         input: inputToMessages(input),
-        run_mode: RunMode.enum.sync,
+        mode: RunMode.enum.sync,
       })),
     });
     return RunCreateResponse.parse(data);
@@ -107,7 +107,7 @@ export class Client {
       body: JSON.stringify(RunCreateRequest.parse({
         agent_name: agentName,
         input: inputToMessages(input),
-        run_mode: RunMode.enum.async,
+        mode: RunMode.enum.async,
       })),
     });
     return RunCreateResponse.parse(data);
@@ -134,7 +134,7 @@ export class Client {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(RunResumeRequest.parse({
         await_resume: awaitResume,
-        run_mode: RunMode.enum.sync,
+        mode: RunMode.enum.sync,
       })),
     });
     return RunResumeResponse.parse(data);
@@ -146,7 +146,7 @@ export class Client {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(RunResumeRequest.parse({
         await_resume: awaitResume,
-        run_mode: RunMode.enum.async,
+        mode: RunMode.enum.async,
       })),
     });
     return RunResumeResponse.parse(data);
