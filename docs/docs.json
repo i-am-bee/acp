@@ -65,8 +65,8 @@
         "pages": ["/sdks/python/api-reference"]
       },
       {
-        "group": "Ecosystem",
-        "pages": ["/ecosystem/mcp-adapter"]
+        "group": "Integrations",
+        "pages": ["/integrations/mcp-adapter", "/integrations/cursor"]
       },
       {
         "group": "About",
