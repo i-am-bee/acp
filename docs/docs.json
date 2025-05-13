@@ -99,5 +99,11 @@
       "bluesky": "https://bsky.app/profile/beeaiagents.bsky.social",
       "youtube": "https://www.youtube.com/@BeeAIAgents"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/ecosystem/mcp-adapter",
+      "destination": "/integrations/mcp-adapter"
+    }
+  ]
 }
