@@ -48,3 +48,7 @@ Ask:
 
 1. Code a Agent Communctions Protocol Server that uses a BeeAI Agent to reverse the users input
 2. Code a Agent Communications Protocol Agent that has access to a agent that has add and subtract tools
+
+Proven to work on:
+OpenAI - gpt-4o, gpt-4.1, gpt-4.1-mini
+Anthropic - Claude-3.7-Sonnet, Claude-3.5-Sonnet, Claude-3.5-Haiku
