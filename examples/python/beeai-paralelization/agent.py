@@ -16,7 +16,7 @@ server = Server()
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
-            agent=agent, input=[Message(parts=[MessagePart(content=input, content_type="text/plain")])]
+            agent=agent, input=input
         )
 
     return run.output
@@ -53,7 +53,7 @@ async def aggregator(input: list[Message], context: Context) -> AsyncGenerator:
         run_agent("translation_spanish", str(input[0])), run_agent("translation_french", str(input[0]))
     )
 
-    yield MessagePart(content=str(spanish_result[0]), role="Spanish")
+    yield MessagePart(content=str(spanish_result[0]), language="Spanish")
     yield MessagePart(content=str(english_result[0]), language="French")
 
 
