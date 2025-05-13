@@ -128,32 +128,26 @@ export class Client {
   }
 
   async runSync(agentName: AgentName, input: Input): Promise<Run> {
-    const data = await this.#fetcher("/runs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunCreateRequest.parse({
-          agent_name: agentName,
-          input: inputToMessages(input),
-          mode: RunMode.enum.sync,
-        })
-      ),
-    });
+    const data = await this.#fetcher(
+      "/runs",
+      jsonPost<RunCreateRequest>({
+        agent_name: agentName,
+        input: inputToMessages(input),
+        mode: "sync",
+      })
+    );
     return RunCreateResponse.parse(data);
   }
 
   async runAsync(agentName: AgentName, input: Input): Promise<Run> {
-    const data = await this.#fetcher("/runs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunCreateRequest.parse({
-          agent_name: agentName,
-          input: inputToMessages(input),
-          mode: RunMode.enum.async,
-        })
-      ),
-    });
+    const data = await this.#fetcher(
+      "/runs",
+      jsonPost<RunCreateRequest>({
+        agent_name: agentName,
+        input: inputToMessages(input),
+        mode: "async",
+      })
+    );
     return RunCreateResponse.parse(data);
   }
 
@@ -161,17 +155,14 @@ export class Client {
     agentName: AgentName,
     input: Input
   ): AsyncGenerator<Event, void, unknown> {
-    const eventSource = await this.#fetchEventSource("/runs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunCreateRequest.parse({
-          agent_name: agentName,
-          input: inputToMessages(input),
-          mode: RunMode.enum.stream,
-        })
-      ),
-    });
+    const eventSource = await this.#fetchEventSource(
+      "/runs",
+      jsonPost<RunCreateRequest>({
+        agent_name: agentName,
+        input: inputToMessages(input),
+        mode: "stream",
+      })
+    );
     for await (const event of this.#processEventSource(eventSource)) {
       yield event;
     }
@@ -197,30 +188,24 @@ export class Client {
   }
 
   async runResumeSync(runId: RunId, awaitResume: AwaitResume): Promise<Run> {
-    const data = await this.#fetcher(`/runs/${runId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunResumeRequest.parse({
-          await_resume: awaitResume,
-          mode: RunMode.enum.sync,
-        })
-      ),
-    });
+    const data = await this.#fetcher(
+      `/runs/${runId}`,
+      jsonPost<RunResumeRequest>({
+        await_resume: awaitResume,
+        mode: "sync",
+      })
+    );
     return RunResumeResponse.parse(data);
   }
 
   async runResumeAsync(runId: RunId, awaitResume: AwaitResume): Promise<Run> {
-    const data = await this.#fetcher(`/runs/${runId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunResumeRequest.parse({
-          await_resume: awaitResume,
-          mode: RunMode.enum.async,
-        })
-      ),
-    });
+    const data = await this.#fetcher(
+      `/runs/${runId}`,
+      jsonPost<RunResumeRequest>({
+        await_resume: awaitResume,
+        mode: "async",
+      })
+    );
     return RunResumeResponse.parse(data);
   }
 
@@ -228,16 +213,13 @@ export class Client {
     runId: RunId,
     awaitResume: AwaitResume
   ): AsyncGenerator<Event, void, unknown> {
-    const eventSource = await this.#fetchEventSource(`/runs/${runId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        RunResumeRequest.parse({
-          await_resume: awaitResume,
-          mode: RunMode.enum.stream,
-        })
-      ),
-    });
+    const eventSource = await this.#fetchEventSource(
+      `/runs/${runId}`,
+      jsonPost<RunResumeRequest>({
+        await_resume: awaitResume,
+        mode: "stream",
+      })
+    );
     for await (const event of this.#processEventSource(eventSource)) {
       yield event;
     }
@@ -249,4 +231,12 @@ const normalizeBaseUrl = (url: string) => {
     return url.slice(0, -1);
   }
   return url;
+};
+
+const jsonPost = <T>(json: T): RequestInit => {
+  return {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(json),
+  };
 };
