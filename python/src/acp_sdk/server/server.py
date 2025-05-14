@@ -104,6 +104,9 @@ class Server:
         if self._server:
             raise RuntimeError("The server is already running")
 
+        if headers is None:
+            headers = [("server", "ACP Agent")]
+
         import uvicorn
 
         if configure_logger:
