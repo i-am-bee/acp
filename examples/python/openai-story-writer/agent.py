@@ -9,15 +9,17 @@ from client import run_agent
 
 
 server = Server()
+
+model = LitellmModel(model="ollama/mistral-small:latest", api_key="dummy", base_url="http://localhost:11434")
         
 # Create an agent which can draft outline for user requested stories
-@server.agent(name="story_outline_generator", description="Drafts a story outline based on user's input")
-async def translation_agent(input: list[Message]) -> AsyncGenerator:
-    
+@server.agent()
+async def story_outline_generator(input: list[Message]) -> AsyncGenerator:
+    '''Drafts a story outline based on user's input'''
     story_outline_agent = Agent(
-        name="story_outline_generator",
-        instructions="Generate a very short story outline based on the user's input.",
-        model=LitellmModel(model="ollama/mistral-small:latest", api_key="dummy", base_url="http://localhost:11434"),  # Set OPENAI_API_KEY to use OpenAI models instead
+        name = "story_outline_generator",
+        instructions = "Generate a very short story outline based on the user's input.",
+        model = model,  # Set OPENAI_API_KEY to use OpenAI models instead
     )
     
     outline_result = await Runner.run(
@@ -29,14 +31,14 @@ async def translation_agent(input: list[Message]) -> AsyncGenerator:
 
 
 # Create an agent to write a story along the lines of outline provided
-@server.agent(name="story_writer_using_outline",description="Takes a short story outline and turns it into a story")
-async def marketing_copy_agent(input: list[Message]) -> AsyncGenerator:
-    
+@server.agent()
+async def story_writer_using_outline(input: list[Message]) -> AsyncGenerator:
+    '''Takes a short story outline and turns it into a story'''
     story_agent = Agent(
-        name="story_writer_using_outline",
-        instructions="Write a short story based on the given outline.",
-        model=LitellmModel(model="ollama/mistral-small:latest", api_key="dummy", base_url="http://localhost:11434"), # Set OPENAI_API_KEY to use OpenAI models instead
-        output_type=str,
+        name = "story_writer_using_outline",
+        instructions = "Write a short story based on the given outline.",
+        model = model, # Set OPENAI_API_KEY to use OpenAI models instead
+        output_type = str,
     )
     
     story_result = await Runner.run(
