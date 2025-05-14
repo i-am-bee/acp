@@ -2,6 +2,7 @@ import * as z from "zod";
 import { Simplify } from "type-fest";
 import { ErrorModel } from "./errors.js";
 import { createSchemaTypePredicate, nullishObject } from "./utils.js";
+import { ACPError } from "../client/errors.js";
 
 export const AnyModel = z.record(z.any());
 
@@ -62,14 +63,15 @@ export const Metadata = nullishObject(
   })
 ).passthrough();
 
-const BaseMessagePart =
-  z.object({
+const BaseMessagePart = z
+  .object({
     name: z.string().nullish(),
     content_type: z.string().nullish().default("text/plain"),
     content: z.string().nullish(),
     content_encoding: z.enum(["plain", "base64"]).nullish().default("plain"),
     content_url: z.string().url().nullish(),
-  }).passthrough();
+  })
+  .passthrough();
 
 const refineMessagePart = (
   val: z.infer<typeof BaseMessagePart>,
@@ -99,7 +101,6 @@ export const Artifact = BaseMessagePart.required({ name: true }).superRefine(
   refineMessagePart
 );
 
-// TODO: there are methods to be implemented
 export const Message = z.object({
   parts: z.array(MessagePart),
   created_at: z
@@ -118,6 +119,63 @@ export type Message = z.infer<typeof Message>;
 
 export const isMessage = createSchemaTypePredicate(Message);
 
+export function concatMessages(lhs: Message, rhs: Message): Message {
+  return {
+    parts: [...lhs.parts, ...rhs.parts],
+    created_at:
+      lhs.created_at != null && rhs.created_at != null
+        ? lhs.created_at < rhs.created_at
+          ? lhs.created_at
+          : rhs.created_at
+        : null,
+    completed_at:
+      lhs.completed_at != null && rhs.completed_at != null
+        ? lhs.completed_at > rhs.completed_at
+          ? lhs.completed_at
+          : rhs.completed_at
+        : null,
+  };
+}
+
+export function compressMessage(message: Message): Message {
+  const canBeJoined = (a: MessagePart, b: MessagePart) => {
+    return (
+      a.name == null &&
+      b.name == null &&
+      a.content_type === "text/plain" &&
+      b.content_type === "text/plain" &&
+      a.content_encoding === "plain" &&
+      b.content_encoding === "plain" &&
+      a.content_url == null &&
+      b.content_url == null
+    );
+  };
+
+  const join = (a: MessagePart, b: MessagePart): MessagePart => ({
+    name: null,
+    content_type: "text/plain",
+    content: (a.content ?? "") + (b.content ?? ""),
+    content_encoding: "plain",
+    content_url: null,
+  });
+
+  const compressedParts: MessagePart[] = [];
+
+  for (const part of message.parts) {
+    if (
+      compressedParts.length > 0 &&
+      canBeJoined(compressedParts[compressedParts.length - 1], part)
+    ) {
+      const last = compressedParts.pop()!;
+      compressedParts.push(join(last, part));
+    } else {
+      compressedParts.push(part);
+    }
+  }
+
+  return { ...message, parts: compressedParts };
+}
+
 const UUID = z.string().uuid();
 
 export const AgentName = z.string();
@@ -134,7 +192,8 @@ export type SessionId = z.infer<typeof SessionId>;
 
 export const RunMode = z.enum(["sync", "async", "stream"]);
 
-// TODO: implement is_terminal property somehow
+export type RunMode = z.infer<typeof RunMode>;
+
 export const RunStatus = z.enum([
   "created",
   "in-progress",
@@ -144,6 +203,14 @@ export const RunStatus = z.enum([
   "completed",
   "failed",
 ]);
+
+export type RunStatus = z.infer<typeof RunStatus>;
+
+export function isTerminalRunStatus(status: RunStatus) {
+  return (
+    status === "completed" || status === "cancelled" || status === "failed"
+  );
+}
 
 export const MessageAwaitRequest = z.object({
   type: z.literal("message"),
@@ -164,7 +231,6 @@ export const AwaitResume = MessageAwaitResume;
 
 export type AwaitResume = z.infer<typeof AwaitResume>;
 
-// TODO: implement raise_for_status method
 export const Run = z.object({
   run_id: RunId,
   agent_name: AgentName,
@@ -181,6 +247,17 @@ export const Run = z.object({
 });
 
 export type Run = z.infer<typeof Run>;
+
+export function throwForRunStatus(run: Run) {
+  if (run.status === "cancelled") {
+    // throw DOMException with AbortError name like AbortController does
+    throw new DOMException("Run has been cancelled", "AbortError");
+  }
+  if (run.status === "failed") {
+    throw new ACPError(run.error!);
+  }
+  return run;
+}
 
 export const Agent = z.object({
   name: AgentName,

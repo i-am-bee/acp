@@ -1,3 +1,4 @@
+import { v4 as uuuid } from "uuid";
 import { ErrorModel } from "../models/errors.js";
 import {
   Agent,
@@ -6,7 +7,7 @@ import {
   Event,
   Run,
   RunId,
-  RunMode,
+  SessionId,
 } from "../models/models.js";
 import {
   AgentsListResponse,
@@ -33,15 +34,26 @@ interface ClientInit {
    * Can also be used for advanced use cases like mocking, proxying, custom certs etc.
    */
   fetch?: FetchLike;
+  sessionId?: string;
 }
 
 export class Client {
   #baseUrl: string;
   #fetch: FetchLike;
+  #sessionId?: SessionId;
 
   constructor(init?: ClientInit) {
     this.#fetch = init?.fetch ?? globalThis.fetch;
     this.#baseUrl = normalizeBaseUrl(init?.baseUrl ?? "");
+    this.#sessionId = init?.sessionId;
+  }
+
+  withSession(sessionId: SessionId = uuuid()) {
+    return new Client({
+      fetch: this.#fetch,
+      baseUrl: this.#baseUrl,
+      sessionId,
+    });
   }
 
   async #fetcher(url: string, options?: RequestInit) {
@@ -134,6 +146,7 @@ export class Client {
         agent_name: agentName,
         input: inputToMessages(input),
         mode: "sync",
+        session_id: this.#sessionId,
       })
     );
     return RunCreateResponse.parse(data);
@@ -146,6 +159,7 @@ export class Client {
         agent_name: agentName,
         input: inputToMessages(input),
         mode: "async",
+        session_id: this.#sessionId,
       })
     );
     return RunCreateResponse.parse(data);
@@ -161,6 +175,7 @@ export class Client {
         agent_name: agentName,
         input: inputToMessages(input),
         mode: "stream",
+        session_id: this.#sessionId,
       })
     );
     for await (const event of this.#processEventSource(eventSource)) {

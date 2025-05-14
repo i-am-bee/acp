@@ -174,6 +174,16 @@ describe("client", () => {
       expect(events.at(0)?.type).toBe('run.in-progress');
       expect(events.at(-1)?.type).toBe('run.completed');
     });
+
+    test('sessions work', async () => {
+      const client = createClient();
+      const session = client.withSession();
+
+      let run = await session.runSync('echo', input);
+      expect(run.output).toHaveLength(1);
+      run = await session.runSync('echo', input);
+      expect(run.output).toHaveLength(3);
+    })
   });
 });
 
