@@ -48,6 +48,10 @@ export class Client {
     this.#sessionId = init?.sessionId;
   }
 
+  get sessionId() {
+    return this.#sessionId;
+  }
+
   withSession(sessionId: SessionId = uuuid()) {
     return new Client({
       fetch: this.#fetch,
