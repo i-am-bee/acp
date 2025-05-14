@@ -105,7 +105,9 @@ class Server:
             raise RuntimeError("The server is already running")
 
         if headers is None:
-            headers = [("server", "ACP Agent")]
+            headers = [("server", "acp")]
+        elif not any(k.lower() == "server" for k, _ in headers):
+            headers.append(("server", "acp"))
 
         import uvicorn
 
