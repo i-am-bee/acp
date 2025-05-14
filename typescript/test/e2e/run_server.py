@@ -9,6 +9,7 @@ from acp_sdk.server import Context, Server
 
 PORT = 8000
 
+
 def create_server() -> Server:
     server = Server()
 
@@ -92,7 +93,7 @@ def main():
 
     try:
         print(f"Server is running on port {PORT} — press Ctrl+C to stop.")
-        server.run(run_ttl=timedelta(minutes=1), port=PORT)
+        server.run(port=PORT)
     except KeyboardInterrupt:
         print("\nShutting down server...")
 

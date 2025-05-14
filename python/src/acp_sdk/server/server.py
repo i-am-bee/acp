@@ -2,7 +2,6 @@ import asyncio
 import os
 from collections.abc import AsyncGenerator, Awaitable
 from contextlib import asynccontextmanager
-from datetime import timedelta
 from typing import Any, Callable
 
 import requests
@@ -16,6 +15,7 @@ from acp_sdk.server.agent import agent as agent_decorator
 from acp_sdk.server.app import create_app
 from acp_sdk.server.logging import configure_logger as configure_logger_func
 from acp_sdk.server.logging import logger
+from acp_sdk.server.store import Store
 from acp_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from acp_sdk.server.utils import async_request_with_retry
 
@@ -54,8 +54,7 @@ class Server:
         configure_logger: bool = True,
         configure_telemetry: bool = False,
         self_registration: bool = True,
-        run_limit: int = 1000,
-        run_ttl: timedelta = timedelta(hours=1),
+        store: Store | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -118,7 +117,7 @@ class Server:
 
         import uvicorn
 
-        app = create_app(*self.agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl)
+        app = create_app(*self.agents, lifespan=self.lifespan, store=store)
 
         if configure_logger:
             configure_logger_func()
@@ -184,8 +183,7 @@ class Server:
         configure_logger: bool = True,
         configure_telemetry: bool = False,
         self_registration: bool = True,
-        run_limit: int = 1000,
-        run_ttl: timedelta = timedelta(hours=1),
+        store: Store | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -243,8 +241,7 @@ class Server:
                 configure_logger=configure_logger,
                 configure_telemetry=configure_telemetry,
                 self_registration=self_registration,
-                run_limit=run_limit,
-                run_ttl=run_ttl,
+                store=store,
                 host=host,
                 port=port,
                 uds=uds,

@@ -60,6 +60,29 @@ jobs:
     timeout-minutes: 5
     name: Python E2E Tests
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -70,6 +93,12 @@ jobs:
         run: uv sync --all-extras
       - name: Run E2E Tests
         run: uv run pytest tests/e2e
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_PASSWORD: postgres
 
   typescript-unit:
     timeout-minutes: 1

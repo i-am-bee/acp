@@ -1,21 +1,75 @@
 import asyncio
 import base64
+import os
 import time
 from collections.abc import AsyncGenerator, AsyncIterator, Generator
 from datetime import timedelta
 from threading import Thread
 
 import pytest
+import pytest_asyncio
+import pytest_postgresql.factories
+import pytest_redis.factories
 from acp_sdk.models import Artifact, AwaitResume, Error, ErrorCode, Message, MessageAwaitRequest, MessagePart
 from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Context, Server
+from acp_sdk.server.store import MemoryStore, PostgreSQLStore, RedisStore, Store
+from psycopg import AsyncConnection
+from pytest_postgresql.executor import PostgreSQLExecutor
+from pytest_postgresql.executor_noop import NoopExecutor
+from pytest_redis.executor import NoopRedis, RedisExecutor
+from redis.asyncio import Redis
 
 from e2e.config import Config
 
+REDIS_HOST = os.getenv("REDIS_HOST", None)
+REDIS_PORT = os.getenv("REDIS_PORT", None)
 
-@pytest.fixture(scope="module", params=[timedelta(minutes=1)])
-def server(request: pytest.FixtureRequest) -> Generator[None]:
-    ttl = request.param
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", None)
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", None)
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", None)
+
+redis_db_proc = (
+    pytest_redis.factories.redis_noproc(host=REDIS_HOST, port=int(REDIS_PORT))
+    if REDIS_HOST and REDIS_PORT
+    else pytest_redis.factories.redis_proc()
+)
+
+postgres_db_proc = (
+    pytest_postgresql.factories.postgresql_noproc(
+        host=POSTGRES_HOST, port=int(POSTGRES_PORT), password=POSTGRES_PASSWORD
+    )
+    if POSTGRES_HOST and POSTGRES_PORT and POSTGRES_PASSWORD
+    else pytest_postgresql.factories.postgresql_proc()
+)
+
+
+@pytest_asyncio.fixture(scope="module", params=["memory", "redis", "postgres"])
+async def store(
+    request: pytest.FixtureRequest,
+    redis_db_proc: RedisExecutor | NoopRedis,
+    postgres_db_proc: PostgreSQLExecutor | NoopExecutor,
+) -> AsyncGenerator[Store]:
+    match request.param:
+        case "memory":
+            yield MemoryStore(limit=1000, ttl=timedelta(minutes=1))
+        case "redis":
+            redis = Redis(
+                unix_socket_path=redis_db_proc.unixsocket,
+            )
+            yield RedisStore(redis=redis)
+        case "postgres":
+            aconn = await AsyncConnection.connect(
+                f"user={postgres_db_proc.user} password={postgres_db_proc.password} host={postgres_db_proc.host} port={postgres_db_proc.port}"  # noqa: E501
+            )
+            async with aconn:
+                yield PostgreSQLStore(aconn=aconn)
+        case _:
+            raise AssertionError()
+
+
+@pytest.fixture(scope="module")
+def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
     server = Server()
 
     @server.agent()
@@ -89,7 +143,7 @@ def server(request: pytest.FixtureRequest) -> Generator[None]:
             content_encoding="base64",
         )
 
-    thread = Thread(target=server.run, kwargs={"run_ttl": ttl, "port": Config.PORT}, daemon=True)
+    thread = Thread(target=server.run, kwargs={"store": store, "port": Config.PORT}, daemon=True)
     thread.start()
 
     time.sleep(1)
