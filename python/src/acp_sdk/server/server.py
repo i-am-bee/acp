@@ -22,8 +22,8 @@ from acp_sdk.server.utils import async_request_with_retry
 
 class Server:
     def __init__(self) -> None:
-        self._agents: list[Agent] = []
-        self._server: uvicorn.Server | None = None
+        self.agents: list[Agent] = []
+        self.server: uvicorn.Server | None = None
 
     def agent(
         self,
@@ -42,7 +42,7 @@ class Server:
         return decorator
 
     def register(self, *agents: Agent) -> None:
-        self._agents.extend(agents)
+        self.agents.extend(agents)
 
     @asynccontextmanager
     async def lifespan(self, app: FastAPI) -> AsyncGenerator[None]:
@@ -108,7 +108,7 @@ class Server:
         factory: bool = False,
         h11_max_incomplete_event_size: int | None = None,
     ) -> None:
-        if self._server:
+        if self.server:
             raise RuntimeError("The server is already running")
 
         import uvicorn
@@ -119,7 +119,7 @@ class Server:
             configure_telemetry_func()
 
         config = uvicorn.Config(
-            create_app(*self._agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl),
+            create_app(*self.agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl),
             host,
             port,
             uds,
@@ -168,7 +168,7 @@ class Server:
             factory,
             h11_max_incomplete_event_size,
         )
-        self._server = uvicorn.Server(config)
+        self.server = uvicorn.Server(config)
         await self._serve(self_registration=self_registration)
 
     def run(
@@ -290,17 +290,17 @@ class Server:
 
     async def _serve(self, self_registration: bool = True) -> None:
         registration_task = asyncio.create_task(self._register_agent()) if self_registration else None
-        await self._server.serve()
+        await self.server.serve()
         if registration_task:
             registration_task.cancel()
 
     @property
     def should_exit(self) -> bool:
-        return self._server.should_exit if self._server else False
+        return self.server.should_exit if self.server else False
 
     @should_exit.setter
     def should_exit(self, value: bool) -> None:
-        self._server.should_exit = value
+        self.server.should_exit = value
 
     async def _register_agent(self) -> None:
         """If not in PRODUCTION mode, register agent to the beeai platform and provide missing env variables"""
@@ -310,7 +310,7 @@ class Server:
 
         url = os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
         request_data = {
-            "location": f"http://{self._server.config.host}:{self._server.config.port}",
+            "location": f"http://{self.server.config.host}:{self.server.config.port}",
         }
         try:
             await async_request_with_retry(
@@ -321,7 +321,7 @@ class Server:
             # check missing env keyes
             envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/variables"))
             envs = envs_request.get("env")
-            for agent in self._agents:
+            for agent in self.agents:
                 # register all available envs
                 missing_keyes = []
                 for env in agent.metadata.model_dump().get("env", []):
