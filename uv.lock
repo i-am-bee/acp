@@ -21,6 +21,7 @@ members = [
     "crewai-song-writer",
     "lang-graph-greeting",
     "prompt-chaining",
+    "prompt-paralelization",
     "routing",
 ]
 
@@ -3773,6 +3774,23 @@ wheels = [
 name = "prompt-chaining"
 version = "0.1.0"
 source = { virtual = "examples/python/beeai-prompt-chaining" }
+dependencies = [
+    { name = "acp-sdk" },
+    { name = "beeai-framework" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acp-sdk", editable = "python" },
+    { name = "beeai-framework", specifier = ">=0.1.17" },
+    { name = "pydantic-settings", specifier = ">=2.9.0" },
+]
+
+[[package]]
+name = "prompt-paralelization"
+version = "0.1.0"
+source = { virtual = "examples/python/beeai-paralelization" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "beeai-framework" },

@@ -1,0 +1,47 @@
+---
+title: "Cursor"
+description: "Integrate ACP documentation into Cursor IDE for enhanced developer assistance"
+---
+
+Integrate the Agent Communication Protocol (ACP) documentation directly into [Cursor](https://cursor.sh/), an AI-powered IDE. Cursor’s assistant will reference ACP docs, providing helpful code suggestions as you work.
+
+<Tip>
+  This method also works with other IDEs like VSCode, Zed, and Windsurf, etc.
+</Tip>
+
+## Step 1: Install Cursor
+
+- Download and install [Cursor](https://cursor.sh/).
+- Open the application.
+
+## Step 2: Add ACP Docs to Cursor
+
+1. Open Cursor settings.
+2. Navigate to **Features → Docs**.
+3. Click **"+ Add new doc"**.
+4. Enter the ACP docs URL:  
+   `https://agentcommunicationprotocol.dev/llms-full.txt`
+5. Enter a recognizable name (e.g., "ACP") and click **"Confirm"**.
+
+<Info>Cursor will index the ACP docs automatically.</Info>
+
+## Step 3: Use ACP Docs in Cursor
+
+With ACP docs integrated, use Cursor’s assistant to get quick references. Start typing `@` and select your ACP documentation (based on the name you provided).
+
+For example:
+
+`@ACP Create a simple agent that reverses user input`
+
+Cursor’s assistant will then provide relevant answers and code examples.
+
+<Warning>
+Always double-check the generated code, as it might contain inaccuracies. Good
+practices include:
+
+- Breaking tasks into smaller parts.
+- Writing unit tests.
+- Reviewing and understanding generated code carefully.
+- Referring back to these docs to thoroughly understand the ACP protocol.
+
+</Warning>
