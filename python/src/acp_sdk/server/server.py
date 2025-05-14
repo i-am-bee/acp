@@ -50,6 +50,7 @@ class Server:
 
     async def serve(
         self,
+        *,
         configure_logger: bool = True,
         configure_telemetry: bool = False,
         self_registration: bool = True,
@@ -172,6 +173,7 @@ class Server:
 
     def run(
         self,
+        *,
         configure_logger: bool = True,
         configure_telemetry: bool = False,
         self_registration: bool = True,
