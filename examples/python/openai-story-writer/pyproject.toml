@@ -1,0 +1,13 @@
+[project]
+name = "openai-story-writer"
+version = "0.1.0"
+description = "Agent which writes stories based on user input, available via ACP"
+readme = "README.md"
+requires-python = ">=3.11, <4.0"
+dependencies = [
+    "acp-sdk",
+    "openai-agents[litellm]>=0.0.14",
+]
+
+[tool.uv.sources]
+acp-sdk = { workspace = true }
