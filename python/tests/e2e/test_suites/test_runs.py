@@ -43,6 +43,7 @@ async def test_run_stream(server: Server, client: Client) -> None:
     event_stream = [event async for event in client.run_stream(agent="echo", input=input)]
     assert isinstance(event_stream[0], RunCreatedEvent)
     assert isinstance(event_stream[-1], RunCompletedEvent)
+    assert event_stream[-1].run.output == input
 
 
 @pytest.mark.asyncio
@@ -260,4 +261,4 @@ async def test_session_ttl(server: Server, client: Client) -> None:
         assert len(run.output) == 3
         await asyncio.sleep(3)
         run = await session.run_sync(agent="echo", input=input)
-        assert len(run.output) == 7  # First run shall be forgotten
+        assert len(run.output) == 5  # First run shall be forgotten

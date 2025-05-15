@@ -6,17 +6,35 @@ import httpx
 import requests
 from pydantic import BaseModel
 
-from acp_sdk.server.bundle import RunBundle
+from acp_sdk.models import RunStatus
+from acp_sdk.server.executor import RunData
 from acp_sdk.server.logging import logger
+from acp_sdk.server.store.store import Store
 
 
 def encode_sse(model: BaseModel) -> str:
     return f"data: {model.model_dump_json()}\n\n"
 
 
-async def stream_sse(bundle: RunBundle) -> AsyncGenerator[str]:
-    async for event in bundle.stream():
-        yield encode_sse(event)
+async def watch_util_stop(run_data: RunData, store: Store[RunData]) -> AsyncGenerator[RunData]:
+    async for data in run_data.watch(store):
+        yield data
+        if data.run.status == RunStatus.AWAITING:
+            break
+
+
+async def wait_util_stop(run_data: RunData, store: Store[RunData]) -> None:
+    async for _ in watch_util_stop(run_data, store):
+        pass
+
+
+async def stream_sse(run_data: RunData, store: Store[RunData], idx: int) -> AsyncGenerator[str]:
+    next_event_idx = idx
+    async for data in watch_util_stop(run_data, store):
+        new_events = data.events[next_event_idx:]
+        next_event_idx = len(data.events)
+        for event in new_events:
+            yield encode_sse(event)
 
 
 async def async_request_with_retry(

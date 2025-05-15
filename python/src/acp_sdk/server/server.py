@@ -124,7 +124,7 @@ class Server:
             configure_telemetry_func()
 
         config = uvicorn.Config(
-            create_app(*self.agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl),
+            create_app(*self.agents, lifespan=self.lifespan),
             host,
             port,
             uds,
