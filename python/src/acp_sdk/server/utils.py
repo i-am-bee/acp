@@ -23,6 +23,11 @@ async def watch_util_stop(run_data: RunData, store: Store[RunData]) -> AsyncGene
             break
 
 
+async def wait_util_stop(run_data: RunData, store: Store[RunData]) -> None:
+    async for _ in watch_util_stop(run_data, store):
+        pass
+
+
 async def stream_sse(run_data: RunData, store: Store[RunData], idx: int) -> AsyncGenerator[str]:
     next_event_idx = idx
     async for data in watch_util_stop(run_data, store):

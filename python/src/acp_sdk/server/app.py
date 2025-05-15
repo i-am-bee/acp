@@ -43,7 +43,7 @@ from acp_sdk.server.errors import (
 from acp_sdk.server.executor import Executor, RunData
 from acp_sdk.server.session import Session
 from acp_sdk.server.store import MemoryStore
-from acp_sdk.server.utils import stream_sse, watch_util_stop
+from acp_sdk.server.utils import stream_sse, wait_util_stop
 
 
 class Headers(str, Enum):
@@ -86,11 +86,11 @@ def create_app(
     app.exception_handler(RequestValidationError)(validation_exception_handler)
     app.exception_handler(Exception)(catch_all_exception_handler)
 
-    async def find_run_bundle(run_id: RunId) -> RunData:
-        bundle = await runs.get(run_id)
-        if not bundle:
+    async def find_run_data(run_id: RunId) -> RunData:
+        run_data = await runs.get(run_id)
+        if not run_data:
             raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
-        return bundle
+        return run_data
 
     def find_agent(agent_name: AgentName) -> Agent:
         agent = agents.get(agent_name, None)
@@ -153,8 +153,7 @@ def create_app(
                     media_type="text/event-stream",
                 )
             case RunMode.SYNC:
-                async for _ in watch_util_stop(run_data, runs):
-                    pass
+                await wait_util_stop(run_data, runs)
                 return JSONResponse(
                     headers=headers,
                     content=jsonable_encoder(run_data.run),
@@ -170,17 +169,17 @@ def create_app(
 
     @app.get("/runs/{run_id}")
     async def read_run(run_id: RunId) -> RunReadResponse:
-        bundle = await find_run_bundle(run_id)
+        bundle = await find_run_data(run_id)
         return bundle.run
 
     @app.get("/runs/{run_id}/events")
     async def list_run_events(run_id: RunId) -> RunEventsListResponse:
-        bundle = await find_run_bundle(run_id)
+        bundle = await find_run_data(run_id)
         return RunEventsListResponse(events=bundle.events)
 
     @app.post("/runs/{run_id}")
     async def resume_run(run_id: RunId, request: RunResumeRequest) -> RunResumeResponse:
-        run_data = await find_run_bundle(run_id)
+        run_data = await find_run_data(run_id)
 
         if run_data.run.await_request is None:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Run {run_id} has no await request")
@@ -202,8 +201,7 @@ def create_app(
                     media_type="text/event-stream",
                 )
             case RunMode.SYNC:
-                async for _ in watch_util_stop(run_data, runs):
-                    pass
+                await wait_util_stop(run_data, runs)
                 return run_data.run
             case RunMode.ASYNC:
                 return JSONResponse(
@@ -215,14 +213,14 @@ def create_app(
 
     @app.post("/runs/{run_id}/cancel")
     async def cancel_run(run_id: RunId) -> RunCancelResponse:
-        bundle = await find_run_bundle(run_id)
-        if bundle.run.status.is_terminal:
+        run_data = await find_run_data(run_id)
+        if run_data.run.status.is_terminal:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Run in terminal status {bundle.run.status} can't be cancelled",
+                detail=f"Run in terminal status {run_data.run.status} can't be cancelled",
             )
-        bundle.run.status = RunStatus.CANCELLING
-        await runs.set(bundle.run.run_id, bundle)
-        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(bundle.run))
+        run_data.run.status = RunStatus.CANCELLING
+        await runs.set(run_data.run.run_id, run_data)
+        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(run_data.run))
 
     return app

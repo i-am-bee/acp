@@ -43,6 +43,7 @@ async def test_run_stream(server: Server, client: Client) -> None:
     event_stream = [event async for event in client.run_stream(agent="echo", input=input)]
     assert isinstance(event_stream[0], RunCreatedEvent)
     assert isinstance(event_stream[-1], RunCompletedEvent)
+    assert event_stream[-1].run.output == input
 
 
 @pytest.mark.asyncio

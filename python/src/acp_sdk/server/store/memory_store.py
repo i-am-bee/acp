@@ -23,6 +23,6 @@ class MemoryStore(Store[T], Generic[T]):
 
     async def watch(self, key: str) -> AsyncIterator[T]:
         while True:
+            yield await self.get(key)
             await self.event.wait()
             self.event.clear()
-            yield await self.get(key)
