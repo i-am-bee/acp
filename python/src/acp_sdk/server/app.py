@@ -78,6 +78,7 @@ def create_app(
     FastAPIInstrumentor.instrument_app(app)
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
+
     runs: MemoryStore[RunData] = MemoryStore(limit=run_limit, ttl=run_ttl)
     sessions: MemoryStore[Session] = MemoryStore(limit=run_limit, ttl=run_ttl)
 

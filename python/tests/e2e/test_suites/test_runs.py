@@ -261,4 +261,4 @@ async def test_session_ttl(server: Server, client: Client) -> None:
         assert len(run.output) == 3
         await asyncio.sleep(3)
         run = await session.run_sync(agent="echo", input=input)
-        assert len(run.output) == 7  # First run shall be forgotten
+        assert len(run.output) == 5  # First run shall be forgotten

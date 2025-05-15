@@ -16,9 +16,8 @@ class Session:
     async def history(self, store: Store[RunData]) -> list[Message]:
         history = []
         for run_id in self.runs:
-            bundle = await store.get(run_id)
-            assert bundle is not None
-            if bundle.run.status == RunStatus.COMPLETED:
-                history.extend(bundle.input)
-                history.extend(bundle.run.output)
+            run_data = await store.get(run_id)
+            if run_data is not None and run_data.run.status == RunStatus.COMPLETED:
+                history.extend(run_data.input)
+                history.extend(run_data.run.output)
         return history
