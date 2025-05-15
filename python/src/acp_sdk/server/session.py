@@ -1,14 +1,15 @@
 import uuid
 
+from pydantic import BaseModel, Field
+
 from acp_sdk.models import Message, RunId, RunStatus, SessionId
 from acp_sdk.server.executor import RunData
 from acp_sdk.server.store import Store
 
 
-class Session:
-    def __init__(self, id: SessionId | None = None) -> None:
-        self.id: SessionId = id or uuid.uuid4()
-        self.runs: list[RunId] = []
+class Session(BaseModel):
+    id: SessionId = Field(default_factory=uuid.uuid4)
+    runs: list[RunId] = []
 
     def append(self, run_id: RunId) -> None:
         self.runs.append(run_id)

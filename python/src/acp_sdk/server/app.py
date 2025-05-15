@@ -42,7 +42,7 @@ from acp_sdk.server.errors import (
 )
 from acp_sdk.server.executor import Executor, RunData
 from acp_sdk.server.session import Session
-from acp_sdk.server.store import MemoryStore
+from acp_sdk.server.store import MemoryStore, Store
 from acp_sdk.server.utils import stream_sse, wait_util_stop
 
 
@@ -52,8 +52,8 @@ class Headers(str, Enum):
 
 def create_app(
     *agents: Agent,
-    run_limit: int = 1000,
-    run_ttl: timedelta = timedelta(hours=1),
+    run_store: Store[RunData] | None = None,
+    session_store: Store[Session] | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
@@ -79,8 +79,8 @@ def create_app(
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
 
-    runs: MemoryStore[RunData] = MemoryStore(limit=run_limit, ttl=run_ttl)
-    sessions: MemoryStore[Session] = MemoryStore(limit=run_limit, ttl=run_ttl)
+    runs: MemoryStore[RunData] = run_store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
+    sessions: MemoryStore[Session] = session_store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)

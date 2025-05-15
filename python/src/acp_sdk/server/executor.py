@@ -33,7 +33,7 @@ from acp_sdk.models import (
 )
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.logging import logger
-from acp_sdk.server.store.store import Store
+from acp_sdk.server.store import Store
 
 
 class RunData(BaseModel):
