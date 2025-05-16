@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, HttpUrl, RootModel
 
 from acp_sdk.models.errors import ACPError, Error
 
@@ -104,10 +104,10 @@ class Message(BaseModel):
             raise TypeError(f"Cannot concatenate Message with {type(other).__name__}")
         return Message(
             parts=self.parts + other.parts,
-            created_at=min(self.created_at, other.created_at) if self.created_at and other.created_at else None,
-            completed_at=max(self.completed_at, other.completed_at)
-            if self.completed_at and other.completed_at
-            else None,
+            created_at=(min(self.created_at, other.created_at) if self.created_at and other.created_at else None),
+            completed_at=(
+                max(self.completed_at, other.completed_at) if self.completed_at and other.completed_at else None
+            ),
         )
 
     def __str__(self) -> str:
@@ -284,7 +284,85 @@ Event = Union[
 ]
 
 
+class OAuthFlowImplicit(BaseModel):
+    authorization_url: HttpUrl
+    refresh_url: Optional[HttpUrl] = None
+    scopes: dict[str, str]
+
+
+class OAuthFlowPassword(BaseModel):
+    token_url: HttpUrl
+    refresh_url: Optional[HttpUrl] = None
+    scopes: dict[str, str]
+
+
+class OAuthFlowClientCredentials(BaseModel):
+    token_url: HttpUrl
+    refresh_url: Optional[HttpUrl] = None
+    scopes: dict[str, str]
+
+
+class OAuthFlowAuthorizationCode(BaseModel):
+    authorization_url: HttpUrl
+    token_url: HttpUrl
+    refresh_url: Optional[HttpUrl] = None
+    scopes: dict[str, str]
+
+
+class OAuthFlows(BaseModel):
+    implicit: Optional[OAuthFlowImplicit] = None
+    password: Optional[OAuthFlowPassword] = None
+    client_credentials: Optional[OAuthFlowClientCredentials] = None
+    authorization_code: Optional[OAuthFlowAuthorizationCode] = None
+
+
+class SecuritySchemeBase(BaseModel):
+    type: str
+    description: Optional[str] = None
+
+
+class APIKeySecurityScheme(SecuritySchemeBase):
+    type: Literal["apiKey"]
+    name: str
+    in_: Literal["query", "header", "cookie"] = Field(alias="in")
+
+
+class HTTPSecurityScheme(SecuritySchemeBase):
+    type: Literal["http"]
+    scheme: str
+    bearer_format: Optional[str] = None
+
+
+class OAuth2SecurityScheme(SecuritySchemeBase):
+    type: Literal["oauth2"]
+    flows: OAuthFlows
+
+
+class OpenIdConnectSecurityScheme(SecuritySchemeBase):
+    type: Literal["openIdConnect"]
+    open_id_connect_url: HttpUrl
+
+
+class MutualTLSSecurityScheme(SecuritySchemeBase):
+    type: Literal["mutualTLS"]
+
+
+SecurityScheme = Union[
+    APIKeySecurityScheme,
+    HTTPSecurityScheme,
+    OAuth2SecurityScheme,
+    OpenIdConnectSecurityScheme,
+    MutualTLSSecurityScheme,
+]
+
+
+class SecurityRequirement(RootModel[dict[str, list[str]]]):
+    pass
+
+
 class Agent(BaseModel):
     name: str
     description: str | None = None
     metadata: Metadata = Metadata()
+    security_schemes: Optional[dict[str, SecurityScheme]] = None
+    security: Optional[list[SecurityRequirement]] = None
