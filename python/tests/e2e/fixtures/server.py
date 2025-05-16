@@ -9,13 +9,22 @@ import pytest
 from acp_sdk.models import Artifact, AwaitResume, Error, ErrorCode, Message, MessageAwaitRequest, MessagePart
 from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Context, Server
+from acp_sdk.server.store import RedisStore
+from pytest_redis import factories
+from pytest_redis.executor import RedisExecutor
+from redis.asyncio import Redis
 
 from e2e.config import Config
 
+redis_db_proc = factories.redis_proc(port=None)
+
 
 @pytest.fixture(scope="module", params=[timedelta(minutes=1)])
-def server(request: pytest.FixtureRequest) -> Generator[None]:
-    ttl = request.param
+def server(request: pytest.FixtureRequest, redis_db_proc: RedisExecutor) -> Generator[None]:
+    redis = Redis(
+        unix_socket_path=redis_db_proc.unixsocket,
+    )
+
     server = Server()
 
     @server.agent()
@@ -89,7 +98,7 @@ def server(request: pytest.FixtureRequest) -> Generator[None]:
             content_encoding="base64",
         )
 
-    thread = Thread(target=server.run, kwargs={"run_ttl": ttl, "port": Config.PORT}, daemon=True)
+    thread = Thread(target=server.run, kwargs={"store": RedisStore(redis=redis), "port": Config.PORT}, daemon=True)
     thread.start()
 
     time.sleep(1)

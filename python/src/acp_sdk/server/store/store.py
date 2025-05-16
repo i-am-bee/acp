@@ -3,7 +3,12 @@ from collections.abc import AsyncIterator
 from typing import Generic, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+
+class StoreModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
 
 T = TypeVar("T", bound=BaseModel)
 U = TypeVar("U", bound=BaseModel)
@@ -22,7 +27,7 @@ class Store(Generic[T], ABC):
     def watch(self, key: UUID) -> AsyncIterator[T]:
         pass
 
-    def as_store(self, model: type[U]) -> "Store"[U]:
+    def as_store(self, model: type[U]) -> "Store[U]":
         return StoreView(model=model, store=self)
 
 

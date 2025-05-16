@@ -4,18 +4,17 @@ from uuid import UUID
 
 from redis.asyncio import Redis
 
-from acp_sdk.server.store.store import Store, T
+from acp_sdk.server.store.store import Store, StoreModel, T
 
 
 class RedisStore(Store[T], Generic[T]):
-    def __init__(self, *, model: type[T], redis: Redis) -> None:
+    def __init__(self, *, redis: Redis) -> None:
         super().__init__()
-        self.model = model
         self.redis = redis
 
     async def get(self, key: UUID) -> T | None:
         data = await self.redis.get(str(key))
-        return self.model.model_validate_json(data)
+        return StoreModel.model_validate_json(data)
 
     async def set(self, key: UUID, value: T) -> None:
         await self.redis.set(name=str(key), value=value.model_dump_json())
