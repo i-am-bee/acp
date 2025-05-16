@@ -23,7 +23,7 @@ class StoreTable(Base):
 
 
 class SQLStore(Store[T], Generic[T]):
-    def __init__(self, database_url: str, poll_interval: float = 1.0):
+    def __init__(self, database_url: str, poll_interval: float = 1.0) -> None:
         self.engine = create_async_engine(database_url, echo=False)
         self.poll_interval = poll_interval
         self.watchers: defaultdict[UUID, set[asyncio.Queue]] = defaultdict(set)
@@ -33,11 +33,11 @@ class SQLStore(Store[T], Generic[T]):
         self._running = True
         self._poll_task = asyncio.create_task(self._poll_changes())
 
-    async def _init_db(self):
+    async def _init_db(self) -> None:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-    async def _poll_changes(self):
+    async def _poll_changes(self) -> None:
         await self._init_db_task
         while self._running:
             watched_keys = list(self.watchers.keys())
@@ -110,6 +110,6 @@ class SQLStore(Store[T], Generic[T]):
                 del self.watchers[key]
                 self.versions.pop(key, None)
 
-    async def close(self):
+    async def close(self) -> None:
         self._running = False
         await self.engine.dispose()

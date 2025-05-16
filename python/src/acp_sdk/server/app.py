@@ -52,8 +52,7 @@ class Headers(str, Enum):
 
 def create_app(
     *agents: Agent,
-    run_store: Store[RunData] | None = None,
-    session_store: Store[Session] | None = None,
+    store: Store | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
@@ -79,8 +78,9 @@ def create_app(
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
 
-    runs: MemoryStore[RunData] = run_store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
-    sessions: MemoryStore[Session] = session_store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
+    store = store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
+    run_store = store.as_store(model=RunData)
+    session_store = store.as_store(model=Session)
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)
@@ -88,7 +88,7 @@ def create_app(
     app.exception_handler(Exception)(catch_all_exception_handler)
 
     async def find_run_data(run_id: RunId) -> RunData:
-        run_data = await runs.get(run_id)
+        run_data = await run_store.get(run_id)
         if not run_data:
             raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
         return run_data
@@ -122,7 +122,7 @@ def create_app(
         agent = find_agent(request.agent_name)
 
         session = (
-            (await sessions.get(request.session_id)) or Session(id=request.session_id)
+            (await session_store.get(request.session_id)) or Session(id=request.session_id)
             if request.session_id
             else Session()
         )
@@ -131,16 +131,16 @@ def create_app(
             run=Run(agent_name=agent.name, session_id=session.id),
             input=request.input,
         )
-        await runs.set(run_data.run.run_id, run_data)
+        await run_store.set(run_data.run.run_id, run_data)
 
         session.append(run_data.run.run_id)
-        await sessions.set(session.id, session)
+        await session_store.set(session.id, session)
 
         Executor(
             agent=agent,
             run_data=run_data,
-            history=await session.history(runs),
-            store=runs,
+            history=await session.history(run_store),
+            store=run_store,
             executor=executor,
         )
 
@@ -149,12 +149,12 @@ def create_app(
         match request.mode:
             case RunMode.STREAM:
                 return StreamingResponse(
-                    stream_sse(run_data, runs, 0),
+                    stream_sse(run_data, run_store, 0),
                     headers=headers,
                     media_type="text/event-stream",
                 )
             case RunMode.SYNC:
-                await wait_util_stop(run_data, runs)
+                await wait_util_stop(run_data, run_store)
                 return JSONResponse(
                     headers=headers,
                     content=jsonable_encoder(run_data.run),
@@ -193,16 +193,16 @@ def create_app(
 
         run_data.await_resume = request.await_resume
         run_data.run.status = RunStatus.IN_PROGRESS
-        await runs.set(run_data.run.run_id, run_data)
+        await run_store.set(run_data.run.run_id, run_data)
 
         match request.mode:
             case RunMode.STREAM:
                 return StreamingResponse(
-                    stream_sse(run_data, runs, len(run_data.events)),
+                    stream_sse(run_data, run_store, len(run_data.events)),
                     media_type="text/event-stream",
                 )
             case RunMode.SYNC:
-                await wait_util_stop(run_data, runs)
+                await wait_util_stop(run_data, run_store)
                 return run_data.run
             case RunMode.ASYNC:
                 return JSONResponse(
@@ -221,7 +221,7 @@ def create_app(
                 detail=f"Run in terminal status {run_data.run.status} can't be cancelled",
             )
         run_data.run.status = RunStatus.CANCELLING
-        await runs.set(run_data.run.run_id, run_data)
+        await run_store.set(run_data.run.run_id, run_data)
         return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(run_data.run))
 
     return app
