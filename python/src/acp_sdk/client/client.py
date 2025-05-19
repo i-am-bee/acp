@@ -8,7 +8,6 @@ from typing import Self
 
 import httpx
 from httpx_sse import EventSource, aconnect_sse
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from pydantic import TypeAdapter
 
 from acp_sdk.client.types import Input
