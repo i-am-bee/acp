@@ -118,13 +118,15 @@ class Server:
 
         import uvicorn
 
+        app = create_app(*self.agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl)
+
         if configure_logger:
             configure_logger_func()
         if configure_telemetry:
-            configure_telemetry_func()
+            configure_telemetry_func(app)
 
         config = uvicorn.Config(
-            create_app(*self.agents, lifespan=self.lifespan, run_limit=run_limit, run_ttl=run_ttl),
+            app,
             host,
             port,
             uds,
