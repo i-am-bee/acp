@@ -79,6 +79,11 @@
       }
     ]
   },
+  "api": {
+    "playground": {
+      "proxy": false
+    }
+  },
   "navbar": {
     "primary": {
       "type": "button",
