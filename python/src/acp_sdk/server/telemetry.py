@@ -4,6 +4,7 @@ from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
@@ -23,7 +24,9 @@ root_logger = logging.getLogger()
 
 
 def configure_telemetry() -> None:
-    """Utility that configures opentelemetry with OTLP exporter"""
+    """Utility that configures opentelemetry with OTLP exporter and FastAPI instrumentation"""
+
+    FastAPIInstrumentor.instrument()
 
     resource = Resource(
         attributes={
