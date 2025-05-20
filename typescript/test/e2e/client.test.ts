@@ -1,5 +1,8 @@
 import { setTimeout } from "node:timers/promises";
-import { describe, test, expect } from "vitest";
+import { spawn } from "node:child_process";
+import { join } from "node:path";
+import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import waitOn from "wait-on";
 import { Client } from "../../src/client/client";
 import {
   Agent,
@@ -9,7 +12,35 @@ import {
 } from "../../src/models/models";
 
 describe("client", () => {
-  const createClient = () => new Client({ baseUrl: `http://localhost:8000` });
+  const baseUrl = "http://localhost:8000";
+  let serverProcess: ReturnType<typeof spawn>;
+
+  beforeAll(async () => {
+    serverProcess = spawn(
+      "python",
+      [join(import.meta.dirname, "run_server.py")],
+      { shell: true }
+    );
+
+    serverProcess.on("exit", (code, signal) => {
+      console.log(`[ACP SERVER] exited code=${code}, signal=${signal}`);
+    });
+
+    try {
+      await waitOn({
+        resources: [`http-get://localhost:8000/ping`],
+        timeout: 3000,
+      });
+    } catch {
+      throw new Error("Failed to start ACP server for tests");
+    }
+  });
+
+  afterAll(() => {
+    serverProcess?.kill();
+  });
+
+  const createClient = () => new Client({ baseUrl });
 
   describe("discovery", () => {
     test("ping doesn't throw", async () => {
