@@ -8,8 +8,8 @@ from cachetools import TTLCache
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.applications import AppType, Lifespan
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from acp_sdk.models import (
     Agent as AgentModel,
@@ -74,9 +74,9 @@ def create_app(
         lifespan=internal_lifespan,
         dependencies=dependencies,
     )
-    
-    allowed_origins = ['http://localhost:3000','*']
-    
+
+    allowed_origins = ["http://localhost:3000", "*"]
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
@@ -84,7 +84,6 @@ def create_app(
         allow_headers=["*"],
         allow_credentials=True,
     )
-    
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
     runs: TTLCache[RunId, RunBundle] = TTLCache(maxsize=run_limit, ttl=run_ttl, timer=datetime.now)
