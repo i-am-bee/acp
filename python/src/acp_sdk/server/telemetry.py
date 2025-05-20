@@ -1,9 +1,11 @@
 import logging
 
+from fastapi import FastAPI
 from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
@@ -22,8 +24,10 @@ from acp_sdk.version import __version__
 root_logger = logging.getLogger()
 
 
-def configure_telemetry() -> None:
-    """Utility that configures opentelemetry with OTLP exporter"""
+def configure_telemetry(app: FastAPI) -> None:
+    """Utility that configures opentelemetry with OTLP exporter and FastAPI instrumentation"""
+
+    FastAPIInstrumentor.instrument_app(app)
 
     resource = Resource(
         attributes={

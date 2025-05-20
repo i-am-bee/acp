@@ -8,7 +8,6 @@ from typing import Self
 
 import httpx
 from httpx_sse import EventSource, aconnect_sse
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from pydantic import TypeAdapter
 
 from acp_sdk.client.types import Input
@@ -44,7 +43,6 @@ class Client:
         *,
         session_id: SessionId | None = None,
         client: httpx.AsyncClient | None = None,
-        instrument: bool = True,
         auth: httpx._types.AuthTypes | None = None,
         params: httpx._types.QueryParamTypes | None = None,
         headers: httpx._types.HeaderTypes | None = None,
@@ -85,8 +83,6 @@ class Client:
             transport=transport,
             trust_env=trust_env,
         )
-        if instrument:
-            HTTPXClientInstrumentor.instrument_client(self._client)
 
     @property
     def client(self) -> httpx.AsyncClient:
@@ -108,7 +104,7 @@ class Client:
     async def session(self, session_id: SessionId | None = None) -> AsyncGenerator[Self]:
         session_id = session_id or uuid.uuid4()
         with get_tracer().start_as_current_span("session", attributes={"acp.session": str(session_id)}):
-            yield Client(client=self._client, session_id=session_id, instrument=False)
+            yield Client(client=self._client, session_id=session_id)
 
     async def agents(self) -> AsyncIterator[Agent]:
         response = await self._client.get("/agents")

@@ -9,7 +9,6 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.applications import AppType, Lifespan
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from acp_sdk.models import (
     Agent as AgentModel,
@@ -74,8 +73,6 @@ def create_app(
         lifespan=internal_lifespan,
         dependencies=dependencies,
     )
-
-    FastAPIInstrumentor.instrument_app(app)
 
     agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
     runs: TTLCache[RunId, RunBundle] = TTLCache(maxsize=run_limit, ttl=run_ttl, timer=datetime.now)
