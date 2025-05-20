@@ -17,18 +17,10 @@ describe("client", () => {
 
   beforeAll(async () => {
     serverProcess = spawn(
-      "python",
-      [join(import.meta.dirname, "run_server.py")],
+      "uv",
+      ['run', join(import.meta.dirname, "run_server.py")],
       { shell: true }
     );
-
-    serverProcess.stdout!.on("data", (data) => {
-      process.stdout.write(`[ACP SERVER stdout] ${data}`);
-    });
-
-    serverProcess.stderr!.on("data", (data) => {
-      process.stderr.write(`[ACP SERVER stderr] ${data}`);
-    });
 
     serverProcess.on("exit", (code, signal) => {
       console.log(`[ACP SERVER] exited code=${code}, signal=${signal}`);
@@ -37,12 +29,12 @@ describe("client", () => {
     try {
       await waitOn({
         resources: [`http-get://localhost:8000/ping`],
-        timeout: 3000,
+        timeout: 10000,
       });
     } catch {
       throw new Error("Failed to start ACP server for tests");
     }
-  });
+  }, 11000);
 
   afterAll(() => {
     serverProcess?.kill();
