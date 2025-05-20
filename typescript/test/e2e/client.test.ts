@@ -22,6 +22,14 @@ describe("client", () => {
       { shell: true }
     );
 
+    serverProcess.stdout!.on("data", (data) => {
+      process.stdout.write(`[ACP SERVER stdout] ${data}`);
+    });
+
+    serverProcess.stderr!.on("data", (data) => {
+      process.stderr.write(`[ACP SERVER stderr] ${data}`);
+    });
+
     serverProcess.on("exit", (code, signal) => {
       console.log(`[ACP SERVER] exited code=${code}, signal=${signal}`);
     });
