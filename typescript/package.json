@@ -7,7 +7,9 @@
     "build": "tsc",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "vitest"
+    "test": "run-p test:*",
+    "test:unit": "vitest --pass-with-no-tests --exclude 'test/e2e/**'",
+    "test:e2e": "vitest e2e"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +17,7 @@
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39",
   "devDependencies": {
     "@types/node": "^22.15.19",
+    "npm-run-all2": "^8.0.2",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"
   },
