@@ -16,8 +16,8 @@ defaults:
     working-directory: python
 
 jobs:
-  lint:
-    name: Lint
+  python-lint:
+    name: Python Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,8 +29,8 @@ jobs:
         run: uv sync --all-extras
       - name: Code Lint
         run: uv run ruff check
-  format:
-    name: Format
+  python-format:
+    name: Python Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,9 +42,9 @@ jobs:
         run: uv sync --all-extras
       - name: Code Format
         run: uv run ruff format --check
-  unit:
+  python-unit:
     timeout-minutes: 1
-    name: Unit Tests
+    name: Python Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,9 +56,9 @@ jobs:
         run: uv sync --all-extras
       - name: Run E2E Tests
         run: uv run pytest tests/unit
-  e2e:
+  python-e2e:
     timeout-minutes: 5
-    name: E2E Tests
+    name: Python E2E Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,3 +70,30 @@ jobs:
         run: uv sync --all-extras
       - name: Run E2E Tests
         run: uv run pytest tests/e2e
+
+  typescript-unit:
+    timeout-minutes: 1
+    name: Typescript Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: "pnpm"
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Tests
+        shell: bash
+        run: pnpm run test:unit
