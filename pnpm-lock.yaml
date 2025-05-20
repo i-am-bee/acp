@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  .:
+  typescript:
     dependencies:
       eventsource-parser:
         specifier: ^3.0.1

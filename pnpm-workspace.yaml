@@ -1,2 +1,5 @@
+packages:
+  - typescript
+
 onlyBuiltDependencies:
   - esbuild
