@@ -177,12 +177,13 @@ describe("client", () => {
 
     test('sessions work', async () => {
       const client = createClient();
-      const session = client.withSession();
-
-      let run = await session.runSync('echo', input);
-      expect(run.output).toHaveLength(1);
-      run = await session.runSync('echo', input);
-      expect(run.output).toHaveLength(3);
+  
+      await client.withSession(async (session) => {
+        let run = await session.runSync('echo', input);
+        expect(run.output).toHaveLength(1);
+        run = await session.runSync('echo', input);
+        expect(run.output).toHaveLength(3);
+      })
     })
   });
 });

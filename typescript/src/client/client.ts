@@ -52,12 +52,16 @@ export class Client {
     return this.#sessionId;
   }
 
-  withSession(sessionId: SessionId = uuuid()) {
-    return new Client({
+  async withSession(
+    cb: (session: Client) => Promise<void>,
+    sessionId: SessionId = uuuid()
+  ) {
+    const client = new Client({
       fetch: this.#fetch,
       baseUrl: this.#baseUrl,
       sessionId,
     });
+    return await cb(client);
   }
 
   async #fetcher(url: string, options?: RequestInit) {
