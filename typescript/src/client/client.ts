@@ -24,6 +24,7 @@ import { ACPError, BaseError, FetchError, HTTPError } from "./errors.js";
 import { createEventSource, EventSource } from "./sse.js";
 import { Input } from "./types.js";
 import { inputToMessages } from "./utils.js";
+import { getTracer } from "../instrumentation.js";
 
 type FetchLike = typeof fetch;
 
@@ -52,16 +53,26 @@ export class Client {
     return this.#sessionId;
   }
 
-  async withSession(
-    cb: (session: Client) => Promise<void>,
+  async withSession<T>(
+    cb: (session: Client) => Promise<T>,
     sessionId: SessionId = uuuid()
   ) {
-    const client = new Client({
-      fetch: this.#fetch,
-      baseUrl: this.#baseUrl,
-      sessionId,
-    });
-    return await cb(client);
+    return await getTracer().startActiveSpan(
+      "session",
+      { attributes: { "acp.session": sessionId } },
+      async (span) => {
+        try {
+          const client = new Client({
+            fetch: this.#fetch,
+            baseUrl: this.#baseUrl,
+            sessionId,
+          });
+          return await cb(client);
+        } finally {
+          span.end();
+        }
+      }
+    );
   }
 
   async #fetcher(url: string, options?: RequestInit) {
