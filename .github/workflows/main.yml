@@ -97,3 +97,30 @@ jobs:
       - name: Run Tests
         shell: bash
         run: pnpm run test:unit
+
+  typescript-e2e:
+    timeout-minutes: 1
+    name: Typescript E2E Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "pnpm"
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Tests
+        shell: bash
+        run: pnpm run test:e2e
