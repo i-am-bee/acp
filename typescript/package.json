@@ -1,23 +1,69 @@
 {
   "name": "acp-sdk",
-  "version": "0.0.2",
-  "description": "",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Agent Communication Protocol SDK",
+  "author": "IBM Corp.",
+  "contributors": [],
+  "keywords": [
+    "ACP",
+    "Agent Communication Protocol"
+  ],
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./*": {
+      "import": {
+        "types": "./dist/*.d.ts",
+        "default": "./dist/*.js"
+      },
+      "require": {
+        "types": "./dist/*.d.cts",
+        "default": "./dist/*.cjs"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*.d.ts",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
-    "build": "tsc",
+    "clean": "rimraf dist",
+    "build": "pnpm clean && pnpm check-types && NODE_OPTIONS='--max-old-space-size=8192' tsup",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
     "test": "run-p test:*",
     "test:unit": "vitest --pass-with-no-tests --exclude 'test/e2e/**'",
     "test:e2e": "vitest e2e"
   },
-  "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
   "devDependencies": {
+    "@swc/core": "^1.11.24",
+    "@swc/types": "^0.1.21",
     "@types/node": "^22.15.19",
     "@types/wait-on": "^5.3.4",
     "npm-run-all2": "^8.0.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3",
     "wait-on": "^8.0.3"

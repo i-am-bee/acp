@@ -1,0 +1,15 @@
+{
+  "name": "basic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "type": "module",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "acp-sdk": "workspace:*",
+    "tsx": "^4.19.4"
+  }
+}

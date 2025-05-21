@@ -1,6 +1,6 @@
 # Agent Communication Protocol SDK for Python
 
-Agent Communication Protocol SDK for Python provides allows developers to serve and consume agents over the Agent Communication Protocol.
+Agent Communication Protocol SDK for Python helps developers to serve and consume agents over the Agent Communication Protocol.
 
 ## Prerequisites
 

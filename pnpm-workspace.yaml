@@ -1,5 +1,6 @@
 packages:
   - typescript
+  - examples/typescript/*
 
 onlyBuiltDependencies:
   - esbuild

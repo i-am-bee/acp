@@ -28,7 +28,7 @@ import { getTracer } from "../instrumentation.js";
 
 type FetchLike = typeof fetch;
 
-interface ClientInit {
+export interface ClientInit {
   baseUrl?: string;
   /**
    * Optional fetch implementation to use. Defaults to `globalThis.fetch`.
