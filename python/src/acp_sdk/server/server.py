@@ -311,7 +311,7 @@ class Server:
 
     async def _register_agent(self) -> None:
         """If not in PRODUCTION mode, register agent to the beeai platform and provide missing env variables"""
-        if os.getenv("PRODUCTION_MODE", False):
+        if os.getenv("PRODUCTION_MODE", "").lower() in ["true", "1"]:
             logger.debug("Agent is not automatically registered in the production mode.")
             return
 
