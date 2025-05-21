@@ -75,7 +75,7 @@ def create_app(
         dependencies=dependencies,
     )
 
-    allowed_origins = ["http://localhost:3000", "*"]
+    allowed_origins = ["*"]
 
     app.add_middleware(
         CORSMiddleware,
