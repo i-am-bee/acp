@@ -6,7 +6,7 @@ info:
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.1.0
+  version: 0.2.0
 externalDocs:
   description: Comprehensive documentation for ACP
   url: https://agentcommunicationprotocol.dev
@@ -285,8 +285,20 @@ components:
         completed_at:
           type: string
           format: date-time
+        role:
+          description: |
+            Specifies the sender of the message. Allowed values are:
+            - `"user"` for messages sent by an end-user.
+            - Any other string indicating the specific name of the agent sending the message.
+          oneOf:
+            - type: string
+              enum: [user]
+            - type: string
+              description: Name of the agent.
+              example: summarizer_agent
       required:
         - parts
+        - role
     AwaitRequest:
       type: object
     AwaitResume:
