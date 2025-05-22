@@ -76,6 +76,13 @@ paths:
         - agent
       description: Get Agent
       operationId: getAgent
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the agent to retrieve.
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
