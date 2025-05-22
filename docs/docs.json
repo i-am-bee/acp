@@ -9,6 +9,20 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Python SDK",
+          "href": "https://github.com/i-am-bee/acp/tree/main/python",
+          "icon": "python"
+        },
+        {
+          "anchor": "TypeScript SDK",
+          "href": "https://github.com/i-am-bee/acp/tree/main/typescript",
+          "icon": "square-js"
+        }
+      ]
+    },
     "groups": [
       {
         "group": "Introduction",
@@ -59,10 +73,6 @@
             ]
           }
         ]
-      },
-      {
-        "group": "Python SDK",
-        "pages": ["/sdks/python/api-reference"]
       },
       {
         "group": "Integrations",
