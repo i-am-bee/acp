@@ -68,8 +68,10 @@
               "/spec/agents-get",
               "/spec/run-create",
               "/spec/run-get",
+              "/spec/run-get-events",
               "/spec/run-resume",
-              "/spec/run-cancel"
+              "/spec/run-cancel",
+              "/spec/ping"
             ]
           }
         ]

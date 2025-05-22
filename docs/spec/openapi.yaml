@@ -135,6 +135,14 @@ paths:
         - run
       description: Read state of a run
       operationId: getRun
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          description: UUID of the run to retrieve.
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Status successfully read
@@ -186,6 +194,14 @@ paths:
         - run
       description: Cancel run
       operationId: cancelRun
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          description: UUID of the run to cancel.
+          schema:
+            type: string
+            format: uuid
       responses:
         "202":
           description: Run cancelling
@@ -205,6 +221,14 @@ paths:
         - run
       description: List events of a run
       operationId: listRunEvents
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          description: UUID of the run for which to fetch events.
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Successful operation
