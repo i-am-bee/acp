@@ -21,7 +21,7 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 - **📚 [Documentation](https://agentcommunicationprotocol.dev)**. Comprehensive guides and reference material for implementing and using ACP.
 - **📝 [OpenAPI Specification](https://github.com/i-am-bee/acp/blob/main/docs/spec/openapi.yaml).** Defines the REST API endpoints, request/response formats, and data models to form the ACP protocol.
 - **🛠️ [Python SDK](https://github.com/i-am-bee/acp/blob/main/python).** Contains a server implementation, client libraries, and model definitions to easily create and interact with ACP agents.
-- **🛠️ [Typescript SDK](https://github.com/i-am-bee/acp/blob/main/typescript).** Contains client libraries and model definitions to easily interact with ACP agents.
+- **🛠️ [TypeScript SDK](https://github.com/i-am-bee/acp/blob/main/typescript).** Contains client libraries and model definitions to easily interact with ACP agents.
 - **💻 [Examples](https://github.com/i-am-bee/acp/tree/main/examples).** Ready-to-run code samples demonstrating how to build agents and clients that communicate using ACP.
 
 ## Core Concepts

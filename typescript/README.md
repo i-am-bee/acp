@@ -1,6 +1,6 @@
-# Agent Communication Protocol SDK for Typescript
+# Agent Communication Protocol SDK for TypeScript
 
-Agent Communication Protocol SDK for Typescript helps developers to consume agents over the Agent Communication Protocol.
+Agent Communication Protocol SDK for TypeScript helps developers to consume agents over the Agent Communication Protocol.
 
 > [!Note]
 > Currently, the SDK only contains ACP client and data models. Server implementation is coming soon!
