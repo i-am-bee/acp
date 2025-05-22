@@ -75,11 +75,9 @@ def create_app(
         dependencies=dependencies,
     )
 
-    allowed_origins = ["https://agentcommunicationprotocol.dev"]
-
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=allowed_origins,
+        allow_origins=["https://agentcommunicationprotocol.dev"],
         allow_methods=["*"],
         allow_headers=["*"],
         allow_credentials=True,
