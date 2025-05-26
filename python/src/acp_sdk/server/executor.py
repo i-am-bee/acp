@@ -79,6 +79,8 @@ class Executor:
         self.cancel_store = cancel_store
         self.resume_store = resume_store
 
+        self.logger = logging.LoggerAdapter(logger, {"run_id": str(run_data.run.run_id)})
+
     def execute(self, *, wait: asyncio.Event) -> None:
         self.task = asyncio.create_task(self._execute(self.run_data, executor=self.executor, wait=wait))
         self.watcher = asyncio.create_task(self._watch_for_cancellation())
@@ -98,14 +100,16 @@ class Executor:
                 return resume
 
     async def _watch_for_cancellation(self) -> None:
-        async for data in self.cancel_store.watch(self.run_data.key):
-            if data is not None:
-                self.task.cancel()
+        while not self.task.done():
+            try:
+                async for data in self.cancel_store.watch(self.run_data.key):
+                    if data is not None:
+                        self.task.cancel()
+            except Exception:
+                logger.warning("Cancellation watcher failed, restarting")
 
     async def _execute(self, run_data: RunData, *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
         with get_tracer().start_as_current_span("run"):
-            run_logger = logging.LoggerAdapter(logger, {"run_id": str(run_data.run.run_id)})
-
             in_message = False
 
             async def flush_message() -> None:
@@ -124,7 +128,7 @@ class Executor:
                 generator = self.agent.execute(
                     input=self.history + run_data.input, session_id=run_data.run.session_id, executor=executor
                 )
-                run_logger.info("Run started")
+                self.logger.info("Run started")
 
                 run_data.run.status = RunStatus.IN_PROGRESS
                 await self._emit(RunInProgressEvent(run=run_data.run))
@@ -153,11 +157,11 @@ class Executor:
                         run_data.run.await_request = next
                         run_data.run.status = RunStatus.AWAITING
                         await self._emit(RunAwaitingEvent(run=run_data.run))
-                        run_logger.info("Run awaited")
+                        self.logger.info("Run awaited")
                         await_resume = await self._await()
                         run_data.run.status = RunStatus.IN_PROGRESS
                         await self._emit(RunInProgressEvent(run=run_data.run))
-                        run_logger.info("Run resumed")
+                        self.logger.info("Run resumed")
                     elif isinstance(next, Error):
                         raise ACPError(error=next)
                     elif isinstance(next, ACPError):
@@ -177,12 +181,12 @@ class Executor:
                 run_data.run.status = RunStatus.COMPLETED
                 run_data.run.finished_at = datetime.now(timezone.utc)
                 await self._emit(RunCompletedEvent(run=run_data.run))
-                run_logger.info("Run completed")
+                self.logger.info("Run completed")
             except asyncio.CancelledError:
                 run_data.run.status = RunStatus.CANCELLED
                 run_data.run.finished_at = datetime.now(timezone.utc)
                 await self._emit(RunCancelledEvent(run=run_data.run))
-                run_logger.info("Run cancelled")
+                self.logger.info("Run cancelled")
             except Exception as e:
                 if isinstance(e, ACPError):
                     run_data.run.error = e.error
@@ -191,4 +195,4 @@ class Executor:
                 run_data.run.status = RunStatus.FAILED
                 run_data.run.finished_at = datetime.now(timezone.utc)
                 await self._emit(RunFailedEvent(run=run_data.run))
-                run_logger.exception("Run failed")
+                self.logger.exception("Run failed")
