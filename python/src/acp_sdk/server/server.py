@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from collections.abc import AsyncGenerator, Awaitable
 from contextlib import asynccontextmanager
 from typing import Any, Callable
@@ -313,22 +314,33 @@ class Server:
             return
 
         url = os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
+        host = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", self.server.config.host)
         request_data = {
-            "location": f"http://{self.server.config.host}:{self.server.config.port}",
+            "location": f"http://{host}:{self.server.config.port}",
         }
+        await async_request_with_retry(lambda client, data=request_data: client.get(f"{url}/api/v1/providers"))
         try:
             await async_request_with_retry(
-                lambda client, data=request_data: client.post(f"{url}/api/v1/providers/register/unmanaged", json=data)
+                lambda client, data=request_data: client.post(
+                    f"{url}/api/v1/providers", json=data, params={"auto_remove": True}
+                )
             )
             logger.info("Agent registered to the beeai server.")
 
             # check missing env keyes
             envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/variables"))
             envs = envs_request.get("env")
+            os.environ["LLM_MODEL"] = "dummy"
+            os.environ["LLM_API_KEY"] = "dummy"
+            os.environ["LLM_API_BASE"] = f"{url.rstrip('/')}/api/v1/llm"
+
             for agent in self.agents:
                 # register all available envs
                 missing_keyes = []
                 for env in agent.metadata.model_dump().get("env", []):
+                    # Those envs are set to use LLM gateway from platform server
+                    if env["name"] in {"LLM_MODEL", "LLM_API_KEY", "LLM_API_BASE"}:
+                        continue
                     server_env = envs.get(env.get("name"))
                     if server_env:
                         logger.debug(f"Env variable {env['name']} = '{server_env}' added dynamically")
