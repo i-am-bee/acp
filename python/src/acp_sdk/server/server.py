@@ -318,7 +318,7 @@ class Server:
         request_data = {
             "location": f"http://{host}:{self.server.config.port}",
         }
-        resp = await async_request_with_retry(lambda client, data=request_data: client.get(f"{url}/api/v1/providers"))
+        await async_request_with_retry(lambda client, data=request_data: client.get(f"{url}/api/v1/providers"))
         try:
             await async_request_with_retry(
                 lambda client, data=request_data: client.post(
