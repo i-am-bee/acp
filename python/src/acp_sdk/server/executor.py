@@ -164,7 +164,7 @@ class Executor:
                         self.logger.info("Run resumed")
                     elif isinstance(next, Error):
                         raise ACPError(error=next)
-                    elif isinstance(next, ACPError):
+                    elif isinstance(next, BaseException):
                         raise next
                     elif next is None:
                         await flush_message()
