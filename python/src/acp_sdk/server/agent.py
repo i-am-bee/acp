@@ -47,7 +47,7 @@ class Agent(abc.ABC):
 
         context = Context(
             session=session,
-            storage=storage,
+            store=storage,
             loader=loader,
             executor=executor,
             yield_queue=yield_queue,

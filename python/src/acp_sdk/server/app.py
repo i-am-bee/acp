@@ -69,6 +69,12 @@ def create_app(
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
+    if not forward_resources and (
+        resource_store is None
+        or isinstance(resource_store._store, (obstore.store.MemoryStore, obstore.store.LocalStore))
+    ):
+        raise ValueError("Resource forwarding must be enabled when resource store does not support HTTP URLs")
+
     executor: ThreadPoolExecutor
     client = httpx.AsyncClient()
 
@@ -107,13 +113,6 @@ def create_app(
 
     resource_loader = resource_loader or ResourceLoader(client=client)
     resource_store = resource_store or ResourceStore(store=obstore.store.MemoryStore())
-
-    if forward_resources:
-
-        async def url_factory(id: ResourceId, store: obstore.store.ObjectStore) -> ResourceUrl:
-            return ResourceUrl(url=f"http://localhost:8000{app.url_path_for('get_resource', resource_id=id)}")
-
-        resource_store.url_factory = url_factory
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)
@@ -181,6 +180,12 @@ def create_app(
         headers = {Headers.RUN_ID: str(run_data.run.run_id)}
         ready = asyncio.Event()
 
+        async def create_resource_url(id: ResourceId) -> ResourceUrl:
+            if forward_resources:
+                return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
+            else:
+                return await resource_store.url(id)
+
         Executor(
             agent=agent,
             run_data=run_data,
@@ -192,6 +197,7 @@ def create_app(
             executor=executor,
             resource_store=resource_store,
             resource_loader=resource_loader,
+            create_resource_url=create_resource_url,
         ).execute(request.input, wait=ready)
 
         match request.mode:

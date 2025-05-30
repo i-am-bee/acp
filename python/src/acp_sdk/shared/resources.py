@@ -1,6 +1,4 @@
-from collections.abc import Awaitable
 from datetime import timedelta
-from typing import Callable
 
 import cachetools
 import cachetools.func
@@ -22,25 +20,9 @@ class ResourceLoader:
         return await response.aread()
 
 
-async def default_resource_url_factory(id: ResourceId, store: ObjectStore) -> ResourceUrl:
-    if isinstance(store, (AzureStore, GCSStore, S3Store)):
-        url = await obstore.sign_async(store, "GET", str(id), timedelta(hours=1))
-        return ResourceUrl(url=url)
-    elif isinstance(store, HTTPStore):
-        return ResourceUrl(url=f"{store.url}/{id!s}")
-    else:
-        raise NotImplementedError("Unsupported store")
-
-
 class ResourceStore:
-    def __init__(
-        self,
-        *,
-        store: ObjectStore,
-        url_factory: Callable[[ResourceId, ObjectStore], Awaitable[ResourceUrl]] = default_resource_url_factory,
-    ) -> None:
+    def __init__(self, *, store: ObjectStore) -> None:
         self._store = store
-        self.url_factory = url_factory
 
     async def load(self, id: ResourceId):  # noqa: ANN201
         result = await self._store.get_async(str(id))
@@ -53,5 +35,11 @@ class ResourceStore:
     ) -> None:
         await self._store.put_async(str(id), data)
 
-    async def get_resource_url(self, id: ResourceId) -> ResourceUrl:
-        return await self.url_factory(id, self._store)
+    async def url(self, id: ResourceId) -> ResourceUrl:
+        if isinstance(self._store, (AzureStore, GCSStore, S3Store)):
+            url = await obstore.sign_async(self._store, "GET", str(id), timedelta(hours=1))
+            return ResourceUrl(url=url)
+        elif isinstance(self._store, HTTPStore):
+            return ResourceUrl(url=f"{self._store.url}/{id!s}")
+        else:
+            raise NotImplementedError("Unsupported store")

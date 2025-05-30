@@ -1,11 +1,11 @@
 import asyncio
 import logging
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Self
+from typing import Callable, Self
 
 from pydantic import BaseModel, ValidationError
 
@@ -24,6 +24,8 @@ from acp_sdk.models import (
     MessageCreatedEvent,
     MessagePart,
     MessagePartEvent,
+    ResourceId,
+    ResourceUrl,
     Run,
     RunAwaitingEvent,
     RunCancelledEvent,
@@ -75,6 +77,7 @@ class Executor:
         session_store: Store[Session],
         resource_store: ResourceStore,
         resource_loader: ResourceLoader,
+        create_resource_url: Callable[[ResourceId], Awaitable[ResourceUrl]],
     ) -> None:
         self.agent = agent
         self.session = session
@@ -87,6 +90,8 @@ class Executor:
         self.session_store = session_store
         self.resource_store = resource_store
         self.resource_loader = resource_loader
+
+        self.create_resource_url = create_resource_url
 
         self.logger = logging.LoggerAdapter(logger, {"run_id": str(run_data.run.run_id)})
 
@@ -121,11 +126,15 @@ class Executor:
     async def _record_session_history(self, input: list[Message]) -> AsyncGenerator[list[Message]]:
         history = input.copy()
         yield history
-        for message in history:
-            id = uuid.uuid4()
-            await self.resource_store.store(id, message.model_dump_json().encode())
-            self.session.history.append(await self.resource_store.get_resource_url(id))
-        await self.session_store.set(self.session.id, self.session)
+        try:
+            for message in history:
+                id = uuid.uuid4()
+                url = await self.create_resource_url(id)
+                await self.resource_store.store(id, message.model_dump_json().encode())
+                self.session.history.append(url)
+            await self.session_store.set(self.session.id, self.session)
+        except BaseException:
+            self.logger.exception("Failed to store history")
 
     async def _execute(self, input: list[Message], *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
         run_data = self.run_data

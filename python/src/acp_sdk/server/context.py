@@ -12,14 +12,14 @@ class Context:
         self,
         *,
         session: Session,
-        storage: ResourceStore,
+        store: ResourceStore,
         loader: ResourceLoader,
         executor: ThreadPoolExecutor,
         yield_queue: janus.Queue[RunYield],
         yield_resume_queue: janus.Queue[RunYieldResume],
     ) -> None:
         self.session = session
-        self.storage = storage
+        self.storage = store
         self.loader = loader
         self.executor = executor
         self._yield_queue = yield_queue
