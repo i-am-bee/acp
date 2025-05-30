@@ -1,9 +1,11 @@
 import asyncio
 import logging
-from collections.abc import AsyncIterator
+import uuid
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Self
+from typing import Callable, Self
 
 from pydantic import BaseModel, ValidationError
 
@@ -22,6 +24,8 @@ from acp_sdk.models import (
     MessageCreatedEvent,
     MessagePart,
     MessagePartEvent,
+    ResourceId,
+    ResourceUrl,
     Run,
     RunAwaitingEvent,
     RunCancelledEvent,
@@ -30,15 +34,16 @@ from acp_sdk.models import (
     RunFailedEvent,
     RunInProgressEvent,
     RunStatus,
+    Session,
 )
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.logging import logger
 from acp_sdk.server.store import Store
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class RunData(BaseModel):
     run: Run
-    input: list[Message]
     events: list[Event] = []
 
     @property
@@ -64,25 +69,34 @@ class Executor:
         *,
         agent: Agent,
         run_data: RunData,
-        history: list[Message],
+        session: Session,
         executor: ThreadPoolExecutor,
         run_store: Store[RunData],
         cancel_store: Store[CancelData],
         resume_store: Store[AwaitResume],
+        session_store: Store[Session],
+        resource_store: ResourceStore,
+        resource_loader: ResourceLoader,
+        create_resource_url: Callable[[ResourceId], Awaitable[ResourceUrl]],
     ) -> None:
         self.agent = agent
-        self.history = history
+        self.session = session
         self.run_data = run_data
         self.executor = executor
 
         self.run_store = run_store
         self.cancel_store = cancel_store
         self.resume_store = resume_store
+        self.session_store = session_store
+        self.resource_store = resource_store
+        self.resource_loader = resource_loader
+
+        self.create_resource_url = create_resource_url
 
         self.logger = logging.LoggerAdapter(logger, {"run_id": str(run_data.run.run_id)})
 
-    def execute(self, *, wait: asyncio.Event) -> None:
-        self.task = asyncio.create_task(self._execute(self.run_data, executor=self.executor, wait=wait))
+    def execute(self, input: list[Message], *, wait: asyncio.Event) -> None:
+        self.task = asyncio.create_task(self._execute(input=input, executor=self.executor, wait=wait))
         self.watcher = asyncio.create_task(self._watch_for_cancellation())
 
     async def _push(self) -> None:
@@ -108,7 +122,22 @@ class Executor:
             except Exception:
                 logger.warning("Cancellation watcher failed, restarting")
 
-    async def _execute(self, run_data: RunData, *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
+    @asynccontextmanager
+    async def _record_session_history(self, input: list[Message]) -> AsyncGenerator[list[Message]]:
+        history = input.copy()
+        yield history
+        try:
+            for message in history:
+                id = uuid.uuid4()
+                url = await self.create_resource_url(id)
+                await self.resource_store.store(id, message.model_dump_json().encode())
+                self.session.history.append(url)
+            await self.session_store.set(self.session.id, self.session)
+        except BaseException:
+            self.logger.exception("Failed to store history")
+
+    async def _execute(self, input: list[Message], *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
+        run_data = self.run_data
         with get_tracer().start_as_current_span("run"):
             in_message = False
 
@@ -118,81 +147,88 @@ class Executor:
                     message = run_data.run.output[-1]
                     message.completed_at = datetime.now(timezone.utc)
                     await self._emit(MessageCompletedEvent(message=message))
+                    session_history.append(message)
                     in_message = False
 
-            try:
-                await wait.wait()
+            async with self._record_session_history(input) as session_history:
+                try:
+                    await wait.wait()
 
-                await self._emit(RunCreatedEvent(run=run_data.run))
+                    await self._emit(RunCreatedEvent(run=run_data.run))
 
-                generator = self.agent.execute(
-                    input=self.history + run_data.input, session_id=run_data.run.session_id, executor=executor
-                )
-                self.logger.info("Run started")
+                    generator = self.agent.execute(
+                        input=input,
+                        session=self.session,
+                        storage=self.resource_store,
+                        loader=self.resource_loader,
+                        executor=executor,
+                    )
+                    self.logger.info("Run started")
 
-                run_data.run.status = RunStatus.IN_PROGRESS
-                await self._emit(RunInProgressEvent(run=run_data.run))
+                    run_data.run.status = RunStatus.IN_PROGRESS
+                    await self._emit(RunInProgressEvent(run=run_data.run))
 
-                await_resume = None
-                while True:
-                    next = await generator.asend(await_resume)
+                    await_resume = None
+                    while True:
+                        next = await generator.asend(await_resume)
 
-                    if isinstance(next, (MessagePart, str)):
-                        if isinstance(next, str):
-                            next = MessagePart(content=next)
-                        if not in_message:
-                            run_data.run.output.append(Message(parts=[], completed_at=None))
-                            in_message = True
-                            await self._emit(MessageCreatedEvent(message=run_data.run.output[-1]))
-                        run_data.run.output[-1].parts.append(next)
-                        await self._emit(MessagePartEvent(part=next))
-                    elif isinstance(next, Message):
-                        await flush_message()
-                        run_data.run.output.append(next)
-                        await self._emit(MessageCreatedEvent(message=next))
-                        for part in next.parts:
-                            await self._emit(MessagePartEvent(part=part))
-                        await self._emit(MessageCompletedEvent(message=next))
-                    elif isinstance(next, AwaitRequest):
-                        run_data.run.await_request = next
-                        run_data.run.status = RunStatus.AWAITING
-                        await self._emit(RunAwaitingEvent(run=run_data.run))
-                        self.logger.info("Run awaited")
-                        await_resume = await self._await()
-                        run_data.run.status = RunStatus.IN_PROGRESS
-                        await self._emit(RunInProgressEvent(run=run_data.run))
-                        self.logger.info("Run resumed")
-                    elif isinstance(next, Error):
-                        raise ACPError(error=next)
-                    elif isinstance(next, BaseException):
-                        raise next
-                    elif next is None:
-                        await flush_message()
-                    elif isinstance(next, BaseModel):
-                        await self._emit(GenericEvent(generic=AnyModel(**next.model_dump())))
+                        if isinstance(next, (MessagePart, str)):
+                            if isinstance(next, str):
+                                next = MessagePart(content=next)
+                            if not in_message:
+                                run_data.run.output.append(Message(parts=[], completed_at=None))
+                                in_message = True
+                                await self._emit(MessageCreatedEvent(message=run_data.run.output[-1]))
+                            run_data.run.output[-1].parts.append(next)
+                            await self._emit(MessagePartEvent(part=next))
+                        elif isinstance(next, Message):
+                            await flush_message()
+                            run_data.run.output.append(next)
+                            await self._emit(MessageCreatedEvent(message=next))
+                            for part in next.parts:
+                                await self._emit(MessagePartEvent(part=part))
+                            await self._emit(MessageCompletedEvent(message=next))
+                            session_history.append(next)
+                        elif isinstance(next, AwaitRequest):
+                            run_data.run.await_request = next
+                            run_data.run.status = RunStatus.AWAITING
+                            await self._emit(RunAwaitingEvent(run=run_data.run))
+                            self.logger.info("Run awaited")
+                            await_resume = await self._await()
+                            run_data.run.status = RunStatus.IN_PROGRESS
+                            await self._emit(RunInProgressEvent(run=run_data.run))
+                            self.logger.info("Run resumed")
+                        elif isinstance(next, Error):
+                            raise ACPError(error=next)
+                        elif isinstance(next, BaseException):
+                            raise next
+                        elif next is None:
+                            await flush_message()
+                        elif isinstance(next, BaseModel):
+                            await self._emit(GenericEvent(generic=AnyModel(**next.model_dump())))
+                        else:
+                            try:
+                                generic = AnyModel.model_validate(next)
+                                await self._emit(GenericEvent(generic=generic))
+                            except ValidationError:
+                                raise TypeError("Invalid yield")
+                except StopAsyncIteration:
+                    await flush_message()
+                    run_data.run.status = RunStatus.COMPLETED
+                    run_data.run.finished_at = datetime.now(timezone.utc)
+                    await self._emit(RunCompletedEvent(run=run_data.run))
+                    self.logger.info("Run completed")
+                except asyncio.CancelledError:
+                    run_data.run.status = RunStatus.CANCELLED
+                    run_data.run.finished_at = datetime.now(timezone.utc)
+                    await self._emit(RunCancelledEvent(run=run_data.run))
+                    self.logger.info("Run cancelled")
+                except Exception as e:
+                    if isinstance(e, ACPError):
+                        run_data.run.error = e.error
                     else:
-                        try:
-                            generic = AnyModel.model_validate(next)
-                            await self._emit(GenericEvent(generic=generic))
-                        except ValidationError:
-                            raise TypeError("Invalid yield")
-            except StopAsyncIteration:
-                await flush_message()
-                run_data.run.status = RunStatus.COMPLETED
-                run_data.run.finished_at = datetime.now(timezone.utc)
-                await self._emit(RunCompletedEvent(run=run_data.run))
-                self.logger.info("Run completed")
-            except asyncio.CancelledError:
-                run_data.run.status = RunStatus.CANCELLED
-                run_data.run.finished_at = datetime.now(timezone.utc)
-                await self._emit(RunCancelledEvent(run=run_data.run))
-                self.logger.info("Run cancelled")
-            except Exception as e:
-                if isinstance(e, ACPError):
-                    run_data.run.error = e.error
-                else:
-                    run_data.run.error = Error(code=ErrorCode.SERVER_ERROR, message=str(e))
-                run_data.run.status = RunStatus.FAILED
-                run_data.run.finished_at = datetime.now(timezone.utc)
-                await self._emit(RunFailedEvent(run=run_data.run))
-                self.logger.exception("Run failed")
+                        run_data.run.error = Error(code=ErrorCode.SERVER_ERROR, message=str(e))
+                    run_data.run.status = RunStatus.FAILED
+                    run_data.run.finished_at = datetime.now(timezone.utc)
+                    await self._emit(RunFailedEvent(run=run_data.run))
+                    self.logger.exception("Run failed")

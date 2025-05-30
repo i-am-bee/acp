@@ -11,7 +11,9 @@ server = Server()
 
 @server.agent()
 async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYield, RunYieldResume]:
-    """Echoes everything"""
+    """Echoes everything, including session history"""
+    async for message in context.session.load_history():
+        yield message
     for message in input:
         await asyncio.sleep(0.5)
         yield {"thought": "I should echo everything"}
