@@ -201,3 +201,14 @@ async def test_no_session(httpx_mock: HTTPXMock) -> None:
 
     body = json.loads(requests[1].content)
     assert body["session_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_create_url() -> None:
+    async with Client(base_url="http://test") as client:
+        assert str(client._create_url("/agents", base_url=None)) == "http://test/agents"
+        assert str(client._create_url("/agents", base_url="http://foo")) == "http://foo/agents"
+        assert str(client._create_url("/agents", base_url="http://foo/")) == "http://foo/agents"
+        assert str(client._create_url("/agents", base_url="http://foo/bar")) == "http://foo/bar/agents"
+        assert str(client._create_url("/agents", base_url="http://foo/bar/")) == "http://foo/bar/agents"
+        assert str(client._create_url("/agents", base_url="/foo")) == "/foo/agents"
