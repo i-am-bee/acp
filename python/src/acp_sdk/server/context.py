@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 
 import janus
+from fastapi import Request
 
 from acp_sdk.models import SessionId
 from acp_sdk.server.types import RunYield, RunYieldResume
@@ -12,11 +13,13 @@ class Context:
         *,
         session_id: SessionId | None = None,
         executor: ThreadPoolExecutor,
+        request: Request,
         yield_queue: janus.Queue[RunYield],
         yield_resume_queue: janus.Queue[RunYieldResume],
     ) -> None:
         self.session_id = session_id
         self.executor = executor
+        self.request = request
         self._yield_queue = yield_queue
         self._yield_resume_queue = yield_resume_queue
 

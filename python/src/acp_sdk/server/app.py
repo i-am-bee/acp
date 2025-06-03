@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from enum import Enum
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.applications import AppType, Lifespan
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
@@ -132,7 +132,7 @@ def create_app(
         return PingResponse()
 
     @app.post("/runs")
-    async def create_run(request: RunCreateRequest) -> RunCreateResponse:
+    async def create_run(request: RunCreateRequest, req: Request) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
         session = (
@@ -161,6 +161,7 @@ def create_app(
             cancel_store=run_cancel_store,
             resume_store=run_resume_store,
             executor=executor,
+            request=req,
         ).execute(wait=ready)
 
         match request.mode:

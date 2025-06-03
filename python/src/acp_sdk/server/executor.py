@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Self
 
+from fastapi import Request
 from pydantic import BaseModel, ValidationError
 
 from acp_sdk.instrumentation import get_tracer
@@ -66,6 +67,7 @@ class Executor:
         run_data: RunData,
         history: list[Message],
         executor: ThreadPoolExecutor,
+        request: Request,
         run_store: Store[RunData],
         cancel_store: Store[CancelData],
         resume_store: Store[AwaitResume],
@@ -74,6 +76,7 @@ class Executor:
         self.history = history
         self.run_data = run_data
         self.executor = executor
+        self.request = request
 
         self.run_store = run_store
         self.cancel_store = cancel_store
@@ -126,7 +129,10 @@ class Executor:
                 await self._emit(RunCreatedEvent(run=run_data.run))
 
                 generator = self.agent.execute(
-                    input=self.history + run_data.input, session_id=run_data.run.session_id, executor=executor
+                    input=self.history + run_data.input,
+                    session_id=run_data.run.session_id,
+                    executor=executor,
+                    request=self.request,
                 )
                 self.logger.info("Run started")
 

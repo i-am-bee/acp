@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable
 
 import janus
+from fastapi import Request
 
 from acp_sdk.models import (
     AgentName,
@@ -39,13 +40,17 @@ class Agent(abc.ABC):
         pass
 
     async def execute(
-        self, input: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor
+        self, input: list[Message], session_id: SessionId | None, executor: ThreadPoolExecutor, request: Request
     ) -> AsyncGenerator[RunYield, RunYieldResume]:
         yield_queue: janus.Queue[RunYield] = janus.Queue()
         yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
 
         context = Context(
-            session_id=session_id, executor=executor, yield_queue=yield_queue, yield_resume_queue=yield_resume_queue
+            session_id=session_id,
+            executor=executor,
+            request=request,
+            yield_queue=yield_queue,
+            yield_resume_queue=yield_resume_queue,
         )
 
         if inspect.isasyncgenfunction(self.run):
