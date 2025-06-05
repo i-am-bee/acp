@@ -1,10 +1,13 @@
 import asyncio
+import inspect
 import logging
-from collections.abc import AsyncIterator
+import uuid
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Self
+from typing import Callable, Self
 
+import janus
 from fastapi import Request
 from pydantic import BaseModel, ValidationError
 
@@ -23,6 +26,8 @@ from acp_sdk.models import (
     MessageCreatedEvent,
     MessagePart,
     MessagePartEvent,
+    ResourceId,
+    ResourceUrl,
     Run,
     RunAwaitingEvent,
     RunCancelledEvent,
@@ -31,15 +36,18 @@ from acp_sdk.models import (
     RunFailedEvent,
     RunInProgressEvent,
     RunStatus,
+    Session,
 )
 from acp_sdk.server.agent import Agent
+from acp_sdk.server.context import Context
 from acp_sdk.server.logging import logger
 from acp_sdk.server.store import Store
+from acp_sdk.server.types import RunYield, RunYieldResume
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class RunData(BaseModel):
     run: Run
-    input: list[Message]
     events: list[Event] = []
 
     @property
@@ -65,15 +73,19 @@ class Executor:
         *,
         agent: Agent,
         run_data: RunData,
-        history: list[Message],
+        session: Session,
         executor: ThreadPoolExecutor,
         request: Request,
         run_store: Store[RunData],
         cancel_store: Store[CancelData],
         resume_store: Store[AwaitResume],
+        session_store: Store[Session],
+        resource_store: ResourceStore,
+        resource_loader: ResourceLoader,
+        create_resource_url: Callable[[ResourceId], Awaitable[ResourceUrl]],
     ) -> None:
         self.agent = agent
-        self.history = history
+        self.session = session
         self.run_data = run_data
         self.executor = executor
         self.request = request
@@ -81,11 +93,16 @@ class Executor:
         self.run_store = run_store
         self.cancel_store = cancel_store
         self.resume_store = resume_store
+        self.session_store = session_store
+        self.resource_store = resource_store
+        self.resource_loader = resource_loader
+
+        self.create_resource_url = create_resource_url
 
         self.logger = logging.LoggerAdapter(logger, {"run_id": str(run_data.run.run_id)})
 
-    def execute(self, *, wait: asyncio.Event) -> None:
-        self.task = asyncio.create_task(self._execute(self.run_data, executor=self.executor, wait=wait))
+    def execute(self, input: list[Message], *, wait: asyncio.Event) -> None:
+        self.task = asyncio.create_task(self._execute(input=input, executor=self.executor, wait=wait))
         self.watcher = asyncio.create_task(self._watch_for_cancellation())
 
     async def _push(self) -> None:
@@ -111,7 +128,16 @@ class Executor:
             except Exception:
                 logger.warning("Cancellation watcher failed, restarting")
 
-    async def _execute(self, run_data: RunData, *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
+    async def _record_session(self, history: list[Message]) -> None:
+        for message in history:
+            id = uuid.uuid4()
+            url = await self.create_resource_url(id)
+            await self.resource_store.store(id, message.model_dump_json().encode())
+            self.session.history.append(url)
+        await self.session_store.set(self.session.id, self.session)
+
+    async def _execute(self, input: list[Message], *, executor: ThreadPoolExecutor, wait: asyncio.Event) -> None:
+        run_data = self.run_data
         with get_tracer().start_as_current_span("run"):
             in_message = False
 
@@ -121,16 +147,20 @@ class Executor:
                     message = run_data.run.output[-1]
                     message.completed_at = datetime.now(timezone.utc)
                     await self._emit(MessageCompletedEvent(message=message))
+                    session_history.append(message)
                     in_message = False
 
+            session_history = input.copy()
             try:
                 await wait.wait()
 
                 await self._emit(RunCreatedEvent(run=run_data.run))
 
-                generator = self.agent.execute(
-                    input=self.history + run_data.input,
-                    session_id=run_data.run.session_id,
+                generator = self._execute_agent(
+                    input=input,
+                    session=self.session,
+                    storage=self.resource_store,
+                    loader=self.resource_loader,
                     executor=executor,
                     request=self.request,
                 )
@@ -159,6 +189,7 @@ class Executor:
                         for part in next.parts:
                             await self._emit(MessagePartEvent(part=part))
                         await self._emit(MessageCompletedEvent(message=next))
+                        session_history.append(next)
                     elif isinstance(next, AwaitRequest):
                         run_data.run.await_request = next
                         run_data.run.status = RunStatus.AWAITING
@@ -186,6 +217,10 @@ class Executor:
                 await flush_message()
                 run_data.run.status = RunStatus.COMPLETED
                 run_data.run.finished_at = datetime.now(timezone.utc)
+                try:
+                    await self._record_session(session_history)
+                except Exception as e:
+                    self.logger.warning(f"Failed to record session: {e}")
                 await self._emit(RunCompletedEvent(run=run_data.run))
                 self.logger.info("Run completed")
             except asyncio.CancelledError:
@@ -202,3 +237,85 @@ class Executor:
                 run_data.run.finished_at = datetime.now(timezone.utc)
                 await self._emit(RunFailedEvent(run=run_data.run))
                 self.logger.exception("Run failed")
+
+    async def _execute_agent(
+        self,
+        input: list[Message],
+        session: Session,
+        storage: ResourceStore,
+        loader: ResourceLoader,
+        executor: ThreadPoolExecutor,
+        request: Request,
+    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+        yield_queue: janus.Queue[RunYield] = janus.Queue()
+        yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
+
+        context = Context(
+            session=session,
+            store=storage,
+            loader=loader,
+            executor=executor,
+            request=request,
+            yield_queue=yield_queue,
+            yield_resume_queue=yield_resume_queue,
+        )
+
+        if inspect.isasyncgenfunction(self.agent.run):
+            run = asyncio.create_task(self._run_async_gen(input, context))
+        elif inspect.iscoroutinefunction(self.agent.run):
+            run = asyncio.create_task(self._run_coro(input, context))
+        elif inspect.isgeneratorfunction(self.agent.run):
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
+        else:
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
+
+        try:
+            while not run.done() or yield_queue.async_q.qsize() > 0:
+                value = yield await yield_queue.async_q.get()
+                if isinstance(value, Exception):
+                    raise value
+                await yield_resume_queue.async_q.put(value)
+        except janus.AsyncQueueShutDown:
+            pass
+
+    async def _run_async_gen(self, input: list[Message], context: Context) -> None:
+        try:
+            gen: AsyncGenerator[RunYield, RunYieldResume] = self.agent.run(input, context)
+            value = None
+            while True:
+                value = await context.yield_async(await gen.asend(value))
+        except StopAsyncIteration:
+            pass
+        except Exception as e:
+            await context.yield_async(e)
+        finally:
+            context.shutdown()
+
+    async def _run_coro(self, input: list[Message], context: Context) -> None:
+        try:
+            await context.yield_async(await self.agent.run(input, context))
+        except Exception as e:
+            await context.yield_async(e)
+        finally:
+            context.shutdown()
+
+    def _run_gen(self, input: list[Message], context: Context) -> None:
+        try:
+            gen: Generator[RunYield, RunYieldResume] = self.agent.run(input, context)
+            value = None
+            while True:
+                value = context.yield_sync(gen.send(value))
+        except StopIteration:
+            pass
+        except Exception as e:
+            context.yield_sync(e)
+        finally:
+            context.shutdown()
+
+    def _run_func(self, input: list[Message], context: Context) -> None:
+        try:
+            context.yield_sync(self.agent.run(input, context))
+        except Exception as e:
+            context.yield_sync(e)
+        finally:
+            context.shutdown()

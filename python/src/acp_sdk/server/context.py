@@ -3,21 +3,26 @@ from concurrent.futures import ThreadPoolExecutor
 import janus
 from fastapi import Request
 
-from acp_sdk.models import SessionId
+from acp_sdk.models import Session
 from acp_sdk.server.types import RunYield, RunYieldResume
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class Context:
     def __init__(
         self,
         *,
-        session_id: SessionId | None = None,
+        session: Session,
+        store: ResourceStore,
+        loader: ResourceLoader,
         executor: ThreadPoolExecutor,
         request: Request,
         yield_queue: janus.Queue[RunYield],
         yield_resume_queue: janus.Queue[RunYieldResume],
     ) -> None:
-        self.session_id = session_id
+        self.session = session
+        self.storage = store
+        self.loader = loader
         self.executor = executor
         self.request = request
         self._yield_queue = yield_queue

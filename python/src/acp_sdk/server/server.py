@@ -19,6 +19,7 @@ from acp_sdk.server.logging import logger
 from acp_sdk.server.store import Store
 from acp_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from acp_sdk.server.utils import async_request_with_retry
+from acp_sdk.shared.resources import ResourceLoader, ResourceStore
 
 
 class Server:
@@ -56,6 +57,8 @@ class Server:
         configure_telemetry: bool = False,
         self_registration: bool = True,
         store: Store | None = None,
+        resource_store: ResourceStore | None = None,
+        resource_loader: ResourceLoader | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -118,7 +121,13 @@ class Server:
 
         import uvicorn
 
-        app = create_app(*self.agents, lifespan=self.lifespan, store=store)
+        app = create_app(
+            *self.agents,
+            lifespan=self.lifespan,
+            store=store,
+            resource_loader=resource_loader,
+            resource_store=resource_store,
+        )
 
         if configure_logger:
             configure_logger_func()
@@ -185,6 +194,8 @@ class Server:
         configure_telemetry: bool = False,
         self_registration: bool = True,
         store: Store | None = None,
+        resource_store: ResourceStore | None = None,
+        resource_loader: ResourceLoader | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -243,6 +254,8 @@ class Server:
                 configure_telemetry=configure_telemetry,
                 self_registration=self_registration,
                 store=store,
+                resource_store=resource_store,
+                resource_loader=resource_loader,
                 host=host,
                 port=port,
                 uds=uds,

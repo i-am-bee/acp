@@ -1,9 +1,8 @@
 import asyncio
 import base64
-from datetime import timedelta
-from threading import Thread
+from collections.abc import AsyncIterator
 
-from acp_sdk.models import Artifact, AwaitResume, Error, ErrorCode, Message, MessageAwaitRequest, MessagePart
+from acp_sdk.models import Artifact, Error, ErrorCode, Message, MessageAwaitRequest, MessagePart
 from acp_sdk.models.errors import ACPError
 from acp_sdk.server import Context, Server
 
@@ -15,6 +14,13 @@ def create_server() -> Server:
 
     @server.agent()
     async def echo(input: list[Message], context: Context):
+        for message in input:
+            yield message
+
+    @server.agent()
+    async def history_echo(input: list[Message], context: Context) -> AsyncIterator[Message]:
+        async for message in context.session.load_history():
+            yield message
         for message in input:
             yield message
 

@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional, Union
@@ -7,6 +8,8 @@ from typing import Any, Literal, Optional, Union
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
+from acp_sdk.models.types import AgentName, ResourceId, ResourceUrl, RunId, SessionId
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class AnyModel(BaseModel):
@@ -146,11 +149,6 @@ class Message(BaseModel):
         return Message(parts=parts, created_at=self.created_at, completed_at=self.completed_at)
 
 
-AgentName = str
-SessionId = uuid.UUID
-RunId = uuid.UUID
-
-
 class RunMode(str, Enum):
     SYNC = "sync"
     ASYNC = "async"
@@ -288,3 +286,34 @@ class Agent(BaseModel):
     name: str
     description: str | None = None
     metadata: Metadata = Metadata()
+
+
+class Session(BaseModel):
+    id: SessionId = Field(default_factory=uuid.uuid4)
+    history: list[ResourceUrl] = Field(default_factory=list)
+    state: ResourceUrl | None = None
+
+    loader: ResourceLoader | None = Field(None, exclude=True)
+    store: ResourceStore | None = Field(None, exclude=True)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    async def load_history(self, *, loader: ResourceLoader | None = None) -> AsyncIterator[Message]:
+        loader = loader or self.loader or ResourceLoader()
+        for url in self.history:
+            data = await loader.load(url)
+            yield Message.model_validate_json(data)
+
+    async def load_state(self, *, loader: ResourceLoader | None = None) -> bytes:
+        loader = loader or self.loader or ResourceLoader()
+        data = await loader.load(self.state)
+        return data
+
+    async def store_state(self, data: bytes, *, store: ResourceStore | None = None) -> ResourceUrl:
+        store = store or self.store
+        if not store:
+            raise ValueError("Store must be specified")
+
+        id = ResourceId()
+        await store.store(id, data)
+        return await store.url(id)
