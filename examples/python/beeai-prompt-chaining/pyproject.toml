@@ -5,7 +5,7 @@ description = "Demonstration of prompt-chaining pattern"
 requires-python = ">=3.11, <4.0"
 dependencies = [
     "acp-sdk",
-    "beeai-framework>=0.1.17",
+    "beeai-framework>=0.1.23",
     "pydantic-settings>=2.9.0",
 ]
 
