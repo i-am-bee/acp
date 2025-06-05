@@ -3,8 +3,7 @@ from collections.abc import AsyncGenerator
 from acp_sdk.models import (
     Message,
 )
-from acp_sdk.server import RunYield, RunYieldResume, agent, create_app
-from acp_sdk.server.store import RedisStore
+from acp_sdk.server import RedisStore, RunYield, RunYieldResume, agent, create_app
 from redis.asyncio import Redis
 
 # This example demonstrates how to serve agents with you own server

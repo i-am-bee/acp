@@ -71,6 +71,7 @@
               "/spec/run-get-events",
               "/spec/run-resume",
               "/spec/run-cancel",
+              "/spec/sessions-get",
               "/spec/ping"
             ]
           }

@@ -5,19 +5,24 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from enum import Enum
 
+import httpx
+import obstore.store
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.applications import AppType, Lifespan
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from obstore.exceptions import NotFoundError
 
 from acp_sdk.models import (
-    Agent as AgentModel,
-)
-from acp_sdk.models import (
+    ACPError,
     AgentName,
     AgentReadResponse,
     AgentsListResponse,
+    AwaitResume,
+    PingResponse,
+    ResourceId,
+    ResourceUrl,
     Run,
     RunCancelResponse,
     RunCreateRequest,
@@ -28,10 +33,14 @@ from acp_sdk.models import (
     RunReadResponse,
     RunResumeRequest,
     RunResumeResponse,
+    RunStatus,
+    Session,
+    SessionId,
+    SessionReadResponse,
 )
-from acp_sdk.models.errors import ACPError
-from acp_sdk.models.models import AwaitResume, RunStatus
-from acp_sdk.models.schemas import PingResponse
+from acp_sdk.models import (
+    Agent as AgentModel,
+)
 from acp_sdk.server.agent import Agent
 from acp_sdk.server.errors import (
     RequestValidationError,
@@ -42,9 +51,9 @@ from acp_sdk.server.errors import (
     validation_exception_handler,
 )
 from acp_sdk.server.executor import CancelData, Executor, RunData
-from acp_sdk.server.session import Session
 from acp_sdk.server.store import MemoryStore, Store
 from acp_sdk.server.utils import stream_sse, wait_util_stop
+from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
 class Headers(str, Enum):
@@ -54,21 +63,32 @@ class Headers(str, Enum):
 def create_app(
     *agents: Agent,
     store: Store | None = None,
+    resource_store: ResourceStore | None = None,
+    resource_loader: ResourceLoader | None = None,
+    forward_resources: bool = True,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
+    if not forward_resources and (
+        resource_store is None
+        or isinstance(resource_store._store, (obstore.store.MemoryStore, obstore.store.LocalStore))
+    ):
+        raise ValueError("Resource forwarding must be enabled when resource store does not support HTTP URLs")
+
     executor: ThreadPoolExecutor
+    client = httpx.AsyncClient()
 
     @asynccontextmanager
     async def internal_lifespan(app: FastAPI) -> AsyncGenerator[None]:
         nonlocal executor
-        with ThreadPoolExecutor() as exec:
-            executor = exec
-            if not lifespan:
-                yield None
-            else:
-                async with lifespan(app) as state:
-                    yield state
+        async with client:
+            with ThreadPoolExecutor() as exec:
+                executor = exec
+                if not lifespan:
+                    yield None
+                else:
+                    async with lifespan(app) as state:
+                        yield state
 
     app = FastAPI(
         lifespan=internal_lifespan,
@@ -90,6 +110,9 @@ def create_app(
     run_cancel_store = store.as_store(model=CancelData, prefix="run_cancel_")
     run_resume_store = store.as_store(model=AwaitResume, prefix="run_resume_")
     session_store = store.as_store(model=Session, prefix="session_")
+
+    resource_loader = resource_loader or ResourceLoader(client=client)
+    resource_store = resource_store or ResourceStore(store=obstore.store.MemoryStore())
 
     app.exception_handler(ACPError)(acp_error_handler)
     app.exception_handler(StarletteHTTPException)(http_exception_handler)
@@ -135,34 +158,49 @@ def create_app(
     async def create_run(request: RunCreateRequest, req: Request) -> RunCreateResponse:
         agent = find_agent(request.agent_name)
 
-        session = (
-            (await session_store.get(request.session_id)) or Session(id=request.session_id)
+        if request.session_id and request.session and request.session_id != request.session.id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
+
+        session = request.session or (
+            (await session_store.get(request.session_id))
+            or Session(id=request.session_id, loader=resource_loader, store=resource_store)
             if request.session_id
-            else Session()
+            else Session(loader=resource_loader, store=resource_store)
         )
+
         nonlocal executor
         run_data = RunData(
-            run=Run(agent_name=agent.name, session_id=session.id),
-            input=request.input,
+            run=Run(
+                agent_name=agent.name,
+                session_id=session.id,
+            )
         )
         await run_store.set(run_data.key, run_data)
-
-        session.append(run_data.run.run_id)
         await session_store.set(session.id, session)
 
         headers = {Headers.RUN_ID: str(run_data.run.run_id)}
         ready = asyncio.Event()
 
+        async def create_resource_url(id: ResourceId) -> ResourceUrl:
+            if forward_resources:
+                return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
+            else:
+                return await resource_store.url(id)
+
         Executor(
             agent=agent,
             run_data=run_data,
-            history=await session.history(run_store),
+            session=session,
+            session_store=session_store,
             run_store=run_store,
             cancel_store=run_cancel_store,
             resume_store=run_resume_store,
             executor=executor,
             request=req,
-        ).execute(wait=ready)
+            resource_store=resource_store,
+            resource_loader=resource_loader,
+            create_resource_url=create_resource_url,
+        ).execute(request.input, wait=ready)
 
         match request.mode:
             case RunMode.STREAM:
@@ -242,5 +280,22 @@ def create_app(
         await run_cancel_store.set(run_data.key, CancelData())
         run_data.run.status = RunStatus.CANCELLING
         return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=jsonable_encoder(run_data.run))
+
+    @app.get("/sessions/{session_id}")
+    async def read_session(session_id: SessionId) -> SessionReadResponse:
+        session = await session_store.get(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        return session
+
+    if forward_resources:
+
+        @app.get("/resources/{resource_id}", name="get_resource")
+        async def read_resource(resource_id: ResourceId) -> StreamingResponse:
+            try:
+                result = await resource_store.load(resource_id)
+                return StreamingResponse(result)
+            except NotFoundError:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Resource {resource_id} not found")
 
     return app

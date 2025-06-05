@@ -1,5 +1,4 @@
 import json
-import uuid
 
 import pytest
 from acp_sdk.client import Client
@@ -16,13 +15,15 @@ from acp_sdk.models import (
     Run,
     RunCompletedEvent,
     RunEventsListResponse,
+    Session,
 )
 from pytest_httpx import HTTPXMock
 
 mock_agent = Agent(name="mock")
 mock_agents = [mock_agent]
+mock_session = Session()
 mock_run = Run(
-    agent_name=mock_agent.name, session_id=uuid.uuid4(), output=[Message(parts=[MessagePart(content="Hello!")])]
+    agent_name=mock_agent.name, session_id=mock_session.id, output=[Message(parts=[MessagePart(content="Hello!")])]
 )
 
 
@@ -176,17 +177,24 @@ async def test_run_events(httpx_mock: HTTPXMock) -> None:
 async def test_session(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(url="http://test/runs", method="POST", content=mock_run.model_dump_json(), is_reusable=True)
 
-    async with Client(base_url="http://test") as client, client.session(mock_run.session_id) as session:
-        assert session._session_id == mock_run.session_id
+    async with Client(base_url="http://test") as client, client.session(Session(id=mock_run.session_id)) as session:
+        assert session._session.id == mock_run.session_id
+        await session.run_sync("Howdy!", agent=mock_run.agent_name)
         await session.run_sync("Howdy!", agent=mock_run.agent_name)
         await client.run_sync("Howdy!", agent=mock_run.agent_name)
 
     requests = httpx_mock.get_requests()
     body = json.loads(requests[0].content)
-    assert body["session_id"] == str(mock_run.session_id)
+    # First request gets full session
+    assert body["session"]["id"] == str(mock_run.session_id)
 
     body = json.loads(requests[1].content)
+    # Second sends just the ID
+    assert body["session_id"] == str(mock_run.session_id)
+
+    body = json.loads(requests[2].content)
     assert body["session_id"] is None
+    assert body["session"] is None
 
 
 @pytest.mark.asyncio
@@ -201,6 +209,22 @@ async def test_no_session(httpx_mock: HTTPXMock) -> None:
 
     body = json.loads(requests[1].content)
     assert body["session_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_distributed_session(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(url="http://one/runs", method="POST", content=mock_run.model_dump_json())
+    httpx_mock.add_response(
+        url=f"http://one/sessions/{mock_session.id}",
+        method="GET",
+        content=mock_session.model_dump_json(),
+        is_reusable=True,
+    )
+    httpx_mock.add_response(url="http://two/runs", method="POST", content=mock_run.model_dump_json())
+
+    async with Client() as client, client.session(mock_session) as session:
+        await session.run_sync("Howdy!", agent=mock_run.agent_name, base_url="http://one")
+        await session.run_sync("Howdy!", agent=mock_run.agent_name, base_url="http://two")
 
 
 @pytest.mark.asyncio

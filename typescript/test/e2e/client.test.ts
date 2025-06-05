@@ -18,7 +18,7 @@ describe("client", () => {
   beforeAll(async () => {
     serverProcess = spawn(
       "uv",
-      ['run', join(import.meta.dirname, "run_server.py")],
+      ["run", join(import.meta.dirname, "run_server.py")],
       { shell: true }
     );
 
@@ -227,9 +227,9 @@ describe("client", () => {
       const client = createClient();
 
       await client.withSession(async (session) => {
-        let run = await session.runSync("echo", input);
+        let run = await session.runSync("history_echo", input);
         expect(run.output).toHaveLength(1);
-        run = await session.runSync("echo", input);
+        run = await session.runSync("history_echo", input);
         expect(run.output).toHaveLength(3);
       });
     });
