@@ -280,7 +280,7 @@ class Executor:
 
     async def _run_async_gen(self, input: list[Message], context: Context) -> None:
         try:
-            gen: AsyncGenerator[RunYield, RunYieldResume] = self.run(input, context)
+            gen: AsyncGenerator[RunYield, RunYieldResume] = self.agent.run(input, context)
             value = None
             while True:
                 value = await context.yield_async(await gen.asend(value))
@@ -293,7 +293,7 @@ class Executor:
 
     async def _run_coro(self, input: list[Message], context: Context) -> None:
         try:
-            await context.yield_async(await self.run(input, context))
+            await context.yield_async(await self.agent.run(input, context))
         except Exception as e:
             await context.yield_async(e)
         finally:
@@ -301,7 +301,7 @@ class Executor:
 
     def _run_gen(self, input: list[Message], context: Context) -> None:
         try:
-            gen: Generator[RunYield, RunYieldResume] = self.run(input, context)
+            gen: Generator[RunYield, RunYieldResume] = self.agent.run(input, context)
             value = None
             while True:
                 value = context.yield_sync(gen.send(value))
@@ -314,7 +314,7 @@ class Executor:
 
     def _run_func(self, input: list[Message], context: Context) -> None:
         try:
-            context.yield_sync(self.run(input, context))
+            context.yield_sync(self.agent.run(input, context))
         except Exception as e:
             context.yield_sync(e)
         finally:
