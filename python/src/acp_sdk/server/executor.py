@@ -1,11 +1,13 @@
 import asyncio
+import inspect
 import logging
 import uuid
-from collections.abc import AsyncIterator, Awaitable
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Callable, Self
 
+import janus
 from fastapi import Request
 from pydantic import BaseModel, ValidationError
 
@@ -37,8 +39,10 @@ from acp_sdk.models import (
     Session,
 )
 from acp_sdk.server.agent import Agent
+from acp_sdk.server.context import Context
 from acp_sdk.server.logging import logger
 from acp_sdk.server.store import Store
+from acp_sdk.server.types import RunYield, RunYieldResume
 from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
@@ -152,7 +156,7 @@ class Executor:
 
                 await self._emit(RunCreatedEvent(run=run_data.run))
 
-                generator = self.agent.execute(
+                generator = self._execute_agent(
                     input=input,
                     session=self.session,
                     storage=self.resource_store,
@@ -233,3 +237,85 @@ class Executor:
                 run_data.run.finished_at = datetime.now(timezone.utc)
                 await self._emit(RunFailedEvent(run=run_data.run))
                 self.logger.exception("Run failed")
+
+    async def _execute_agent(
+        self,
+        input: list[Message],
+        session: Session,
+        storage: ResourceStore,
+        loader: ResourceLoader,
+        executor: ThreadPoolExecutor,
+        request: Request,
+    ) -> AsyncGenerator[RunYield, RunYieldResume]:
+        yield_queue: janus.Queue[RunYield] = janus.Queue()
+        yield_resume_queue: janus.Queue[RunYieldResume] = janus.Queue()
+
+        context = Context(
+            session=session,
+            store=storage,
+            loader=loader,
+            executor=executor,
+            request=request,
+            yield_queue=yield_queue,
+            yield_resume_queue=yield_resume_queue,
+        )
+
+        if inspect.isasyncgenfunction(self.agent.run):
+            run = asyncio.create_task(self._run_async_gen(input, context))
+        elif inspect.iscoroutinefunction(self.agent.run):
+            run = asyncio.create_task(self._run_coro(input, context))
+        elif inspect.isgeneratorfunction(self.agent.run):
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_gen, input, context)
+        else:
+            run = asyncio.get_running_loop().run_in_executor(executor, self._run_func, input, context)
+
+        try:
+            while not run.done() or yield_queue.async_q.qsize() > 0:
+                value = yield await yield_queue.async_q.get()
+                if isinstance(value, Exception):
+                    raise value
+                await yield_resume_queue.async_q.put(value)
+        except janus.AsyncQueueShutDown:
+            pass
+
+    async def _run_async_gen(self, input: list[Message], context: Context) -> None:
+        try:
+            gen: AsyncGenerator[RunYield, RunYieldResume] = self.run(input, context)
+            value = None
+            while True:
+                value = await context.yield_async(await gen.asend(value))
+        except StopAsyncIteration:
+            pass
+        except Exception as e:
+            await context.yield_async(e)
+        finally:
+            context.shutdown()
+
+    async def _run_coro(self, input: list[Message], context: Context) -> None:
+        try:
+            await context.yield_async(await self.run(input, context))
+        except Exception as e:
+            await context.yield_async(e)
+        finally:
+            context.shutdown()
+
+    def _run_gen(self, input: list[Message], context: Context) -> None:
+        try:
+            gen: Generator[RunYield, RunYieldResume] = self.run(input, context)
+            value = None
+            while True:
+                value = context.yield_sync(gen.send(value))
+        except StopIteration:
+            pass
+        except Exception as e:
+            context.yield_sync(e)
+        finally:
+            context.shutdown()
+
+    def _run_func(self, input: list[Message], context: Context) -> None:
+        try:
+            context.yield_sync(self.run(input, context))
+        except Exception as e:
+            context.yield_sync(e)
+        finally:
+            context.shutdown()
