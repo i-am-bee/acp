@@ -10,15 +10,16 @@ from acp_sdk.server import Server
 
 agent = "history_echo"
 input = [Message(parts=[MessagePart(content="Hello!")])]
+output = [message.model_copy(update={"role": f"agent/{agent}"}) for message in input]
 
 
 @pytest.mark.asyncio
 async def test_session(server: Server, client: Client) -> None:
     async with client.session() as session:
         run = await session.run_sync(agent=agent, input=input)
-        assert run.output == input
+        assert run.output == output
         run = await session.run_sync(agent=agent, input=input)
-        assert run.output == input * 3
+        assert run.output == output * 3
 
 
 @pytest.mark.asyncio
@@ -37,8 +38,8 @@ async def test_distributed_session(multi_server: tuple[Server, Server]) -> None:
     two_url = f"http://localhost:{two.server.config.port}"
     async with Client() as client, client.session() as session:
         run = await session.run_sync(input, agent=agent, base_url=one_url)
-        assert run.output == input
+        assert run.output == output
         run = await session.run_sync(input, agent=agent, base_url=two_url)
-        assert run.output == input * 3
+        assert run.output == output * 3
         run = await session.run_sync(input, agent=agent, base_url=one_url)
-        assert run.output == input * 7
+        assert run.output == output * 7

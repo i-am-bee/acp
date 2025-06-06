@@ -162,8 +162,10 @@ def create_app(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
 
         session = request.session or (
-            (await session_store.get(request.session_id))
-            or Session(id=request.session_id, loader=resource_loader, store=resource_store)
+            (
+                await session_store.get(request.session_id)
+                or Session(id=request.session_id, loader=resource_loader, store=resource_store)
+            )
             if request.session_id
             else Session(loader=resource_loader, store=resource_store)
         )

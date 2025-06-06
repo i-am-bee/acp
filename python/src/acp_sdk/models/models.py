@@ -98,6 +98,7 @@ class Artifact(MessagePart):
 
 
 class Message(BaseModel):
+    role: Literal["user"] | Literal["agent"] | str = Field("user", pattern=r"^(user|agent(\/[a-zA-Z0-9_\-]+)?)$")
     parts: list[MessagePart]
     created_at: datetime | None = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: datetime | None = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -105,7 +106,10 @@ class Message(BaseModel):
     def __add__(self, other: "Message") -> "Message":
         if not isinstance(other, Message):
             raise TypeError(f"Cannot concatenate Message with {type(other).__name__}")
+        if self.role != other.role:
+            raise ValueError("Cannot concatenate messages with different roles")
         return Message(
+            role=self.role,
             parts=self.parts + other.parts,
             created_at=min(self.created_at, other.created_at) if self.created_at and other.created_at else None,
             completed_at=max(self.completed_at, other.completed_at)

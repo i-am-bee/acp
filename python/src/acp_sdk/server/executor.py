@@ -177,14 +177,16 @@ class Executor:
                         if isinstance(next, str):
                             next = MessagePart(content=next)
                         if not in_message:
-                            run_data.run.output.append(Message(parts=[], completed_at=None))
+                            run_data.run.output.append(
+                                Message(role=f"agent/{self.agent.name}", parts=[], completed_at=None)
+                            )
                             in_message = True
                             await self._emit(MessageCreatedEvent(message=run_data.run.output[-1]))
                         run_data.run.output[-1].parts.append(next)
                         await self._emit(MessagePartEvent(part=next))
                     elif isinstance(next, Message):
                         await flush_message()
-                        run_data.run.output.append(next)
+                        run_data.run.output.append(next.model_copy(update={"role": f"agent/{self.agent.name}"}))
                         await self._emit(MessageCreatedEvent(message=next))
                         for part in next.parts:
                             await self._emit(MessagePartEvent(part=part))

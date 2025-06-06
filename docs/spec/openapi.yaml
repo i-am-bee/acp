@@ -314,8 +314,22 @@ components:
         completed_at:
           type: string
           format: date-time
+        role:
+          type: string
+          description: |
+            Specifies the sender of the message. Allowed values:
+            - `"user"` for messages sent by an end-user.
+            - `"agent` for anonymous agent.
+            - `"agent/{agent_name}"` for messages sent by an agent, where `{agent_name}` is the identifier of the agent.
+          examples:
+            - user
+            - agent
+            - agent/summarizer
+            - agent/data_processor
+          pattern: '^(user|agent(\/[a-zA-Z0-9_\-]+)?)$'
       required:
         - parts
+        - role
     AwaitRequest:
       type: object
       description: Payload describing what is awaited from the client to continue the run.
