@@ -322,9 +322,10 @@ components:
             - `"agent/{agent_name}"` for messages sent by an agent, where `{agent_name}` is the identifier of the agent.
           examples:
             - user
+            - agent
             - agent/summarizer
             - agent/data_processor
-          pattern: '^(user|agent\/[a-zA-Z0-9_\-]+)$'
+          pattern: '^(user|agent(\/[a-zA-Z0-9_\-]+)?)$'
       required:
         - parts
         - role

@@ -102,6 +102,10 @@ export const Artifact = BaseMessagePart.required({ name: true }).superRefine(
 );
 
 export const Message = z.object({
+  role: z
+    .string()
+    .regex(/^(user|agent(\/[a-zA-Z0-9_\-]+)?)$/)
+    .default("user"),
   parts: z.array(MessagePart),
   created_at: z
     .string()
@@ -120,7 +124,12 @@ export type Message = z.infer<typeof Message>;
 export const isMessage = createSchemaTypePredicate(Message);
 
 export function concatMessages(lhs: Message, rhs: Message): Message {
+  if (lhs.role != rhs.role) {
+    throw new Error("Message roles must match for concatenation");
+  }
+
   return {
+    role: lhs.role,
     parts: [...lhs.parts, ...rhs.parts],
     created_at:
       lhs.created_at != null && rhs.created_at != null
