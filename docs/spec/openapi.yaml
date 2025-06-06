@@ -319,6 +319,7 @@ components:
           description: |
             Specifies the sender of the message. Allowed values:
             - `"user"` for messages sent by an end-user.
+            - `"agent` for anonymous agent.
             - `"agent/{agent_name}"` for messages sent by an agent, where `{agent_name}` is the identifier of the agent.
           examples:
             - user
