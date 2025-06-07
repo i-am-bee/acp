@@ -1,0 +1,16 @@
+[project]
+name = "llama-index-rag"
+version = "0.1.0"
+description = "A simple LlamaIndex RAG agent"
+requires-python = ">=3.12"
+dependencies = [
+    "acp-sdk",
+    "docling>=2.35.0",
+    "llama-index>=0.12.31",
+    "llama-index-llms-ollama>=0.5.0",
+    "llama-index-embeddings-ollama>=0.5.0",
+    "llama-index-readers-docling>=0.3.3",
+]
+
+[tool.uv.sources]
+acp-sdk = { workspace = true }
