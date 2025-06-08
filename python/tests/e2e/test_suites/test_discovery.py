@@ -1,6 +1,6 @@
 import pytest
 from acp_sdk.client import Client
-from acp_sdk.models import Agent
+from acp_sdk.models import AgentManifest
 from acp_sdk.server import Server
 
 
@@ -13,12 +13,12 @@ async def test_ping(server: Server, client: Client) -> None:
 @pytest.mark.asyncio
 async def test_agents_list(server: Server, client: Client) -> None:
     async for agent in client.agents():
-        assert isinstance(agent, Agent)
+        assert isinstance(agent, AgentManifest)
 
 
 @pytest.mark.asyncio
 async def test_agents_details(server: Server, client: Client) -> None:
     agent_name = "echo"
     agent = await client.agent(name=agent_name)
-    assert isinstance(agent, Agent)
+    assert isinstance(agent, AgentManifest)
     assert agent.name == agent_name

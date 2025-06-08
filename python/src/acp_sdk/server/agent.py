@@ -8,7 +8,7 @@ from acp_sdk.server.context import Context
 from acp_sdk.server.types import RunYield, RunYieldResume
 
 
-class Agent(abc.ABC):
+class AgentManifest(abc.ABC):
     @property
     def name(self) -> AgentName:
         return self.__class__.__name__
@@ -29,16 +29,17 @@ class Agent(abc.ABC):
     ):
         pass
 
+Agent = AgentManifest
 
 def agent(
     name: str | None = None,
     description: str | None = None,
     *,
     metadata: Metadata | None = None,
-) -> Callable[[Callable], Agent]:
+) -> Callable[[Callable], AgentManifest]:
     """Decorator to create an agent."""
 
-    def decorator(fn: Callable) -> Agent:
+    def decorator(fn: Callable) -> AgentManifest:
         signature = inspect.signature(fn)
         parameters = list(signature.parameters.values())
 
@@ -51,7 +52,7 @@ def agent(
 
         has_context_param = len(parameters) == 2
 
-        class DecoratorAgentBase(Agent):
+        class DecoratorAgentBase(AgentManifest):
             @property
             def name(self) -> str:
                 return name or fn.__name__
@@ -64,7 +65,7 @@ def agent(
             def metadata(self) -> Metadata:
                 return metadata or Metadata()
 
-        agent: Agent
+        agent: AgentManifest
         if inspect.isasyncgenfunction(fn):
 
             class AsyncGenDecoratorAgent(DecoratorAgentBase):

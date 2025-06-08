@@ -282,7 +282,7 @@ Event = Union[
 ]
 
 
-class Agent(BaseModel):
+class AgentManifest(BaseModel):
     name: str
     description: str | None = None
     metadata: Metadata = Metadata()
