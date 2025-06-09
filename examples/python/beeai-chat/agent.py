@@ -42,7 +42,10 @@ async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
     # Create agent with memory and tools
     agent = ReActAgent(llm=llm, tools=tools, memory=TokenMemory(llm))
 
-    framework_messages = [to_framework_message(Role(message.parts[0].role), str(message)) for message in input]
+    history = [message async for message in context.session.load_history()]
+    framework_messages = [
+        to_framework_message(Role(message.parts[0].role), str(message)) for message in history + input
+    ]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
