@@ -31,7 +31,8 @@ describe("client", () => {
         resources: [`http-get://127.0.0.1:8000/ping`],
         timeout: 10000,
       });
-    } catch {
+    } catch (e) {
+      console.error(e);
       throw new Error("Failed to start ACP server for tests");
     }
   }, 11000);
