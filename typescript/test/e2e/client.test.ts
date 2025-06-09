@@ -22,6 +22,10 @@ describe("client", () => {
       { shell: true }
     );
 
+    serverProcess.stderr?.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
+
     serverProcess.on("exit", (code, signal) => {
       console.log(`[ACP SERVER] exited code=${code}, signal=${signal}`);
     });
