@@ -139,7 +139,7 @@ jobs:
         with:
           version: "0.6.12"
       - name: Install uv dependencies
-        run: uv sync --all-extras --locked
+        run: uv sync --all-extras
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3

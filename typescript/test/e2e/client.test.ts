@@ -22,10 +22,6 @@ describe("client", () => {
       { shell: true }
     );
 
-    serverProcess.stderr?.on("data", (data) => {
-      console.error(`stderr: ${data}`);
-    });
-
     serverProcess.on("exit", (code, signal) => {
       console.log(`[ACP SERVER] exited code=${code}, signal=${signal}`);
     });
@@ -33,13 +29,12 @@ describe("client", () => {
     try {
       await waitOn({
         resources: [`http-get://localhost:8000/ping`],
-        timeout: 29000,
+        timeout: 10000,
       });
-    } catch (e) {
-      console.error(e);
+    } catch {
       throw new Error("Failed to start ACP server for tests");
     }
-  }, 30000);
+  }, 11000);
 
   afterAll(() => {
     serverProcess?.kill();
