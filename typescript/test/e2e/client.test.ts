@@ -33,13 +33,13 @@ describe("client", () => {
     try {
       await waitOn({
         resources: [`http-get://localhost:8000/ping`],
-        timeout: 10000,
+        timeout: 29000,
       });
     } catch (e) {
       console.error(e);
       throw new Error("Failed to start ACP server for tests");
     }
-  }, 11000);
+  }, 30000);
 
   afterAll(() => {
     serverProcess?.kill();
