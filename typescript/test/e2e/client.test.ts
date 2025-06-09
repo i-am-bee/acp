@@ -12,7 +12,7 @@ import {
 } from "../../src/models/models";
 
 describe("client", () => {
-  const baseUrl = "http://127.0.0.1:8000";
+  const baseUrl = "http://localhost:8000";
   let serverProcess: ReturnType<typeof spawn>;
 
   beforeAll(async () => {
@@ -28,7 +28,7 @@ describe("client", () => {
 
     try {
       await waitOn({
-        resources: [`http-get://127.0.0.1:8000/ping`],
+        resources: [`http-get://localhost:8000/ping`],
         timeout: 10000,
       });
     } catch (e) {
