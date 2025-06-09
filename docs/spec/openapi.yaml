@@ -66,8 +66,8 @@ paths:
   /agents/{name}:
     get:
       tags: [agent]
-      summary: Agent Detail
-      description: Returns details of the specified agent.
+      summary: Agent Manifest
+      description: Returns a manifest of the specified agent.
       operationId: getAgent
       parameters:
         - name: name
@@ -78,11 +78,11 @@ paths:
             $ref: "#/components/schemas/AgentName"
       responses:
         "200":
-          description: Agent details
+          description: Agent manifests
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agent"
+                $ref: "#/components/schemas/AgentManifest"
         default:
           $ref: "#/components/responses/Error"
   /runs:
@@ -369,7 +369,7 @@ components:
         agents:
           type: array
           items:
-            $ref: "#/components/schemas/Agent"
+            $ref: "#/components/schemas/AgentManifest"
       required:
         - agents
     Run:
@@ -562,7 +562,7 @@ components:
       maxLength: 63
       description: A unique identifier for the agent following the RFC 1123 DNS label naming convention.
       example: chat
-    Agent:
+    AgentManifest:
       type: object
       properties:
         name:

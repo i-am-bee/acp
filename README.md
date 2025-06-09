@@ -28,7 +28,7 @@ The **Agent Communication Protocol (ACP)** is an open standard with open governa
 
 | **Concept**      | **Description**  |
 | ---------------- | -------------------------------------------------------------------------------------------- |
-| **[Agent Detail](https://agentcommunicationprotocol.dev/core-concepts/agent-detail)** | A model describing an agent’s capabilities—its name, description, and optional metadata and status—for discovery and composition without exposing implementation details. |
+| **[Agent Manifest](https://agentcommunicationprotocol.dev/core-concepts/agent-mainfest)** | A model describing an agent’s capabilities—its name, description, and optional metadata and status—for discovery and composition without exposing implementation details. |
 | **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | A single agent execution with specific inputs. Supports sync or streaming, with intermediate and final output. |
 | **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The core structure for communication, consisting of a sequence of ordered components that form a complete, structured, and multi-modal exchange of information. |
 | **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | The individual content units within a `Message`, which can include types like text, image, or JSON. Together, they combine to create structured, multimodal communication. |

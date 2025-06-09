@@ -29,7 +29,9 @@ class AgentManifest(abc.ABC):
     ):
         pass
 
+
 Agent = AgentManifest
+
 
 def agent(
     name: str | None = None,
