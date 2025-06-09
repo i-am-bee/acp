@@ -250,3 +250,103 @@ Key points:
 - The `run_agent` function enables remote invocation of agents through ACP.
 - The router agent is provided with a `TranslationTool`, which can invoke both `translation_french` and `translation_spanish` agents via ACP by using `run_agent`.
 - Based on the user's input, the router decides which agent to invoke to fulfill the user's request.
+
+## Example: Paralelization
+
+<Tip>
+  See the complete source code on
+  [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/beeai-paralelization).
+</Tip>
+
+Parallelization is conceptually similar to prompt chaining, with one key difference: instead of invoking agents sequentially, they are called in parallel.
+
+In practice, this means using `asyncio.gather` to execute multiple remote agent calls concurrently via ACP. The process then awaits both responses, effectively blocking until all agents return their results.
+
+<CodeGroup>
+```python agent.py
+from collections.abc import AsyncGenerator
+
+from acp_sdk import Message
+from acp_sdk.client.client import Client
+from acp_sdk.models import MessagePart
+from acp_sdk.server import Context, Server
+from beeai_framework.agents.react import ReActAgent
+from beeai_framework.backend.chat import ChatModel
+from beeai_framework.memory import TokenMemory
+
+import asyncio
+
+server = Server()
+
+
+async def run_agent(agent: str, input: str) -> list[Message]:
+    async with Client(base_url="http://localhost:8000") as client:
+        run = await client.run_sync(
+            agent=agent, input=input
+        )
+
+    return run.output
+
+
+@server.agent()
+async def translation_spanish(input: list[Message]) -> AsyncGenerator:
+    llm = ChatModel.from_name("ollama:llama3.1:8b")
+
+    agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
+    response = await agent.run(
+        prompt="Translate the given English text to Spanish. Return only the translated text. The text is: "
+        + str(input)
+    )
+
+    yield MessagePart(content=response.result.text)
+
+
+@server.agent()
+async def translation_french(input: list[Message]) -> AsyncGenerator:
+    llm = ChatModel.from_name("ollama:llama3.1:8b")
+
+    agent = ReActAgent(llm=llm, tools=[], memory=TokenMemory(llm))
+    response = await agent.run(
+        prompt="Translate the given English text to French. Return only the translated text. The text is: " + str(input)
+    )
+
+    yield MessagePart(content=response.result.text)
+
+
+@server.agent()
+async def aggregator(input: list[Message], context: Context) -> AsyncGenerator:
+    spanish_result, english_result = await asyncio.gather(
+        run_agent("translation_spanish", str(input[0])), run_agent("translation_french", str(input[0]))
+    )
+
+    yield MessagePart(content=str(spanish_result[0]), language="Spanish")
+    yield MessagePart(content=str(english_result[0]), language="French")
+
+
+server.run()
+````
+
+```bash cURL
+curl -X POST http://localhost:8000/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+        "agent_name": "aggregator",
+        "input": [
+          {
+            "parts": [
+              {
+                "content_type": "text/plain",
+                "content": "Translate text \"Hello world\"."
+              }
+            ]
+          }
+        ]
+      }'
+```
+
+</CodeGroup>
+
+Key points:
+
+- The `run_agent` function enables remote invocation of agents through ACP.
+- The aggregator agent invokes both `translation_french` and `translation_spanish` in parallel using `asyncio.gather`
