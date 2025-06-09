@@ -7,7 +7,7 @@ requires-python = ">=3.11, <4.0"
 dependencies = [
     "acp-sdk",
     "mcp>=1.7.1",
-    "beeai-framework>=0.1.23",
+    "beeai-framework>=0.1.24",
     "pydantic-settings>=2.9.0",
 ]
 
