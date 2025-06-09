@@ -5,7 +5,7 @@ description = "Demonstration of routing pattern"
 requires-python = ">=3.11, <4.0"
 dependencies = [
     "acp-sdk",
-    "beeai-framework>=0.1.17",
+    "beeai-framework>=0.1.24",
     "pydantic-settings>=2.9.0",
 ]
 
