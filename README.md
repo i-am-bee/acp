@@ -14,7 +14,7 @@
 
 <br>
 
-**ACP is an open protocol for communication between AI agents and the outside world — including other agents, services, and humans.**
+**ACP is an open protocol for communication between AI agents, applications, and humans.**
 
 Modern AI agents are often built in isolation, across different frameworks, teams, and infrastructures.
 This fragmentation slows innovation and makes it harder for agents to work together effectively.
