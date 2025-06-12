@@ -20,6 +20,7 @@ from acp_sdk.models import (
 from acp_sdk.server import Server
 
 input = [Message(parts=[MessagePart(content="Hello!")])]
+output = [message.model_copy(update={"role": "agent/echo"}) for message in input]
 await_resume = MessageAwaitResume(message=Message(parts=[]))
 
 
@@ -27,7 +28,7 @@ await_resume = MessageAwaitResume(message=Message(parts=[]))
 async def test_run_sync(server: Server, client: Client) -> None:
     run = await client.run_sync(agent="echo", input=input)
     assert run.status == RunStatus.COMPLETED
-    assert run.output == input
+    assert run.output == output
 
 
 @pytest.mark.asyncio
@@ -41,7 +42,7 @@ async def test_run_stream(server: Server, client: Client) -> None:
     event_stream = [event async for event in client.run_stream(agent="echo", input=input)]
     assert isinstance(event_stream[0], RunCreatedEvent)
     assert isinstance(event_stream[-1], RunCompletedEvent)
-    assert event_stream[-1].run.output == input
+    assert event_stream[-1].run.output == output
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,4 @@
+llama-index
+acp-sdk
+docling
+python-dotenv

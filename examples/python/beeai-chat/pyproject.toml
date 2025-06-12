@@ -5,7 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.11, <4.0"
 dependencies = [
     "acp-sdk",
-    "beeai-framework[duckduckgo,wikipedia]>=0.1.17",
+    "beeai-framework[duckduckgo,wikipedia]>=0.1.23",
     "pydantic-settings>=2.9.0",
 ]
 

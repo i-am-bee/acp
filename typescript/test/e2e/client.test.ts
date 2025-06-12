@@ -18,7 +18,7 @@ describe("client", () => {
   beforeAll(async () => {
     serverProcess = spawn(
       "uv",
-      ["run", join(import.meta.dirname, "run_server.py")],
+      ["run", "--no-sync", join(import.meta.dirname, "run_server.py")],
       { shell: true }
     );
 

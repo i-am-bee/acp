@@ -1,20 +1,32 @@
 <h1 align="center">
   Agent Communication Protocol (ACP)
 </h1>
-<h3 align="center">Framework-agnostic agent communication. Unified by design.</h3>
 
 <div align="center">
 
-[![Apache 2.0](https://img.shields.io/badge/Apache%202.0-License-EA7826?style=flat-square&logo=apache&logoColor=white)](https://github.com/i-am-bee/beeai-framework?tab=Apache-2.0-1-ov-file#readme)
-[![Follow on Bluesky](https://img.shields.io/badge/Follow%20on%20Bluesky-0285FF?style=flat-square&logo=bluesky&logoColor=white)](https://bsky.app/profile/beeaiagents.bsky.social)
-[![Join our Discord](https://img.shields.io/badge/Join%20our%20Discord-7289DA?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/NradeA6ZNF)
-[![LF AI & Data](https://img.shields.io/badge/LF%20AI%20%26%20Data-0072C6?style=flat-square&logo=linuxfoundation&logoColor=white)](https://lfaidata.foundation/projects/)
+[![PyPI - Version](https://img.shields.io/pypi/v/acp-sdk)](https://pypi.org/project/acp-sdk)
+[![NPM - Version](https://img.shields.io/npm/v/acp-sdk)](https://www.npmjs.com/package/acp-sdk)
+[![Apache License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/i-am-bee/beeai-framework?tab=Apache-2.0-1-ov-file#readme)
+[![Follow on Bluesky](https://img.shields.io/badge/Bluesky-blue?logo=bluesky&logoColor=white)](https://bsky.app/profile/beeaiagents.bsky.social)
+[![Join our Discord](https://img.shields.io/badge/Discord-blue?logo=discord&logoColor=white)](https://discord.gg/NradeA6ZNF)
 
 </div>
 
 <br>
 
-The **Agent Communication Protocol (ACP)** is an open standard with open governance for agent interoperability. It defines a standardized RESTful API supporting synchronous, asynchronous, and streaming interactions. In ACP, agents are services that exchange multimodal messages, with the protocol remaining agnostic to their internal implementations and requiring only minimal specifications for compatibility.
+**ACP is an open protocol for communication between AI agents, applications, and humans.**
+
+Modern AI agents are often built in isolation, across different frameworks, teams, and infrastructures.
+This fragmentation slows innovation and makes it harder for agents to work together effectively.
+ACP solves this by enabling agents to communicate and coordinate using multimodal messages.
+
+ACP enables agents to:
+- Send and receive rich messages — like text, code, files, or media
+- Respond in real time, in the background, or as a stream
+- Let others discover what they can do
+- Collaborate on long-running tasks
+- Share state with each other when needed
+
 
 ## ACP Toolkit
 
