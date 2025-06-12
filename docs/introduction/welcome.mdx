@@ -20,8 +20,8 @@ While you can integrate ACP agents directly into your own applications, ACP also
 
 AI systems today are fragmented across incompatible frameworks, creating:
 
-- Duplicated effort - Teams rebuild similar functionality
 - Integration barriers - Connecting different agents requires custom solutions
+- Duplicated effort - Teams rebuild similar functionality
 - Scalability challenges - Point-to-point integrations don't scale
 - Inconsistent developer experience - Each framework has its own patterns
 
@@ -44,7 +44,7 @@ By creating a universal foundation for agent communication, ACP drives broader A
 ## Key Features
 
 - **REST-based Communication:** ACP uses simple, well-defined [REST endpoints](/spec/agents-list) that align with standard HTTP patterns. Unlike protocols requiring specialized communication methods (such as JSON-RPC), ACP leverages familiar HTTP conventions that integrate seamlessly into production environments.
-- **Support for All Message Types** ACP uses MimeTypes for content identification, making it easily extensible to handle any data format. Whether you're sending text, images, audio, video, or custom binary formats, any mimetype works out of the box without protocol modifications.
+- **Support for All Message Types:** ACP uses MimeTypes for content identification, making it easily extensible to handle any data format. Whether you're sending text, images, audio, video, or custom binary formats, any mimetype works out of the box without protocol modifications.
 - **No SDK Required (but available):** The protocol is simple enough to use with standard HTTP tools like curl, Postman, or browser requests. For teams preferring structured tooling, an official [SDK](https://github.com/i-am-bee/acp/tree/main/python) is available.
 - **Offline Discovery:** Agents can be made discoverable even when inactive by embedding metadata directly into their distribution packages. This enables discovery in secure, disconnected, or scale-to-zero environments.
 - **Async-first, Sync Supported:** Built primarily for asynchronous communication to handle long-running agent tasks, while fully supporting synchronous communication for development, testing, and simpler use cases.
