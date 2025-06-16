@@ -1,7 +1,7 @@
 import { v4 as uuuid } from "uuid";
 import { ErrorModel } from "../models/errors.js";
 import {
-  Agent,
+  AgentManifest,
   AgentName,
   AwaitResume,
   Event,
@@ -148,12 +148,12 @@ export class Client {
     PingResponse.parse(data);
   }
 
-  async agents(): Promise<Agent[]> {
+  async agents(): Promise<AgentManifest[]> {
     const data = await this.#fetcher("/agents", { method: "GET" });
     return AgentsListResponse.parse(data).agents;
   }
 
-  async agent(name: AgentName): Promise<Agent> {
+  async agent(name: AgentName): Promise<AgentManifest> {
     const data = await this.#fetcher(`/agents/${name}`, { method: "GET" });
     return AgentsReadResponse.parse(data);
   }

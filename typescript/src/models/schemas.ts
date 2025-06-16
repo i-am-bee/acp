@@ -1,6 +1,6 @@
 import * as z from "zod";
 import {
-  Agent,
+  AgentManifest,
   AgentName,
   AwaitResume,
   Event,
@@ -13,10 +13,10 @@ import {
 export const PingResponse = z.object({});
 
 export const AgentsListResponse = z.object({
-  agents: z.array(Agent),
+  agents: z.array(AgentManifest),
 });
 
-export const AgentsReadResponse = Agent;
+export const AgentsReadResponse = AgentManifest;
 
 export const RunCreateRequest = z.object({
   agent_name: AgentName,
