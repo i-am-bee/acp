@@ -268,13 +268,13 @@ export function throwForRunStatus(run: Run) {
   return run;
 }
 
-export const Agent = z.object({
+export const AgentManifest = z.object({
   name: AgentName,
   description: z.string().nullish(),
   metadata: Metadata.default({}),
 });
 
-export type Agent = z.infer<typeof Agent>;
+export type AgentManifest = z.infer<typeof AgentManifest>;
 
 export const MessageCreatedEvent = z.object({
   type: z.literal("message.created"),

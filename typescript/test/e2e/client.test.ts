@@ -5,7 +5,7 @@ import { describe, test, expect, beforeAll, afterAll } from "vitest";
 import waitOn from "wait-on";
 import { Client } from "../../src/client/client";
 import {
-  Agent,
+  AgentManifest,
   Message,
   MessageAwaitResume,
   Event,
@@ -56,7 +56,7 @@ describe("client", () => {
       expect(agents.length).toBeGreaterThan(0);
 
       for (const agent of agents) {
-        expect(agent).toSatisfy((agent) => Agent.safeParse(agent).success);
+        expect(agent).toSatisfy((agent) => AgentManifest.safeParse(agent).success);
       }
     });
 
@@ -66,7 +66,7 @@ describe("client", () => {
 
       const agent = await client.agent(agentName);
 
-      expect(agent).toSatisfy((agent) => Agent.safeParse(agent).success);
+      expect(agent).toSatisfy((agent) => AgentManifest.safeParse(agent).success);
       expect(agent.name).toBe(agentName);
     });
   });

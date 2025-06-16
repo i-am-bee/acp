@@ -38,7 +38,7 @@ from acp_sdk.models import (
     RunStatus,
     Session,
 )
-from acp_sdk.server.agent import Agent
+from acp_sdk.server.agent import AgentManifest
 from acp_sdk.server.context import Context
 from acp_sdk.server.logging import logger
 from acp_sdk.server.store import Store
@@ -71,7 +71,7 @@ class Executor:
     def __init__(
         self,
         *,
-        agent: Agent,
+        agent: AgentManifest,
         run_data: RunData,
         session: Session,
         executor: ThreadPoolExecutor,

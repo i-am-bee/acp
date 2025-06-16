@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from acp_sdk.models.models import (
-    Agent,
+    AgentManifest,
     AgentName,
     AwaitResume,
     Event,
@@ -18,10 +18,10 @@ class PingResponse(BaseModel):
 
 
 class AgentsListResponse(BaseModel):
-    agents: list[Agent]
+    agents: list[AgentManifest]
 
 
-class AgentReadResponse(Agent):
+class AgentReadResponse(AgentManifest):
     pass
 
 

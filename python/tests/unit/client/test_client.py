@@ -4,7 +4,7 @@ import pytest
 from acp_sdk.client import Client
 from acp_sdk.models import (
     ACPError,
-    Agent,
+    AgentManifest,
     AgentsListResponse,
     Error,
     ErrorCode,
@@ -19,7 +19,7 @@ from acp_sdk.models import (
 )
 from pytest_httpx import HTTPXMock
 
-mock_agent = Agent(name="mock")
+mock_agent = AgentManifest(name="mock")
 mock_agents = [mock_agent]
 mock_session = Session()
 mock_run = Run(

@@ -15,7 +15,7 @@ from acp_sdk.client.utils import input_to_messages
 from acp_sdk.instrumentation import get_tracer
 from acp_sdk.models import (
     ACPError,
-    Agent,
+    AgentManifest,
     AgentName,
     AgentReadResponse,
     AgentsListResponse,
@@ -125,17 +125,17 @@ class Client:
     def session(self, session: Session | None = None) -> Self:
         return Client(client=self._client, manage_client=False, session=session or Session())
 
-    async def agents(self, *, base_url: httpx.URL | str | None = None) -> AsyncIterator[Agent]:
+    async def agents(self, *, base_url: httpx.URL | str | None = None) -> AsyncIterator[AgentManifest]:
         response = await self._client.get(self._create_url("/agents", base_url=base_url))
         self._raise_error(response)
         for agent in AgentsListResponse.model_validate(response.json()).agents:
             yield agent
 
-    async def agent(self, *, name: AgentName, base_url: httpx.URL | str | None = None) -> Agent:
+    async def agent(self, *, name: AgentName, base_url: httpx.URL | str | None = None) -> AgentManifest:
         response = await self._client.get(self._create_url(f"/agents/{name}", base_url=base_url))
         self._raise_error(response)
         response = AgentReadResponse.model_validate(response.json())
-        return Agent(**response.model_dump())
+        return AgentManifest(**response.model_dump())
 
     async def ping(self, *, base_url: httpx.URL | str | None = None) -> bool:
         response = await self._client.get(self._create_url("/ping", base_url=base_url))

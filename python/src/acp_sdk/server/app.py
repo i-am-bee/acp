@@ -39,9 +39,9 @@ from acp_sdk.models import (
     SessionReadResponse,
 )
 from acp_sdk.models import (
-    Agent as AgentModel,
+    AgentManifest as AgentModel,
 )
-from acp_sdk.server.agent import Agent
+from acp_sdk.server.agent import AgentManifest
 from acp_sdk.server.errors import (
     RequestValidationError,
     StarletteHTTPException,
@@ -61,7 +61,7 @@ class Headers(str, Enum):
 
 
 def create_app(
-    *agents: Agent,
+    *agents: AgentManifest,
     store: Store | None = None,
     resource_store: ResourceStore | None = None,
     resource_loader: ResourceLoader | None = None,
@@ -103,7 +103,7 @@ def create_app(
         allow_credentials=True,
     )
 
-    agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
+    agents: dict[AgentName, AgentManifest] = {agent.name: agent for agent in agents}
 
     store = store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
     run_store = store.as_store(model=RunData, prefix="run_")
@@ -130,7 +130,7 @@ def create_app(
             run_data.run.status = RunStatus.CANCELLING
         return run_data
 
-    def find_agent(agent_name: AgentName) -> Agent:
+    def find_agent(agent_name: AgentName) -> AgentManifest:
         agent = agents.get(agent_name, None)
         if not agent:
             raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
