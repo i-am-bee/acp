@@ -102,6 +102,7 @@ class CitationMetadata(BaseModel):
     - description: Accompanying text, which may be a general description of the
                    source document, or a specific snippet.
     """
+
     kind: Literal["citation"] = "citation"
     start_index: Optional[int]
     end_index: Optional[int]
