@@ -78,10 +78,36 @@ class Metadata(BaseModel):
 
 
 class CitationMetadata(BaseModel):
+    """
+    Represents an inline citation, providing info about information source. This
+    is supposed to be rendered as an inline icon, optionally marking a text
+    range it belongs to.
+
+    If CitationMetadata is included together with content in the message part,
+    the citation belongs to that content and renders at the MessagePart position.
+    This way may be used for non-text content, like images and files.
+
+    Alternatively, `start_index` and `end_index` may define a text range,
+    counting characters in the current Message across all MessageParts with
+    content type `text/*`, where the citation will be rendered. If one of
+    `start_index` and `end_index` is missing or their values are equal, the
+    citation renders only as an inline icon at that position.
+
+    If both `start_index` and `end_index` are not present and MessagePart has no
+    content, the citation renders as inline icon only at the MessagePart position.
+
+    Properties:
+    - url: URL of the source document.
+    - title: Title of the source document.
+    - description: Accompanying text, which may be a general description of the
+                   source document, or a specific snippet.
+    """
     kind: Literal["citation"] = "citation"
-    url: str
-    start_index: int
-    end_index: int
+    start_index: Optional[int]
+    end_index: Optional[int]
+    url: Optional[str]
+    title: Optional[str]
+    description: Optional[str]
 
 
 class MessagePart(BaseModel):
