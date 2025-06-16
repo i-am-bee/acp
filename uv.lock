@@ -30,7 +30,7 @@ members = [
     "openai-story-writer",
     "orchestrator",
     "prompt-chaining",
-    "prompt-paralelization",
+    "prompt-parallelization",
     "routing",
 ]
 
@@ -4353,9 +4353,9 @@ requires-dist = [
 ]
 
 [[package]]
-name = "prompt-paralelization"
+name = "prompt-parallelization"
 version = "0.1.0"
-source = { virtual = "examples/python/beeai-paralelization" }
+source = { virtual = "examples/python/beeai-parallelization" }
 dependencies = [
     { name = "acp-sdk" },
     { name = "beeai-framework" },
