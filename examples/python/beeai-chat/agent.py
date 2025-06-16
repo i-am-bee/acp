@@ -20,7 +20,7 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
     match role:
         case "user":
             return UserMessage(content)
-        case "agent":
+        case role if role == "agent" or (role.startswith("agent/")):
             return AssistantMessage(content)
         case _:
             raise ValueError(f"Unsupported role {role}")
@@ -60,7 +60,7 @@ async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
                     case "thought" | "tool_name" | "tool_input" | "tool_output":
                         yield {data.update.key: update}
                     case "final_answer":
-                        yield Message(role="agent", parts=[MessagePart(content=update)])
+                        yield Message(parts=[MessagePart(content=update)])
                 last_key = data.update.key
 
 

@@ -19,7 +19,7 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
     match role:
         case "user":
             return UserMessage(content)
-        case "agent":
+        case role if role == "agent" or (role.startswith("agent/")):
             return AssistantMessage(content)
         case _:
             raise ValueError(f"Unsupported role {role}")
@@ -29,7 +29,7 @@ def to_acp_message(message: beeai_framework.backend.Message) -> Message:
     parts = []
     for content in message.content:
         parts.append(MessagePart(content=content.text))
-    return Message(role="agent", parts=parts)
+    return Message(parts=parts)
 
 
 @server.agent()
