@@ -30,7 +30,6 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
 
 @server.agent(
     metadata=Metadata(
-        ui={"type": "chat", "user_greeting": "Let's chat!"},
         annotations=PlatformAnnotations(
             beeai_platform=[
                 PlatformUIAnnotation(
