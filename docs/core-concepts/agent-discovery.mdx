@@ -3,18 +3,15 @@ title: "Agent Discovery"
 description: "Discover available agents and their capabilities"
 ---
 
-Agent discovery in ACP helps you quickly **find available agents** and **understand their capabilities**. This simplifies integration and ensures compatibility. Agent metadata is standardized through the [Agent Manifest](/core-concepts/agent-manifest) specification and can be **extended** to support your custom needs.
+Agent discovery is the process by which ACP clients locate and connect to available agents. The [Agent Detail](/core-concepts/agent-detail)  enables clients to find the appropriate ACP server and retrieve the necessary metadata to establish communication.
+
+Before an ACP client can interact with an agent, it must first discover that agent and obtain its connection details and capabilities. The discovery process provides clients with agent name, description, capabilities, operational status, and additional metadata.
+
+Agent discovery can occur through two primary methods:
+- Online Discovery: happens when the ACP server is actively running and can respond to discovery requests in real-time.
+- Offline discovery: allows clients to find agents even when the ACP server is not currently running, using pre-registered or cached agent information.
 
 ## Basic Discovery (via ACP Server)
-
-You can discover agents hosted on ACP servers using REST APIs or the ACP Python SDK. Basic discovery returns essential info like:
-- Name and description
-- Capabilities
-- Operational status
-
-<Note>
-  Filtering and sorting are on our roadmap. Help us shape priorities by sharing your thoughts via [community feedback](/about/contribute).
-</Note>
 
 <Tabs>
   <Tab title="REST API">
@@ -36,6 +33,10 @@ You can discover agents hosted on ACP servers using REST APIs or the ACP Python 
     ```
   </Tab>
 </Tabs>
+
+<Note>
+  Filtering and sorting are on our roadmap. Help us shape priorities by sharing your thoughts via [community feedback](/about/contribute).
+</Note>
 
 ## Registry-Based Discovery
 

@@ -9,7 +9,7 @@ The **Agent Communication Protocol (ACP)** provides a standardized interface for
 
 An **ACP client** can be used by an ACP agent, application, or other service that makes requests to an ACP server using the ACP protocol.
 
-An **ACP server** can be an ACP agent, microservice, or subprocess that executes requests and returns results to the client using the ACP protocol.
+An **ACP server** can host one or more ACP agents that executes requests and returns results to the client using the ACP protocol. The purpose of the ACP server is to expose agents through a REST interface.
 
 <Note>
 ACP servers and clients can be deployed in any combination—a single process can act as both a server (handling incoming requests) and a client (making outbound requests to other agents).
@@ -28,7 +28,7 @@ flowchart LR
 
 The simplest ACP deployment connects a client directly to a single agent via a REST interface over HTTP. This pattern is ideal for direct communication with a single specialized agent, lightweight setups with minimal infrastructure requirements, development and debugging environments, proof-of-concept implementations.
 
-The ACP Server wraps the agent and exposes an HTTP endpoint, translating REST calls into the agent's internal logic and returning responses in the standardized ACP format.
+The ACP Server wraps the agent and exposes an HTTP endpoint, the agent is invoked and returns responses in the standardized ACP format.
 
 ## Multi-Agent Single Server
 
