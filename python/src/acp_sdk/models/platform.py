@@ -6,10 +6,12 @@ class PlatformUIType(str, Enum):
     CHAT = "chat"
     HANDSOFF = "hands-off"
 
+
 class AgentToolInfo(BaseModel):
     name: str
     description: str | None = None
     model_config = ConfigDict(extra="allow")
+
 
 class PlatformUIAnnotation(BaseModel):
     ui_type: PlatformUIType
