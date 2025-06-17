@@ -1,11 +1,10 @@
 from collections.abc import AsyncGenerator
 
-from acp_sdk.models.models import Metadata
+# from acp_sdk.models.models import Metadata
 import beeai_framework
 from acp_sdk import Message
-from acp_sdk.models import MessagePart
+from acp_sdk.models import Metadata, Annotations, PlatformUIAnnotation, PlatformUIType
 from acp_sdk.server import Context, Server
-from acp_sdk.models.platform import PlatformAnnotations, PlatformUIAnnotation, PlatformAnnotationType, PlatformUIType
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
@@ -30,13 +29,9 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
 
 @server.agent(
     metadata=Metadata(
-        annotations=PlatformAnnotations(
-            beeai_platform=[
-                PlatformUIAnnotation(
-                    type=PlatformAnnotationType.UI_TYPE, ui_type=PlatformUIType.CHAT, user_greeting="Let's chat!"
-                )
-            ]
-        ),
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(ui_type=PlatformUIType.CHAT, user_greeting="Let's chat!")
+        )
     )
 )
 async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:

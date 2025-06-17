@@ -10,7 +10,6 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 from acp_sdk.models.errors import ACPError, Error
 from acp_sdk.models.types import AgentName, ResourceId, ResourceUrl, RunId, SessionId
 from acp_sdk.shared import ResourceLoader, ResourceStore
-from acp_sdk.models.platform import PlatformAnnotations
 
 
 class AnyModel(BaseModel):
@@ -57,8 +56,22 @@ class Capability(BaseModel):
     description: str
 
 
+class PlatformUIType(str, Enum):
+    CHAT = "chat"
+    HANDSOFF = "hands-off"
+
+class PlatformUIAnnotation(BaseModel):
+    ui_type: PlatformUIType
+    user_greeting: str | None = None
+    model_config = ConfigDict(extra="allow")
+
+class Annotations(BaseModel):
+    beeai_ui: PlatformUIAnnotation | None = None
+    model_config = ConfigDict(extra="allow")
+
+
 class Metadata(BaseModel):
-    annotations: AnyModel | PlatformAnnotations | None = None
+    annotations: Annotations | None = None
     documentation: str | None = None
     license: str | None = None
     programming_language: str | None = None
