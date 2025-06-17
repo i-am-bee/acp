@@ -30,7 +30,13 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
 
 @server.agent(
     metadata=Metadata(
-        annotations=Annotations(beeai_ui=PlatformUIAnnotation(ui_type=PlatformUIType.CHAT, user_greeting="Let's chat!"))
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="Let's chat!",
+                display_name="Chat Agent",
+            )
+        )
     )
 )
 async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
