@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, Optional, Union
 
+from acp_sdk.models.platform import PlatformUIAnnotation
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
@@ -55,15 +56,6 @@ class Capability(BaseModel):
     name: str
     description: str
 
-
-class PlatformUIType(str, Enum):
-    CHAT = "chat"
-    HANDSOFF = "hands-off"
-
-class PlatformUIAnnotation(BaseModel):
-    ui_type: PlatformUIType
-    user_greeting: str | None = None
-    model_config = ConfigDict(extra="allow")
 
 class Annotations(BaseModel):
     beeai_ui: PlatformUIAnnotation | None = None
