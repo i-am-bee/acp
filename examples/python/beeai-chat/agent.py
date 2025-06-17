@@ -1,9 +1,11 @@
 from collections.abc import AsyncGenerator
 
+from acp_sdk.models.models import Metadata
 import beeai_framework
 from acp_sdk import Message
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
+from acp_sdk.models.platform import PlatformAnnotations, PlatformUIAnnotation, PlatformAnnotationType, PlatformUIType
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
@@ -26,7 +28,18 @@ def to_framework_message(role: str, content: str) -> beeai_framework.backend.Mes
             raise ValueError(f"Unsupported role {role}")
 
 
-@server.agent()
+@server.agent(
+    metadata=Metadata(
+        ui={"type": "chat", "user_greeting": "Let's chat!"},
+        annotations=PlatformAnnotations(
+            beeai_platform=[
+                PlatformUIAnnotation(
+                    type=PlatformAnnotationType.UI_TYPE, ui_type=PlatformUIType.CHAT, user_greeting="Let's chat!"
+                )
+            ]
+        ),
+    )
+)
 async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
@@ -34,20 +47,16 @@ async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """
 
     # ensure the model is pulled before running
-    llm = ChatModel.from_name(
-        "ollama:llama3.1", ChatModelParameters(temperature=0))
+    llm = ChatModel.from_name("ollama:llama3.1", ChatModelParameters(temperature=0))
 
     # Configure tools
-    tools: list[AnyTool] = [WikipediaTool(), OpenMeteoTool(),
-                            DuckDuckGoSearchTool()]
+    tools: list[AnyTool] = [WikipediaTool(), OpenMeteoTool(), DuckDuckGoSearchTool()]
 
     # Create agent with memory and tools
     agent = ReActAgent(llm=llm, tools=tools, memory=TokenMemory(llm))
 
     history = [message async for message in context.session.load_history()]
-    framework_messages = [
-        to_framework_message(message.role, str(message)) for message in history + input
-    ]
+    framework_messages = [to_framework_message(message.role, str(message)) for message in history + input]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
