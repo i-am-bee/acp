@@ -111,6 +111,22 @@ class CitationMetadata(BaseModel):
     description: Optional[str]
 
 
+class TrajectoryTool(BaseModel):
+    name: Optional[str] = None
+    input: Optional[AnyModel] = None
+    output: Optional[AnyModel] = None
+
+
+class TrajectoryMetadata(BaseModel):
+    kind: Literal["trajectory"] = "trajectory"
+    message: Optional[str] = None
+    tool: Optional[TrajectoryTool] = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.message is None and self.tool is None:
+            raise ValueError("Either message or tool must be provided")
+
+
 class MessagePart(BaseModel):
     name: Optional[str] = None
     content_type: Optional[str] = "text/plain"
@@ -120,7 +136,7 @@ class MessagePart(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    metadata: Optional[CitationMetadata] = Field(discriminator="kind", default=None)
+    metadata: Optional[CitationMetadata | TrajectoryMetadata] = Field(discriminator="kind", default=None)
 
     def model_post_init(self, __context: Any) -> None:
         if self.content is not None and self.content_url is not None:
