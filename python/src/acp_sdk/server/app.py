@@ -167,9 +167,9 @@ def create_app(
         )
 
         session = request.session or (
-            (await session_store.get(request.session_id) or Session(id=request.session_id, store=resource_store))
+            (await session_store.get(request.session_id) or Session(id=request.session_id))
             if request.session_id
-            else Session(store=resource_store)
+            else Session()
         )
         session.loader = server_resource_loader
         session.store = resource_store
