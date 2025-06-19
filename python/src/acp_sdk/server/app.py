@@ -162,8 +162,19 @@ def create_app(
         if request.session_id and request.session and request.session_id != request.session.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
 
+        def create_resource_url_forwarded(id: ResourceId) -> ResourceUrl:
+            return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
+
+        async def create_resource_url(id: ResourceId) -> ResourceUrl:
+            if forward_resources:
+                return create_resource_url_forwarded(id)
+            else:
+                return await resource_store.url(id)
+
         server_resource_loader = ServerResourceLoader(
-            loader=resource_loader, store=resource_store, base_url=str(req.base_url) if forward_resources else None
+            loader=resource_loader,
+            store=resource_store,
+            create_resource_url=create_resource_url_forwarded if forward_resources else None,
         )
 
         session = request.session or (
@@ -186,12 +197,6 @@ def create_app(
 
         headers = {Headers.RUN_ID: str(run_data.run.run_id)}
         ready = asyncio.Event()
-
-        async def create_resource_url(id: ResourceId) -> ResourceUrl:
-            if forward_resources:
-                return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
-            else:
-                return await resource_store.url(id)
 
         Executor(
             agent=agent,

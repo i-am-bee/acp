@@ -357,6 +357,6 @@ class Session(BaseModel):
         if not store:
             raise ValueError("Store must be specified")
 
-        id = ResourceId()
+        id = uuid.uuid4()
         await store.store(id, data)
         return await store.url(id)
