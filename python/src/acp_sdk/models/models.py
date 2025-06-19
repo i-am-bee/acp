@@ -116,6 +116,7 @@ class CitationMetadata(BaseModel):
     title: Optional[str]
     description: Optional[str]
 
+
 class TrajectoryMetadata(BaseModel):
     kind: Literal["trajectory"] = "trajectory"
     message: Optional[str] = None
