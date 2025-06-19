@@ -51,6 +51,7 @@ from acp_sdk.server.errors import (
     validation_exception_handler,
 )
 from acp_sdk.server.executor import CancelData, Executor, RunData
+from acp_sdk.server.resources import ServerResourceLoader
 from acp_sdk.server.store import MemoryStore, Store
 from acp_sdk.server.utils import stream_sse, wait_util_stop
 from acp_sdk.shared import ResourceLoader, ResourceStore
@@ -161,14 +162,17 @@ def create_app(
         if request.session_id and request.session and request.session_id != request.session.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
 
-        session = request.session or (
-            (
-                await session_store.get(request.session_id)
-                or Session(id=request.session_id, loader=resource_loader, store=resource_store)
-            )
-            if request.session_id
-            else Session(loader=resource_loader, store=resource_store)
+        server_resource_loader = ServerResourceLoader(
+            loader=resource_loader, store=resource_store, base_url=str(req.base_url) if forward_resources else None
         )
+
+        session = request.session or (
+            (await session_store.get(request.session_id) or Session(id=request.session_id, store=resource_store))
+            if request.session_id
+            else Session(store=resource_store)
+        )
+        session.loader = server_resource_loader
+        session.store = resource_store
 
         nonlocal executor
         run_data = RunData(
@@ -200,7 +204,7 @@ def create_app(
             executor=executor,
             request=req,
             resource_store=resource_store,
-            resource_loader=resource_loader,
+            resource_loader=server_resource_loader,
             create_resource_url=create_resource_url,
         ).execute(request.input, wait=ready)
 
