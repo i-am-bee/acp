@@ -10,12 +10,7 @@ python.uv_venv_auto = true
 [tasks."common:check:nwa"]
 dir = "{{config_root}}"
 run = """
-ret=0
-nwa check -i Apache-2.0 'examples/**/*.{py,js,jsx,ts,tsx,html,css,scss}' || ret=$?
-nwa check -i Apache-2.0 '*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' || ret=$?
-nwa check -i Apache-2.0 'python/tests/**/*.{py,js,jsx,ts,tsx,html,css,scss}' || ret=$?
-nwa check -i Apache-2.0 'typescript/test/**/*.{py,js,jsx,ts,tsx,html,css,scss}' || ret=$?
-(($ret==0))
+nwa check -i Apache-2.0 '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}'
 """
 outputs = { auto = true }
 
