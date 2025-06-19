@@ -17,13 +17,7 @@ outputs = { auto = true }
 [tasks."common:fix:nwa"]
 dir = "{{config_root}}"
 run = """
-nwa update -i Apache-2.0 'examples/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 'examples/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa update -i Apache-2.0 '*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 '*/src/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa update -i Apache-2.0 'python/tests/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 'python/tests/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa update -i Apache-2.0 'typescript/test/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 'typescript/test/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
+nwa update -i Apache-2.0 '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
+nwa add    -i Apache-2.0 '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
 """
 outputs = { auto = true }
