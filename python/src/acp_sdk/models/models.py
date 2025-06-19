@@ -8,6 +8,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
+from acp_sdk.models.platform import PlatformUIAnnotation
 from acp_sdk.models.types import AgentName, ResourceId, ResourceUrl, RunId, SessionId
 from acp_sdk.shared import ResourceLoader, ResourceStore
 
@@ -56,8 +57,13 @@ class Capability(BaseModel):
     description: str
 
 
+class Annotations(BaseModel):
+    beeai_ui: PlatformUIAnnotation | None = None
+    model_config = ConfigDict(extra="allow")
+
+
 class Metadata(BaseModel):
-    annotations: AnyModel | None = None
+    annotations: Annotations | None = None
     documentation: str | None = None
     license: str | None = None
     programming_language: str | None = None
@@ -77,6 +83,40 @@ class Metadata(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class CitationMetadata(BaseModel):
+    """
+    Represents an inline citation, providing info about information source. This
+    is supposed to be rendered as an inline icon, optionally marking a text
+    range it belongs to.
+
+    If CitationMetadata is included together with content in the message part,
+    the citation belongs to that content and renders at the MessagePart position.
+    This way may be used for non-text content, like images and files.
+
+    Alternatively, `start_index` and `end_index` may define a text range,
+    counting characters in the current Message across all MessageParts with
+    content type `text/*`, where the citation will be rendered. If one of
+    `start_index` and `end_index` is missing or their values are equal, the
+    citation renders only as an inline icon at that position.
+
+    If both `start_index` and `end_index` are not present and MessagePart has no
+    content, the citation renders as inline icon only at the MessagePart position.
+
+    Properties:
+    - url: URL of the source document.
+    - title: Title of the source document.
+    - description: Accompanying text, which may be a general description of the
+                   source document, or a specific snippet.
+    """
+
+    kind: Literal["citation"] = "citation"
+    start_index: Optional[int]
+    end_index: Optional[int]
+    url: Optional[str]
+    title: Optional[str]
+    description: Optional[str]
+
+
 class MessagePart(BaseModel):
     name: Optional[str] = None
     content_type: Optional[str] = "text/plain"
@@ -86,9 +126,9 @@ class MessagePart(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
+    metadata: Optional[CitationMetadata] = Field(discriminator="kind", default=None)
+
     def model_post_init(self, __context: Any) -> None:
-        if self.content is None and self.content_url is None:
-            raise ValueError("Either content or content_url must be provided")
         if self.content is not None and self.content_url is not None:
             raise ValueError("Only one of content or content_url can be provided")
 
@@ -282,7 +322,6 @@ Event = Union[
     RunCancelledEvent,
     RunFailedEvent,
     RunCompletedEvent,
-    MessagePartEvent,
 ]
 
 

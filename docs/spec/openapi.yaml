@@ -278,6 +278,50 @@ components:
       type: string
       enum: [sync, async, stream]
       description: Mode of the request
+    CitationMetadata:
+      type: object
+      description: >
+        Represents an inline citation, providing info about information source. This
+        is supposed to be rendered as an inline icon, optionally marking a text
+        range it belongs to.
+
+        If CitationMetadata is included together with content in the message part,
+        the citation belongs to that content and renders at the MessagePart position.
+        This way may be used for non-text content, like images and files.
+
+        Alternatively, `start_index` and `end_index` may define a text range,
+        counting characters in the current Message across all MessageParts with
+        content type `text/*`, where the citation will be rendered. If one of
+        `start_index` and `end_index` is missing or their values are equal, the
+        citation renders only as an inline icon at that position.
+
+        If both `start_index` and `end_index` are not present and MessagePart has no
+        content, the citation renders as inline icon only at the MessagePart position.
+      properties:
+        kind:
+          type: string
+          const: citation
+          default: citation
+        start_index:
+          type: integer
+          nullable: true
+        end_index:
+          type: integer
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          description: >
+            Accompanying text, which may be a general description of the
+            source document, or a specific snippet.
+      required:
+        - kind
     MessagePart:
       type: object
       properties:
@@ -285,6 +329,7 @@ components:
           type: string
         content_type:
           type: string
+          default: text/plain
         content:
           type: string
         content_encoding:
@@ -294,26 +339,22 @@ components:
         content_url:
           type: string
           format: uri
+        metadata:
+          $ref: "#/components/schemas/CitationMetadata"
+          nullable: true
       required:
         - content_type
-      oneOf:
-        - required: [content]
-        - required: [content_url]
-      description: "A part of a message, containing a specific `content_type` and either inline `content` or `content_url`. Only one of `content` or `content_url` must be provided."
+      not:
+        allOf:
+          - required: [content]
+          - required: [content_url]
+      description: "A part of a message, containing a specific `content_type` and either inline `content` or `content_url`, or neither. Only one of `content` or `content_url` can be provided."
     Message:
       type: object
+      required:
+        - parts
+        - role
       properties:
-        parts:
-          type: array
-          items:
-            $ref: "#/components/schemas/MessagePart"
-          minItems: 1
-        created_at:
-          type: string
-          format: date-time
-        completed_at:
-          type: string
-          format: date-time
         role:
           type: string
           description: |
@@ -327,9 +368,18 @@ components:
             - agent/summarizer
             - agent/data_processor
           pattern: '^(user|agent(\/[a-zA-Z0-9_\-]+)?)$'
-      required:
-        - parts
-        - role
+        parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessagePart"
+          minItems: 1
+          description: "Ordered sequence of message parts"
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
     AwaitRequest:
       type: object
       description: Payload describing what is awaited from the client to continue the run.

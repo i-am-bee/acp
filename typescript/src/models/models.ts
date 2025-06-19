@@ -3,6 +3,7 @@ import { Simplify } from "type-fest";
 import { ErrorModel } from "./errors.js";
 import { createSchemaTypePredicate, nullishObject } from "./utils.js";
 import { ACPError } from "../client/errors.js";
+import { PlatformUIAnnotation } from "./platform.js";
 
 export const AnyModel = z.record(z.any());
 
@@ -42,9 +43,13 @@ export const Capability = z.object({
   description: z.string(),
 });
 
+export const Annotations = z.object({
+  beeai_ui: PlatformUIAnnotation.nullish(),
+});
+
 export const Metadata = nullishObject(
   z.object({
-    annotations: AnyModel,
+    annotations: Annotations,
     documentation: z.string(),
     license: z.string(),
     programming_language: z.string(),
@@ -63,6 +68,15 @@ export const Metadata = nullishObject(
   })
 ).passthrough();
 
+export const CitationMetadata = z.object({
+  kind: z.literal("citation").default("citation"),
+  start_index: z.number().int().nullish(),
+  end_index: z.number().int().nullish(),
+  url: z.string().nullish(),
+  title: z.string().nullish(),
+  description: z.string().nullish(),
+});
+
 const BaseMessagePart = z
   .object({
     name: z.string().nullish(),
@@ -70,6 +84,7 @@ const BaseMessagePart = z
     content: z.string().nullish(),
     content_encoding: z.enum(["plain", "base64"]).nullish().default("plain"),
     content_url: z.string().url().nullish(),
+    metadata: CitationMetadata.nullish(),
   })
   .passthrough();
 
@@ -77,12 +92,7 @@ const refineMessagePart = (
   val: z.infer<typeof BaseMessagePart>,
   ctx: z.RefinementCtx
 ): never => {
-  if (val.content == null && val.content_url == null) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Either content or content_url must be provided",
-    });
-  } else if (val.content != null && val.content_url != null) {
+  if (val.content != null && val.content_url != null) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Only one of content or content_url can be provided",

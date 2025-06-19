@@ -6,7 +6,7 @@ from acp_sdk import Message
 from acp_sdk.models import MessagePart
 from acp_sdk.server import Context, Server
 from beeai_framework.agents.react import ReActAgent
-from beeai_framework.backend import AssistantMessage, Role, UserMessage
+from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel
 from beeai_framework.memory import TokenMemory
 from run_agent_tool import HandoffTool
@@ -15,11 +15,11 @@ server = Server()
 session_storage = defaultdict(list[Message])
 
 
-def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
+def to_framework_message(role: str, content: str) -> beeai_framework.backend.Message:
     match role:
-        case Role.USER:
+        case "user":
             return UserMessage(content)
-        case Role.ASSISTANT:
+        case role if role == "agent" or (role.startswith("agent/")):
             return AssistantMessage(content)
         case _:
             raise ValueError(f"Unsupported role {role}")
@@ -28,7 +28,7 @@ def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Me
 def to_acp_message(message: beeai_framework.backend.Message) -> Message:
     parts = []
     for content in message.content:
-        parts.append(MessagePart(content=content.text, role=message.role))
+        parts.append(MessagePart(content=content.text))
     return Message(parts=parts)
 
 
@@ -50,7 +50,7 @@ async def spanish_agent(input: list[Message]) -> AsyncGenerator:
         },
         memory=TokenMemory(llm),
     )
-    await agent.memory.add_many([to_framework_message(Role.USER, str(message)) for message in input])
+    await agent.memory.add_many([to_framework_message("user", str(message)) for message in input])
     response = await agent.run()
 
     yield to_acp_message(response.result)
@@ -73,7 +73,7 @@ async def english_agent(input: list[Message]) -> AsyncGenerator:
         },
         memory=TokenMemory(llm),
     )
-    await agent.memory.add_many([to_framework_message(Role.USER, str(message)) for message in input])
+    await agent.memory.add_many([to_framework_message("user", str(message)) for message in input])
     response = await agent.run()
 
     yield to_acp_message(response.result)

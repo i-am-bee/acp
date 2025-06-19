@@ -1,11 +1,13 @@
 from collections.abc import AsyncGenerator
 
+
 import beeai_framework
 from acp_sdk import Message
-from acp_sdk.models import MessagePart
+from acp_sdk.models import Metadata, Annotations
+from acp_sdk.models.platform import PlatformUIAnnotation, PlatformUIType
 from acp_sdk.server import Context, Server
 from beeai_framework.agents.react import ReActAgent, ReActAgentUpdateEvent
-from beeai_framework.backend import AssistantMessage, Role, UserMessage
+from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.chat import ChatModel, ChatModelParameters
 from beeai_framework.memory import TokenMemory
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
@@ -16,17 +18,27 @@ from beeai_framework.tools.weather.openmeteo import OpenMeteoTool
 server = Server()
 
 
-def to_framework_message(role: Role, content: str) -> beeai_framework.backend.Message:
+def to_framework_message(role: str, content: str) -> beeai_framework.backend.Message:
     match role:
-        case Role.USER:
+        case "user":
             return UserMessage(content)
-        case Role.ASSISTANT:
+        case role if role == "agent" or (role.startswith("agent/")):
             return AssistantMessage(content)
         case _:
             raise ValueError(f"Unsupported role {role}")
 
 
-@server.agent()
+@server.agent(
+    metadata=Metadata(
+        annotations=Annotations(
+            beeai_ui=PlatformUIAnnotation(
+                ui_type=PlatformUIType.CHAT,
+                user_greeting="Let's chat!",
+                display_name="Chat Agent",
+            )
+        )
+    )
+)
 async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
     """
     The agent is an AI-powered conversational system with memory, supporting real-time search, Wikipedia lookups,
@@ -43,9 +55,7 @@ async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
     agent = ReActAgent(llm=llm, tools=tools, memory=TokenMemory(llm))
 
     history = [message async for message in context.session.load_history()]
-    framework_messages = [
-        to_framework_message(Role(message.parts[0].role), str(message)) for message in history + input
-    ]
+    framework_messages = [to_framework_message(message.role, str(message)) for message in history + input]
     await agent.memory.add_many(framework_messages)
 
     async for data, event in agent.run():
@@ -58,7 +68,7 @@ async def chat_agent(input: list[Message], context: Context) -> AsyncGenerator:
                     case "thought" | "tool_name" | "tool_input" | "tool_output":
                         yield {data.update.key: update}
                     case "final_answer":
-                        yield MessagePart(content=update, role="assistant")
+                        yield Message(parts=[MessagePart(content=update)])
                 last_key = data.update.key
 
 
