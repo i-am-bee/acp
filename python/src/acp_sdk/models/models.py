@@ -8,6 +8,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
+from acp_sdk.models.platform import PlatformUIAnnotation
 from acp_sdk.models.types import AgentName, ResourceId, ResourceUrl, RunId, SessionId
 from acp_sdk.shared import ResourceLoader, ResourceStore
 
@@ -56,8 +57,13 @@ class Capability(BaseModel):
     description: str
 
 
+class Annotations(BaseModel):
+    beeai_ui: PlatformUIAnnotation | None = None
+    model_config = ConfigDict(extra="allow")
+
+
 class Metadata(BaseModel):
-    annotations: AnyModel | None = None
+    annotations: Annotations | None = None
     documentation: str | None = None
     license: str | None = None
     programming_language: str | None = None
