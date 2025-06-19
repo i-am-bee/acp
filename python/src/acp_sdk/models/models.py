@@ -116,17 +116,12 @@ class CitationMetadata(BaseModel):
     title: Optional[str]
     description: Optional[str]
 
-
-class TrajectoryTool(BaseModel):
-    name: Optional[str] = None
-    input: Optional[AnyModel] = None
-    output: Optional[AnyModel] = None
-
-
 class TrajectoryMetadata(BaseModel):
     kind: Literal["trajectory"] = "trajectory"
     message: Optional[str] = None
-    tool: Optional[TrajectoryTool] = None
+    tool_name: Optional[str] = None
+    tool_input: Optional[AnyModel] = None
+    tool_output: Optional[AnyModel] = None
 
     def model_post_init(self, __context: Any) -> None:
         if self.message is None and self.tool is None:
