@@ -9,7 +9,7 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from acp_sdk.models.errors import ACPError, Error
 from acp_sdk.models.platform import PlatformUIAnnotation
-from acp_sdk.models.types import AgentName, ResourceId, ResourceUrl, RunId, SessionId
+from acp_sdk.models.types import AgentName, ResourceUrl, RunId, SessionId
 from acp_sdk.shared import ResourceLoader, ResourceStore
 
 
@@ -369,6 +369,6 @@ class Session(BaseModel):
         if not store:
             raise ValueError("Store must be specified")
 
-        id = ResourceId()
+        id = uuid.uuid4()
         await store.store(id, data)
         return await store.url(id)

@@ -173,8 +173,6 @@ Your response should include the echoed message "Howdy!":
 }
 ```
 
-Your response should include the echoed message "Howdy!".
-
 **7. Build an ACP client**
 
 Here's a simple ACP client to interact with your `echo` agent.  
@@ -217,7 +215,7 @@ You should see the echoed response printed to your console. 🎉
 
 ## Contributors
 
-We are grateful for the efforts of our initial contributors, who have played a vital role in getting ACP of the ground. As we continue to grow and evolve, we invite others to join our vibrant community and contribute to our project's ongoing development. For more information, please visit the [Contribute](https://agentcommunicationprotocol.dev/about/contribute) page of our documentation.
+We are grateful for the efforts of our initial contributors, who have played a vital role in getting ACP off the ground. As we continue to grow and evolve, we invite others to join our vibrant community and contribute to our project's ongoing development. For more information, please visit the [Contribute](https://agentcommunicationprotocol.dev/about/contribute) page of our documentation.
 
 ![Contributors list](https://contrib.rocks/image?repo=i-am-bee/acp)
 

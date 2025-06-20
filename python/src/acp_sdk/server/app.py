@@ -51,6 +51,7 @@ from acp_sdk.server.errors import (
     validation_exception_handler,
 )
 from acp_sdk.server.executor import CancelData, Executor, RunData
+from acp_sdk.server.resources import ServerResourceLoader
 from acp_sdk.server.store import MemoryStore, Store
 from acp_sdk.server.utils import stream_sse, wait_util_stop
 from acp_sdk.shared import ResourceLoader, ResourceStore
@@ -161,14 +162,30 @@ def create_app(
         if request.session_id and request.session and request.session_id != request.session.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
 
-        session = request.session or (
-            (
-                await session_store.get(request.session_id)
-                or Session(id=request.session_id, loader=resource_loader, store=resource_store)
-            )
-            if request.session_id
-            else Session(loader=resource_loader, store=resource_store)
+        def create_resource_url_forwarded(id: ResourceId) -> ResourceUrl:
+            if not forward_resources:
+                raise RuntimeError("Resource forwarding disabled")
+            return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
+
+        async def create_resource_url(id: ResourceId) -> ResourceUrl:
+            if forward_resources:
+                return create_resource_url_forwarded(id)
+            else:
+                return await resource_store.url(id)
+
+        server_resource_loader = ServerResourceLoader(
+            loader=resource_loader,
+            store=resource_store,
+            create_resource_url=create_resource_url_forwarded if forward_resources else None,
         )
+
+        session = request.session or (
+            (await session_store.get(request.session_id) or Session(id=request.session_id))
+            if request.session_id
+            else Session()
+        )
+        session.loader = server_resource_loader
+        session.store = resource_store
 
         nonlocal executor
         run_data = RunData(
@@ -183,12 +200,6 @@ def create_app(
         headers = {Headers.RUN_ID: str(run_data.run.run_id)}
         ready = asyncio.Event()
 
-        async def create_resource_url(id: ResourceId) -> ResourceUrl:
-            if forward_resources:
-                return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
-            else:
-                return await resource_store.url(id)
-
         Executor(
             agent=agent,
             run_data=run_data,
@@ -200,7 +211,7 @@ def create_app(
             executor=executor,
             request=req,
             resource_store=resource_store,
-            resource_loader=resource_loader,
+            resource_loader=server_resource_loader,
             create_resource_url=create_resource_url,
         ).execute(request.input, wait=ready)
 

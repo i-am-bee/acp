@@ -8,15 +8,15 @@ The Agent Communication Protocol (ACP) defines a structured lifecycle that guide
 ## Lifecycle Phases
 
 At a high level, an ACP agent's lifecycle consists of these key phases:
-1. **Configuration** - Define capabilities and behavior
+1. **Configuration** - Define agent logic, capabilities, and behavior
 2. **Deployment** - Make the agent available for use
 3. **Execution** - Process requests and generate responses
-4. **Persistence** - Maintain state across interactions
+4. **State Management** - Maintain persistence across interactions
 5. **Termination** - Complete processing and release resources
 
 ## Configuration
 
-Configuration is where you define an agent's capabilities, behavior, and API contract. In the ACP Python SDK, this is implemented using the `@agent()` decorator pattern.
+Configuration defines your agent's functionality and how other systems interact with it. In the ACP Python SDK, you configure agents using the `@agent()` decorator:
 
 ```python echo.py
 @server.agent()
@@ -26,13 +26,11 @@ async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYiel
 ```
 
 The configuration establishes several critical aspects of the agent:
-- **Function Definition:** The core functionality that determines what the agent does
-- **Input Parameter:** The `input` parameter accepts a list of `Message` objects
-- **Context Parameter:** The `context` parameter provides access to the execution environment
-- **Return Type:** The `AsyncGenerator[RunYield, RunYieldResume]` return type enables both streaming responses and the await pattern
-- **Documentation:** The docstring provides a human-readable description of the agent
+- **Functionality:** What the agent does (your code + docstring)
+- **Input interface:** Accepts `list[Message]` and `Context` (provides access to the execution environment)
+- **Output interface:** Returns `AsyncGenerator[RunYield, RunYieldResume]` for both streaming responses and the await pattern
 
-The configuration phase determines how the agent will be discovered, accessed, and understood by other systems in the ACP ecosystem. For a complete reference of all configuration parameters, please refer to the [Agent Manifest](/core-concepts/agent-manifest) documentation page.
+This configuration determines how your agent appears to other systems in the ACP ecosystem - what they can send to it, what they'll get back, and what it does. For additional configuration options, see the [Agent Manifest](/core-concepts/agent-manifest) documentation.
 
 ## Deployment
 
@@ -40,7 +38,7 @@ Deployment activates your configured agent and makes it available to clients. Ag
 
 ### Built-in Server Deployment
 
-The simplest approach uses the SDK's built-in server:
+The simplest approach uses the SDK's built-in server which handles routing, server configuration, and agent registration automatically:
 
 ```python echo.py
 import asyncio
@@ -68,11 +66,9 @@ server.run() # Starts the server on the default port
 # Source: python/examples/servers/echo.py
 ```
 
-This handles HTTP routing, ASGI server configuration, and agent registration in a single step.
-
 ### Standalone ASGI Application
 
-For integration with external ASGI servers, the SDK offers application factory functions:
+For integration with external ASGI servers, the SDK offers application factory functions. This approach separates the agent definition from the server implementation, providing more flexibility for production deployments:
 
 ```python standalone.py
 from collections.abc import AsyncGenerator
@@ -103,8 +99,6 @@ app = create_app(echo)
 # Source: python/examples/servers/standalone.py
 ```
 
-This approach separates the agent definition from the server implementation, providing more flexibility for production deployments.
-
 ## Execution
 
 Execution is when your agent actively processes requests and generates responses. The ACP SDK supports several execution patterns:
@@ -126,9 +120,7 @@ async for event in client.run_stream(agent="echo", input=[Message(parts=[Message
     print(event)
 ```
 
-Inside the agent function, execution happens as the agent processes input and yields results.
-
-## Agent Runs and State Management
+## Agent Runs
 
 Individual agent executions are managed through "Agent Runs," which can be part of a session and inherit its history. ACP provides specific API endpoints for managing execution lifecycle:
 
@@ -139,7 +131,7 @@ Individual agent executions are managed through "Agent Runs," which can be part 
 | `POST`                   | `/runs/{run_id}`              | Resumes an agent run in the `awaiting` state. Requires `await_resume` data. Optional: `mode` for the response. |
 | `POST`                   | `/runs/{run_id}/cancel`       | Requests cancellation of an ongoing agent run. Returns `202 Accepted` if cancellation is initiated.    |
 
-### Run States
+### Agent Run Lifecycle
 
 Agent Runs transition through the following states:
 
@@ -166,20 +158,21 @@ Each run begins in the `created` state and transitions to `in-progress` after re
 
 - Enter the `awaiting` state when requiring external input
 - Complete successfully and enter the `completed` state
-- Be cancelled and enter `cancelling` followed by cancelled
+- Be cancelled and enter `cancelling` followed by `cancelled`
 - Encounter an error and enter the `failed` state
 
 Some agent implementations may allow continuing from certain terminal states back to `in-progress`.
 
-## Persistence and memory
+## State Management
 
-Persistence refers to how agents maintain state across interactions. The ACP SDK implements two key persistence mechanisms:
+Persistence refers to how agents maintain state across interactions. The ACP SDK implements this in two ways:
 
-### Multi-turn (session-based)
+### Multi-turn (sessions)
 
 State can be preserved across multiple agent runs using sessions. The client can create a session to ensure the agent is maintaining the internal state between runs, and thus holding a continuous conversation.
 
 When using the ACP SDK, the `input` argument will contain the full session history from all the previous runs in the same session. `context.session_id` holds the session id, allowing agents to store additional session-related data.
+
 
 ```python multi_turn.py
 @server.agent()
@@ -187,7 +180,7 @@ async def multi_turn(input: list[Message], context: Context) -> AsyncGenerator[R
     ... # `input` has the full history, `context.session_id` can be used to reference extra data
 ```
 
-On the client, a session can be used like this:
+Client usage:
 
 ```python session.py
 async with Client(base_url="http://localhost:8000") as client, client.session() as session:
@@ -199,7 +192,7 @@ async with Client(base_url="http://localhost:8000") as client, client.session() 
 
 ### Single-turn (await)
 
-The await pattern enables back-and-forth interactions within a single agent run:
+The await pattern pauses and resumes interaction within a single run to request additional information:
 
 ```python awaiting.py
 @server.agent()
@@ -217,13 +210,13 @@ async def awaiting(input: list[Message], context: Context) -> AsyncGenerator[Run
     yield MessagePart(content=f"Thanks for config: {resume.message}")
 ```
 
-This pattern allows the agent to begin processing with initial input, pause execution when it requires additional information, request that information, and resume from where it left off once the input is provided.
+This pattern allows the agent to begin processing with initial input, pause execution when it requires additional information, request that information, and resume from where it left off once the input is provided -- all within one single execution.
 
 ## Termination
 
-Termination is the final phase in an agent's lifecycle when processing concludes and system resources are released. The ACP SDK supports several types of termination:
+Termination is when an agent stops processing and cleans up resources. The ACP SDK handles three types of termination:
 
-1. **Successful Completion.** This is the most common scenario, where the agent processes the input and finishes execution normally. In ACP SDK examples, this happens when the agent function yields all responses and returns control.
+1. **Successful Completion.** This is the most common scenario, where the agent processes the input and finishes execution normally. In ACP SDK examples, this happens when the agent function yields all responses.
 
 2. **Session Termination.** For stateful interactions, termination occurs when a session ends. The SDK uses context managers to ensure all session-related resources are properly released, which is critical for system stability during long-lived or high-volume operations.
 
