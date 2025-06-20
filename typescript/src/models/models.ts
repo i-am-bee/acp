@@ -77,6 +77,14 @@ export const CitationMetadata = z.object({
   description: z.string().nullish(),
 });
 
+export const TrajectoryMetadata = z.object({
+  kind: z.literal("trajectory").default("trajectory"),
+  message: z.string().nullish(),
+  tool_name: z.string().nullish(),
+  tool_input: AnyModel.nullish(),
+  tool_output: AnyModel.nullish(),
+});
+
 const BaseMessagePart = z
   .object({
     name: z.string().nullish(),
@@ -84,7 +92,7 @@ const BaseMessagePart = z
     content: z.string().nullish(),
     content_encoding: z.enum(["plain", "base64"]).nullish().default("plain"),
     content_url: z.string().url().nullish(),
-    metadata: CitationMetadata.nullish(),
+    metadata: z.union([CitationMetadata, TrajectoryMetadata]).nullish(),
   })
   .passthrough();
 

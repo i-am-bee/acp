@@ -322,6 +322,42 @@ components:
             source document, or a specific snippet.
       required:
         - kind
+    TrajectoryMetadata:
+      type: object
+      description: >
+        Represents trajectory information for an agent's reasoning or tool execution
+        steps. This metadata helps track the agent's decision-making process and
+        provides transparency into how the agent arrived at its response.
+
+        TrajectoryMetadata can capture either:
+        1. A reasoning step with a message
+        2. A tool execution with tool name, input, and output
+
+        This information can be used for debugging, audit trails, and providing
+        users with insight into the agent's thought process.
+      properties:
+        kind:
+          type: string
+          const: trajectory
+          default: trajectory
+        message:
+          type: string
+          nullable: true
+          description: A reasoning step or thought in the agent's decision process.
+        tool_name:
+          type: string
+          nullable: true
+          description: Name of the tool that was executed.
+        tool_input:
+          type: object
+          nullable: true
+          description: Input parameters passed to the tool.
+        tool_output:
+          type: object
+          nullable: true
+          description: Output or result returned by the tool.
+      required:
+        - kind
     MessagePart:
       type: object
       properties:
@@ -340,7 +376,9 @@ components:
           type: string
           format: uri
         metadata:
-          $ref: "#/components/schemas/CitationMetadata"
+          oneOf:
+            - $ref: "#/components/schemas/CitationMetadata"
+            - $ref: "#/components/schemas/TrajectoryMetadata"
           nullable: true
       required:
         - content_type
