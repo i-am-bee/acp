@@ -3,6 +3,7 @@ import { Simplify } from "type-fest";
 import { ErrorModel } from "./errors.js";
 import { createSchemaTypePredicate, nullishObject } from "./utils.js";
 import { ACPError } from "../client/errors.js";
+import { PlatformUIAnnotation } from "./platform.js";
 
 export const AnyModel = z.record(z.any());
 
@@ -42,9 +43,13 @@ export const Capability = z.object({
   description: z.string(),
 });
 
+export const Annotations = z.object({
+  beeai_ui: PlatformUIAnnotation.nullish(),
+});
+
 export const Metadata = nullishObject(
   z.object({
-    annotations: AnyModel,
+    annotations: Annotations,
     documentation: z.string(),
     license: z.string(),
     programming_language: z.string(),

@@ -3,19 +3,18 @@ title: "Agent Discovery"
 description: "Discover available agents and their capabilities"
 ---
 
-Agent discovery in ACP helps you quickly **find available agents** and **understand their capabilities**. This simplifies integration and ensures compatibility. Agent metadata is standardized through the [Agent Manifest](/core-concepts/agent-manifest) specification and can be **extended** to support your custom needs.
+Agent discovery is the process by which ACP clients locate and connect to available agents. The [Agent Manifest](/core-concepts/agent-manifest)  enables clients to find the appropriate ACP server and retrieve the necessary metadata to establish communication.
 
-## Basic Discovery (via ACP Server)
+The discovery process provides clients with agent name, description, capabilities, operational status, and additional metadata.
 
-You can discover agents hosted on ACP servers using REST APIs or the ACP Python SDK. Basic discovery returns essential info like:
-- Name and description
-- Capabilities
-- Operational status
+Agent discovery can occur through these primary methods:
+- **Basic Discovery**: Query running ACP servers directly (online)
+- **Open Discovery**: Use public manifest files at well-known URLs (online)
+- **Registry-Based Discovery**: Use a centralized registry (online or offline)
+- **Embedded Discovery**: Find agents using embedded metadata or manifest files (offline)
 
-<Note>
-  Filtering and sorting are on our roadmap. Help us shape priorities by sharing your thoughts via [community feedback](/about/contribute).
-</Note>
-
+## Basic Discovery
+Query a running ACP server to discover its agents:
 <Tabs>
   <Tab title="REST API">
     ```bash
@@ -37,49 +36,53 @@ You can discover agents hosted on ACP servers using REST APIs or the ACP Python 
   </Tab>
 </Tabs>
 
-## Registry-Based Discovery
+<Note>
+  Filtering and sorting are on our roadmap. Help us shape priorities by sharing your thoughts via [community feedback](/about/contribute).
+</Note>
 
-Registry-based discovery provides a centralized view of agents across multiple ACP servers. This makes managing and discovering agents easier, especially in large-scale deployments or enterprise environments.
+## Open Discovery
 
-It enables:
-- Centralized agent listings
-- Scalable management across multiple servers
-- Simplified search and discovery
+Open discovery allows [Agent Manifest](/core-concepts/agent-manifest) to be made publicly accessible through a standardized manifest file. This lets apps, websites, and tools discover agent capabilities by knowing only the agent's domain.
 
-While not yet part of the official ACP spec, this feature is already implemented in the [BeeAI Platform](https://beeai.dev).
-
-We are actively gauging community interest in making this a core part of the ACP specification. To help shape the direction, visit our [Contribute](/about/contribute) page.
-
-## Offline Discovery
-
-Offline discovery allows agents to be discoverable without requiring network connectivity. This is achieved by embedding agent metadata directly into the distribution package, typically through container image labels or bundled metadata files.
-
-By embedding metadata during build time, the [Agent Manifest](/core-concepts/agent-manifest) remains synchronized with the agent's actual implementation. This approach:
-- Prevents mismatches between advertised capabilities and actual behavior
-- Provides value in secure, disconnected, or automated deployment environments
-- Simplifies distribution and deployment workflows
-
-We recommend embedding Agent Manifest metadata directly into container images during the build process. The [BeeAI Platform](https://beeai.dev) follows this best practice by storing standardized metadata in container image labels, which:
-- Streamlines integration with CI/CD pipelines
-- Ensures metadata consistency throughout the deployment lifecycle
-- Simplifies agent discovery in offline environments
-
-## Open Discovery (Manifest Files)
-
-Open discovery allows [Agent Manifest](/core-concepts/agent-manifest) to be made publicly accessible through a standardized manifest file. This makes it easy for apps, websites, and third-party tools to discover agent capabilities by knowing only the agent’s domain.
-
-We recommended that you publish agent metadata using a YAML file (`agent.yml`), placed in a well-known public location:
+Publish your agent metadata using a YAML file at a well-known location:
 
 ```bash
 https://your-domain.com/.well-known/agent.yml
 ```
 
-The Agent Manifest specification currently covers only the description of an agent’s capabilities. It does **not** include instructions for how to deploy or consume the agent.
+**Important**: The Agent Manifest specification only describes agent capabilities, not deployment or consumption instructions.
 
-- **Managed agents** (packaged for deployment) require standardized build and deployment instructions
-- **Unmanaged agents** (already running services) require metadata on how to access and consume the service
+- **Managed agents** (packaged for deployment) need standardized build and deployment instructions
+- **Unmanaged agents** (already running services) need metadata on how to access and consume the service
 
-These deployment details are not yet part of the official ACP specification. However, we are exploring options for standardizing both managed and unmanaged agent metadata. Early prototypes have used containers, `uvx`, and `npx` to simplify agent distribution and usage.
+These deployment details aren't part of the official ACP specification yet. We're exploring options for standardizing both types using containers, `uvx`, and `npx` for simpler distribution.
+
+
+## Registry-Based Discovery
+
+Registry-based discovery provides a centralized view of agents across multiple ACP servers, making it easier to manage agents in large deployments. Registries can work online (live queries) or offline (cached/synced databases).
+
+Benefits:
+- Centralized agent listings
+- Scalable management across multiple servers
+- Simplified search and discovery
+
+While not yet part of the official ACP spec, this feature is implemented in the [BeeAI Platform](https://beeai.dev). We're gauging community interest in making this part of the core ACP specification. Share your feedback on our Contribute page.
+
+## Embedded Discovery
+
+Offline discovery lets you find agents without network connectivity by embedding agent metadata directly into distribution packages (like container image labels or bundled metadata files).
+
+By embedding metadata during build time, the [Agent Manifest](/core-concepts/agent-manifest) remains synchronized with the agent's actual implementation. This approach:
+- Prevents mismatches between advertised capabilities and actual behavior
+- Provides value in secure, disconnected, or automated deployment environments
+- Simplifies distribution and deployment
+
+We recommend embedding Agent Manifest metadata directly into container images during builds. The [BeeAI Platform](https://beeai.dev) stores standardized metadata in container image labels, which:
+- Integrates with CI/CD pipelines
+- Ensures metadata consistency throughout the deployment lifecycle
+- Simplifies offline agent discovery
+
 
 To participate in ongoing discussions about manifest standardization and best practices, visit our [Contribute](/about/contribute) page or join these existing discussions:
 

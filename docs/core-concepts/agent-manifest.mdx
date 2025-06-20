@@ -4,6 +4,23 @@ description: "Structure and usage of the Agent Manifest"
 openapi-schema: "AgentManifest"
 ---
 
-The **Agent Manifest** describes essential properties of an agent, including its identity, capabilities, metadata, and runtime status.
+The **Agent Manifest** describes essential properties of an agent, including its identity, capabilities, metadata, and runtime status. It also plays an important role in discoverability and how the ACP server advertises agents to clients.
+
+<Note>
+During implementation, if the agent name and description are not provided, the agent's function name and docstring will be used as defaults (as they are required).
+</Note>
+
+## Example SDK Implementation
+The `@server.agent` decorator is used to configure an agent's metadata when registering it with an ACP server:
+```python agent.py
+@server.agent(
+    name="data-analyzer",
+    description="Analyzes datasets and generates insights")
+async def DataAnalyzerAgent():
+    """String that is used as default description if not explicitly provided in the @server.agent """
+    # Agent implementation here
+    yield str(response.object)
+
+```
 
 ## Parameters

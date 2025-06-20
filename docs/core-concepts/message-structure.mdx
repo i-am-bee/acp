@@ -3,7 +3,7 @@ title: "Message Structure"
 description: "A minimal, multi-modal structure for exchanging content"
 ---
 
-In the Agent Communication Protocol (ACP), a **Message** is a sequence of ordered parts, forming complete, structured, multi-modal communications.
+A Message is how agents send and receive information in ACP. Messages consists of a sequence of ordered parts, forming complete, structured, multi-modal communications.
 
 ## Message Role
 
@@ -16,14 +16,14 @@ Each message must specify a `role` that identifies the sender. Valid role format
 
 | Attribute                  | Required | Description                                                               |
 | :------------------------- | :------- | :------------------------------------------------------------------------ |
-| `content_type`             | Yes      | The MIME type describing the format of the content                        |
-| `content` OR `content_url` | Yes      | Content provided inline (`content`) or via URL (`content_url`) |
-| `content_encoding`         | No       | Encoding of the content (`"plain"` by default, or `"base64"`)             |
-| `name`                     | No       | If present, identifies the part as an **Artifact**                        |
+| `content_type`             | Yes      | MIME type (e.g., `text/plain`, `image/png`)                               |
+| `content` OR `content_url` | Yes      | Content `inline` or via `URL`                                             |
+| `content_encoding`         | No       | `"plain"`  (default) or `"base64"`                                        |
+| `name`                     | No       | Makes this part an **Artifact**                                               |
 
 ## Artifacts
 
-**Artifacts** are specialized MessageParts identified explicitly by a required `name` attribute. They typically represent:
+**Artifacts** are specialized MessageParts with a `name` attribute. They represent important outputs like:
 
 - Attachments
 - Citations
@@ -32,7 +32,7 @@ Each message must specify a `role` that identifies the sender. Valid role format
 
 ## Examples
 
-ACP Messages always consist of ordered parts. The ordering ensures content is presented or processed in the intended sequence.
+Messages are made of ordered parts. The order determines how content is presented or processed.
 
 ### Basic Text Message
 
@@ -108,7 +108,7 @@ ACP Messages always consist of ordered parts. The ordering ensures content is pr
 
 ### Inline Content
 
-Use inline content for small, text-based, or simple data:
+Best for small, text-based, or simple data:
 
 ```json
 {
@@ -121,9 +121,9 @@ Use inline content for small, text-based, or simple data:
 }
 ```
 
-### Referenced Content
+### Referenced Content (URL)
 
-Use referenced content (via URLs) for larger files, external resources, or when inline embedding is impractical:
+Best for larger files, external resources, or when inline embedding is impractical:
 
 ```json
 {
@@ -137,7 +137,7 @@ Use referenced content (via URLs) for larger files, external resources, or when 
 
 ### Base64 Encoded Content
 
-Use explicitly for binary data (e.g., images, documents) embedded directly:
+Best for binary data (images, documents) embedded directly:
 
 ```json
 {
@@ -170,32 +170,29 @@ class Message(BaseModel):
     parts: list[MessagePart]
 ```
 
-<Note>`Artifact` inherits all validation rules from `MessagePart`. Therefore, artifacts must also contain either `content` or `content_url`, but never both.</Note>
+<Note>`Artifacts` inherit all validation rules from `MessagePart` so they must also have either `content` or `content_url` (never both).</Note>
 
 
 ## Validation Rules
 
 - Every part must have a `content_type`
-- Parts must provide either `content` or `content_url`, but not both
-- MessageParts with a `name` are considered Artifacts
-- Parts are ordered, allowing for structured sequences
+- Parts must provide either `content` or `content_url` (not both)
+- MessageParts with a `name` are Artifacts
+- Parts are processed in order
 
 ## Common Content Types
+Any valid MIME type can be used as content. Some common ones are:
 
-Some commonly used content types include:
+- `text/plain`: Plain text content
+- `image/png`, `image/jpeg`: Image content
+- `application/json`: JSON data
+- `application/pdf`: PDF documents
+- `text/html`: HTML content
 
-- `text/plain`: For plain text content
-- `image/png`, `image/jpeg`: For image content
-- `application/json`: For JSON data
-- `application/pdf`: For PDF documents
-- `text/html`: For HTML content
+## Advanced Features
 
-Any valid MIME type can be used as appropriate for your content.
-
-## Extensibility Feature
-
-ACP is designed to be extensible through specialized content types:
+ACP supports extensibility through specialized content types:
 
 - Schema validation via `application/json;schema=...`
-- Special meaning for certain types (trajectory, tool calling, etc.)
-- Additional metadata for specific applications
+- Special semantics for specific types (trajectories, tool calls, etc.)
+- Custom metadata for application-specific needs
