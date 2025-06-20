@@ -118,15 +118,30 @@ class CitationMetadata(BaseModel):
 
 
 class TrajectoryMetadata(BaseModel):
+    """
+    Represents trajectory information for an agent's reasoning or tool execution
+    steps. This metadata helps track the agent's decision-making process and
+    provides transparency into how the agent arrived at its response.
+
+    TrajectoryMetadata can capture either:
+    1. A reasoning step with a message
+    2. A tool execution with tool name, input, and output
+
+    This information can be used for debugging, audit trails, and providing
+    users with insight into the agent's thought process.
+
+    Properties:
+    - message: A reasoning step or thought in the agent's decision process.
+    - tool_name: Name of the tool that was executed.
+    - tool_input: Input parameters passed to the tool.
+    - tool_output: Output or result returned by the tool.
+    """
+
     kind: Literal["trajectory"] = "trajectory"
     message: Optional[str] = None
     tool_name: Optional[str] = None
     tool_input: Optional[AnyModel] = None
     tool_output: Optional[AnyModel] = None
-
-    def model_post_init(self, __context: Any) -> None:
-        if self.message is None and self.tool is None:
-            raise ValueError("Either message or tool must be provided")
 
 
 class MessagePart(BaseModel):

@@ -14,12 +14,13 @@ Each message must specify a `role` that identifies the sender. Valid role format
 
 ## Message Parts
 
-| Attribute                  | Required | Description                                                               |
-| :------------------------- | :------- | :------------------------------------------------------------------------ |
-| `content_type`             | Yes      | MIME type (e.g., `text/plain`, `image/png`)                               |
-| `content` OR `content_url` | Yes      | Content `inline` or via `URL`                                             |
-| `content_encoding`         | No       | `"plain"`  (default) or `"base64"`                                        |
-| `name`                     | No       | Makes this part an **Artifact**                                               |
+| Attribute                  | Required | Description                                                  |
+| :------------------------- | :------- | :----------------------------------------------------------- |
+| `content_type`             | Yes      | MIME type (e.g., `text/plain`, `image/png`)                  |
+| `content` OR `content_url` | Yes      | Content `inline` or via `URL`                                |
+| `content_encoding`         | No       | `"plain"`  (default) or `"base64"`                           |
+| `name`                     | No       | Makes this part an **Artifact**                              |
+| `metadata`                 | No       | Additional metadata like citations or trajectory information |
 
 ## Artifacts
 
@@ -29,6 +30,30 @@ Each message must specify a `role` that identifies the sender. Valid role format
 - Citations
 - Files
 - Named results
+
+## Metadata
+
+MessageParts can include optional `metadata` to provide additional context or semantic information. ACP supports two types of metadata:
+
+### Citation Metadata
+
+Used to reference information sources and provide attribution for content. Citations can be rendered as inline icons or text range annotations.
+
+**Properties:**
+- `url`: URL of the source document
+- `title`: Title of the source document  
+- `description`: Description or snippet from the source
+- `start_index` / `end_index`: Character range for text citations
+
+### Trajectory Metadata
+
+Used to capture an agent's reasoning steps or tool execution information, providing transparency into the agent's decision-making process.
+
+**Properties:**
+- `message`: A reasoning step or thought in the agent's process
+- `tool_name`: Name of the tool that was executed
+- `tool_input`: Input parameters passed to the tool
+- `tool_output`: Output or result returned by the tool
 
 ## Examples
 
@@ -104,6 +129,56 @@ Messages are made of ordered parts. The order determines how content is presente
 }
 ```
 
+### Message with Citation Metadata
+
+```json
+{
+  "role": "agent/researcher",
+  "parts": [
+    {
+      "content_type": "text/plain",
+      "content": "According to recent studies, AI adoption has increased by 40% this year.",
+      "metadata": {
+        "kind": "citation",
+        "url": "https://example.com/ai-study-2024",
+        "title": "AI Adoption Report 2024",
+        "description": "Comprehensive analysis of AI adoption trends",
+        "start_index": 24,
+        "end_index": 67
+      }
+    }
+  ]
+}
+```
+
+### Message with Trajectory Metadata
+
+```json
+{
+  "role": "agent/analyst",
+  "parts": [
+    {
+      "content_type": "text/plain",
+      "content": "Let me search for the latest financial data.",
+      "metadata": {
+        "kind": "trajectory",
+        "message": "Planning to use the financial data API to get quarterly results"
+      }
+    },
+    {
+      "content_type": "text/plain", 
+      "content": "Found Q3 revenue of $2.4M",
+      "metadata": {
+        "kind": "trajectory",
+        "tool_name": "financial_api",
+        "tool_input": {"query": "Q3 revenue", "company": "ACME"},
+        "tool_output": {"revenue": "2400000", "currency": "USD"}
+      }
+    }
+  ]
+}
+```
+
 ## Content Delivery Methods
 
 ### Inline Content
@@ -153,12 +228,28 @@ Best for binary data (images, documents) embedded directly:
 ## Data Models
 
 ```python
+class CitationMetadata(BaseModel):
+    kind: Literal["citation"] = "citation"
+    start_index: Optional[int]
+    end_index: Optional[int]
+    url: Optional[str]
+    title: Optional[str]
+    description: Optional[str]
+
+class TrajectoryMetadata(BaseModel):
+    kind: Literal["trajectory"] = "trajectory"
+    message: Optional[str] = None
+    tool_name: Optional[str] = None
+    tool_input: Optional[AnyModel] = None
+    tool_output: Optional[AnyModel] = None
+
 class MessagePart(BaseModel):
     name: Optional[str] = None
     content_type: str
     content: Optional[str] = None
     content_encoding: Optional[Literal["plain", "base64"]] = "plain"
     content_url: Optional[AnyUrl] = None
+    metadata: Optional[CitationMetadata | TrajectoryMetadata] = None
 
     # Validation ensures either content or content_url is provided, but not both
 
