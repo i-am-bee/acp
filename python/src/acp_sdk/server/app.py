@@ -163,6 +163,8 @@ def create_app(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID mismatch")
 
         def create_resource_url_forwarded(id: ResourceId) -> ResourceUrl:
+            if not forward_resources:
+                raise RuntimeError("Resource forwarding disabled")
             return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
 
         async def create_resource_url(id: ResourceId) -> ResourceUrl:
