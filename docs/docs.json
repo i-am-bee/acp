@@ -28,6 +28,7 @@
         "group": "Introduction",
         "pages": [
           "/introduction/welcome",
+          "/introduction/whats-new",
           "/introduction/quickstart",
           "/introduction/example-agents"
         ]

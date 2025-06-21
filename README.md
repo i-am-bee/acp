@@ -27,6 +27,14 @@ ACP enables agents to:
 - Collaborate on long-running tasks
 - Share state with each other when needed
 
+## What's New
+
+- **🌐 [Distributed Sessions](https://agentcommunicationprotocol.dev/core-concepts/distributed-sessions)** - Session continuity across multiple server instances using URI-based resource sharing
+- **🔍 [RAG LlamaIndex Agent](https://github.com/i-am-bee/acp/tree/main/examples/python/llama-index-rag)** - New example agent demonstrating Retrieval-Augmented Generation with LlamaIndex
+- **📚 [Citation Metadata](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** - Enhanced MessagePart with CitationMetadata for improved source tracking and attribution
+- **⚡ [High Availability Support](https://agentcommunicationprotocol.dev/how-to/high-availability)** - Deploy ACP servers with centralized storage (Redis/PostgreSQL) for scalable, fault-tolerant setups
+- **📝 [Message Role Parameter](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** - Added `role` parameter to Message structure for better agent identification
+- **🔄 [TypeScript SDK (Client)](https://github.com/i-am-bee/acp/tree/main/typescript)** - Full TypeScript client library for interacting with ACP agents
 
 ## ACP Toolkit
 

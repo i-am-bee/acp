@@ -1,0 +1,32 @@
+---
+title: "What's New"
+description: "Latest features and improvements in ACP"
+---
+
+# What's New in ACP
+
+Stay up to date with the latest features, improvements, and additions to the Agent Communication Protocol.
+
+## Recent Updates
+
+### 🌐 [Distributed Sessions](/core-concepts/distributed-sessions)
+Session continuity across multiple server instances using URI-based resource sharing. This enables agents to maintain conversation history and state even when requests are handled by different server nodes, without requiring centralized storage infrastructure.
+
+### 🔍 [RAG LlamaIndex Agent](https://github.com/i-am-bee/acp/tree/main/examples/python/llama-index-rag)
+New example agent demonstrating Retrieval-Augmented Generation (RAG) using LlamaIndex. Shows how to build knowledge-based agents that can query external documents and provide contextually relevant responses.
+
+### 📚 [Citation Metadata](/core-concepts/message-structure)
+Enhanced MessagePart with CitationMetadata for improved source tracking and attribution. Enables agents to provide transparent references to their information sources, improving trustworthiness and enabling fact-checking workflows.
+
+### ⚡ [High Availability Support](/how-to/high-availability)
+Deploy ACP servers with centralized storage backends (Redis/PostgreSQL) for scalable, fault-tolerant setups. Enables production deployments with multiple server instances, load balancing, and automatic failover capabilities.
+
+### 📝 [Message Role Parameter](/core-concepts/message-structure)
+Added `role` parameter to Message structure for better agent identification. Supports `user`, `agent`, and `agent/{name}` formats, enabling clearer conversation tracking and multi-agent coordination.
+
+### 🔄 [TypeScript SDK (Client)](https://github.com/i-am-bee/acp/tree/main/typescript)
+Full TypeScript client library for interacting with ACP agents. Provides type-safe client implementations with comprehensive support for all ACP operations including sessions, runs, and streaming.
+
+## Contributing
+
+ACP is an open-source project and we welcome contributions! Whether you're reporting bugs, suggesting features, or contributing code, check out our [contribution guidelines](/about/contribute) to get started.
