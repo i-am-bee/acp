@@ -1,0 +1,164 @@
+---
+title: High Availability
+description: Configure ACP Server for high availability deployments with centralized storage
+---
+
+# High Availability Setup
+
+This guide explains how to configure ACP Server for high availability (HA) deployments using centralized storage to share sessions and state across multiple server instances.
+
+## Overview
+
+ACP Server supports high availability through centralized storage backends that enable multiple server instances to share session data and state. This allows you to:
+
+- Run multiple ACP Server instances behind a load balancer
+- Ensure session continuity across server restarts
+- Scale horizontally for increased throughput
+- Maintain state consistency across nodes
+
+## Supported Storage Backends
+
+ACP Server provides three storage options:
+
+### 1. Memory Store (Default)
+- **Use case**: Single-instance deployments, development
+- **Limitations**: No HA support, data lost on restart
+- **Configuration**: Used by default, no setup required
+
+### 2. Redis Store
+- **Use case**: Production HA deployments with fast access
+- **Features**: Pub/Sub notifications, automatic expiration
+- **Requirements**: Redis server accessible by all ACP instances
+
+### 3. PostgreSQL Store
+- **Use case**: Production HA deployments with persistence
+- **Features**: ACID compliance, notifications via LISTEN/NOTIFY
+- **Requirements**: PostgreSQL database accessible by all ACP instances
+
+## Configuration Examples
+
+### Redis Store Setup
+
+```python
+from acp_sdk.server import RedisStore, agent, create_app
+from redis.asyncio import Redis
+
+# Configure Redis connection
+redis = Redis(
+    host="your-redis-host",
+    port=6379,
+    password="your-redis-password",
+)
+
+# Create your agent
+@agent()
+async def my_agent(input):
+    # Your agent implementation
+    pass
+
+# Create app with Redis store
+app = create_app(my_agent, store=RedisStore(redis=redis))
+```
+
+### PostgreSQL Store Setup
+
+```python
+from acp_sdk.server import PostgreSQLStore, agent, create_app
+from psycopg import AsyncConnection
+
+# Configure PostgreSQL connection
+aconn = await AsyncConnection.connect(
+    "postgresql://user:password@host:5432/database",
+)
+
+# Create your agent
+@agent()
+async def my_agent(input):
+    # Your agent implementation
+    pass
+
+# Create app with PostgreSQL store
+app = create_app(
+    my_agent, 
+    store=PostgreSQLStore(
+        aconn=aconn,
+        table="acp_store",      # Optional: custom table name
+        channel="acp_update"    # Optional: custom notification channel
+    )
+)
+```
+
+## ACP-Specific Deployment Considerations
+
+### Session Continuity
+
+ACP maintains session state across multiple server instances through centralized storage. When a client connects to any instance:
+
+1. **Session lookup**: The instance checks the centralized store for existing session data
+2. **State restoration**: If found, the agent's state is restored from storage
+3. **Seamless continuation**: The agent can continue from where it left off
+
+### Storage Backend Requirements
+
+**Redis Requirements:**
+- Redis 6.0+ with keyspace notifications enabled
+- Configure with: `CONFIG SET notify-keyspace-events KEA`
+
+**PostgreSQL Requirements:**
+- PostgreSQL 12+ with LISTEN/NOTIFY support
+- Database with JSONB support
+- ACP will automatically create the required `acp_store` table
+
+### Load Balancer Considerations
+
+- **Session affinity**: Not required for ACP (sessions are centralized)
+- **Health checks**: Configure to check `/ping` endpoint
+- **Graceful shutdown**: ACP handles session persistence during restarts
+
+## Environment Variables
+
+ACP supports configuration through environment variables for storage backends:
+
+### Redis Configuration
+```bash
+export REDIS_HOST=your-redis-host
+export REDIS_PORT=6379
+export REDIS_PASSWORD=your-redis-password
+export REDIS_DB=0
+```
+
+### PostgreSQL Configuration
+```bash
+export POSTGRES_HOST=your-postgres-host
+export POSTGRES_PORT=5432
+export POSTGRES_USER=your-username
+export POSTGRES_PASSWORD=your-password
+export POSTGRES_DATABASE=your-database
+```
+
+## Troubleshooting
+
+### ACP-Specific Issues
+
+**Session not found errors**
+- Verify all instances use the same storage configuration
+- Check that session data exists in the centralized store
+- Ensure proper authentication credentials for storage backend
+
+**Agent state inconsistencies**
+- Check storage backend connectivity from all instances
+- Verify notification channels are working (Redis pub/sub, PostgreSQL LISTEN/NOTIFY)
+- Review storage backend logs for connection issues
+
+**Performance issues with centralized storage**
+- Monitor storage backend performance and connection pools
+- Check network latency between ACP instances and storage
+- Consider storage backend-specific optimizations
+
+### Infrastructure Issues
+
+For Redis setup, see the [official Redis documentation](https://redis.io/docs/).
+For PostgreSQL setup, see the [official PostgreSQL documentation](https://www.postgresql.org/docs/).
+For Kubernetes deployment patterns, see the [official Kubernetes documentation](https://kubernetes.io/docs/).
+
+For additional support, see the [production deployment guide](/core-concepts/production-grade) or visit our [GitHub discussions](https://github.com/i-am-bee/acp/discussions).

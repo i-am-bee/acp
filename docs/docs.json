@@ -53,7 +53,8 @@
           "/how-to/generate-artifacts",
           "/how-to/compose-agents",
           "/how-to/debug",
-          "/how-to/await-external-response"
+          "/how-to/await-external-response",
+          "/how-to/high-availability"
         ]
       },
       {
