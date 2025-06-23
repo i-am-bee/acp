@@ -53,7 +53,7 @@ ACP enables agents to:
 | **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The core structure for communication, consisting of a sequence of ordered components that form a complete, structured, and multi-modal exchange of information. |
 | **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | The individual content units within a `Message`, which can include types like text, image, or JSON. Together, they combine to create structured, multimodal communication. |
 | **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-run-lifecycle#agent-run-await)**  | Let agents pause to request information from the client and resume, enabling interactive exchanges where the agent can wait for external input (data, actions, etc.) before continuing. |
-
+| **[Sessions](https://agentcommunicationprotocol.dev/core-concepts/stateful-agents)**  | Enable agents to maintain state and conversation history across multiple interactions using session identifiers. The SDK automatically manages session state, allowing agents to access complete interaction history within a session. |
 ---
 
 ## Quickstart
