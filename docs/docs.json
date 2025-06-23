@@ -37,7 +37,7 @@
         "group": "Core Concepts",
         "pages": [
           "/core-concepts/architecture",
-          "/core-concepts/agent-lifecycle",
+          "/core-concepts/agent-run-lifecycle",
           "/core-concepts/agent-manifest",
           "/core-concepts/agent-discovery",
           "/core-concepts/message-structure",

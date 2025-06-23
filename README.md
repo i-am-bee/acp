@@ -49,10 +49,10 @@ ACP enables agents to:
 | **Concept**      | **Description**  |
 | ---------------- | -------------------------------------------------------------------------------------------- |
 | **[Agent Manifest](https://agentcommunicationprotocol.dev/core-concepts/agent-manifest)** | A model describing an agent's capabilities—its name, description, and optional metadata and status—for discovery and composition without exposing implementation details. |
-| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#agent-runs-and-state-management)** | A single agent execution with specific inputs. Supports sync or streaming, with intermediate and final output. |
+| **[Run](https://agentcommunicationprotocol.dev/core-concepts/agent-run-lifecycle)** | A single agent execution with specific inputs. Supports sync or streaming, with intermediate and final output. |
 | **[Message](https://agentcommunicationprotocol.dev/core-concepts/message-structure)** | The core structure for communication, consisting of a sequence of ordered components that form a complete, structured, and multi-modal exchange of information. |
 | **[MessagePart](https://agentcommunicationprotocol.dev/core-concepts/message-structure)**  | The individual content units within a `Message`, which can include types like text, image, or JSON. Together, they combine to create structured, multimodal communication. |
-| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-lifecycle#single-turn-await)**  | Let agents pause to request information from the client and resume, enabling interactive exchanges where the agent can wait for external input (data, actions, etc.) before continuing. |
+| **[Await](https://agentcommunicationprotocol.dev/core-concepts/agent-run-lifecycle#agent-run-await)**  | Let agents pause to request information from the client and resume, enabling interactive exchanges where the agent can wait for external input (data, actions, etc.) before continuing. |
 
 ---
 
