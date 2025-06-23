@@ -16,13 +16,13 @@ import asyncio
 from contextlib import AsyncExitStack
 
 
-
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+
     LLM_MODEL_NAME: str
     OPENAI_API_KEY: str = None
     ANTHROPIC_API_KEY: str = None
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = True
@@ -40,29 +40,24 @@ class SessionManager:
             transport="stdio",
         )
 
-    
     async def initialize(self):
         if self.initialized:
             return
 
         try:
             # Setup stdio client with exit stack to manage resources
-            stdio_context = await self.exit_stack.enter_async_context(
-                stdio_client(self.server_params)
-            )
+            stdio_context = await self.exit_stack.enter_async_context(stdio_client(self.server_params))
             read_stream, write_stream = stdio_context
 
             # Setup session
-            session = await self.exit_stack.enter_async_context(
-                ClientSession(read_stream, write_stream)
-            )
+            session = await self.exit_stack.enter_async_context(ClientSession(read_stream, write_stream))
 
             # Initialize the connection
             await session.initialize()
 
             # Get tools
             self.tools = await load_mcp_tools(session)
-            
+
             self.initialized = True
             print("Session initialized with tools")
         except Exception as e:
@@ -82,7 +77,7 @@ session_manager = SessionManager()
 # Load settings from environment variables
 settings = Settings()
 
-if settings.OPENAI_API_KEY and settings.LLM_MODEL_NAME.startswith("openai") :
+if settings.OPENAI_API_KEY and settings.LLM_MODEL_NAME.startswith("openai"):
     api_key = settings.OPENAI_API_KEY
 elif settings.ANTHROPIC_API_KEY and settings.LLM_MODEL_NAME.startswith("anthropic"):
     api_key = settings.ANTHROPIC_API_KEY
@@ -104,7 +99,7 @@ async def acp_agent_generator(input: list[Message], context: Context) -> AsyncGe
         temperature=0,
         api_key=api_key,
     ).bind_tools(session_manager.tools, parallel_tool_calls=False)
-    
+
     # Create the agent
     system_prompt = """Use the documentation sources provided to answer the user's question. 
     DO NOT ask the user for clarification."""

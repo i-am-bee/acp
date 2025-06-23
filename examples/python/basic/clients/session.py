@@ -27,8 +27,7 @@ async def example() -> None:
         )
         print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(
-            agent="chat_agent",
-            input=[Message(parts=[MessagePart(content="What is my favourite fruit?")])]
+            agent="chat_agent", input=[Message(parts=[MessagePart(content="What is my favourite fruit?")])]
         )
         print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(
