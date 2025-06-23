@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Create server parameters for stdio connection
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
