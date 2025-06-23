@@ -15,6 +15,7 @@ from translation_tool import TranslationTool
 
 server = Server()
 
+
 @server.agent()
 async def translation_spanish(input: list[Message]) -> AsyncGenerator:
     llm = ChatModel.from_name("ollama:llama3.1:8b")

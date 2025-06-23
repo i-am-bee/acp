@@ -13,8 +13,10 @@ async def run_client() -> None:
             agent="slack-agent",
             input=[
                 Message(
-                    # Pass your instructions below 
-                    parts=[MessagePart(content="Post a funny message in CXXXXXX slack channel", content_type="text/plain")]
+                    # Pass your instructions below
+                    parts=[
+                        MessagePart(content="Post a funny message in CXXXXXX slack channel", content_type="text/plain")
+                    ]
                 )
             ],
         )

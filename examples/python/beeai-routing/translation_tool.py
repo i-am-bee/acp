@@ -15,7 +15,6 @@ from beeai_framework.utils.strings import to_json
 from pydantic import BaseModel, Field
 
 
-
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
         run = await client.run_sync(
@@ -23,7 +22,6 @@ async def run_agent(agent: str, input: str) -> list[Message]:
         )
 
     return run.output
-
 
 
 class Language(str, Enum):

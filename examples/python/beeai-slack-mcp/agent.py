@@ -21,14 +21,16 @@ from acp_sdk.server import RunYield, RunYieldResume, Server, Context
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
+
 # Load environment variables using pydantic settings
 class Settings(BaseSettings):
-    bot_token: str = Field(alias='SLACK_BOT_TOKEN')
-    team_id: str = Field(alias='SLACK_TEAM_ID')
+    bot_token: str = Field(alias="SLACK_BOT_TOKEN")
+    team_id: str = Field(alias="SLACK_TEAM_ID")
     path: str = Field(default="", env="PATH")
 
-    model_config = SettingsConfigDict(env_file='.env')  
- 
+    model_config = SettingsConfigDict(env_file=".env")
+
+
 settings = Settings()
 
 # Create server parameters for stdio connection
@@ -43,6 +45,7 @@ server_params = StdioServerParameters(
 )
 
 server = Server()
+
 
 async def slack_tool(session: ClientSession) -> list[MCPTool]:
     # Discover all Slack tools via MCP client
@@ -71,7 +74,7 @@ async def create_agent(session: ClientSession) -> ToolCallingAgent:
     # Create agent with memory and tools and custom system prompt template
     agent = ToolCallingAgent(
         llm=llm,
-        tools=slack ,
+        tools=slack,
         memory=UnconstrainedMemory(),
         templates={
             "system": lambda template: template.update(
@@ -104,9 +107,10 @@ async def slack_agent(input: list[Message], context: Context) -> AsyncGenerator[
             prompt=str(input[0]),
             execution=AgentExecutionConfig(max_retries_per_step=3, total_max_retries=10, max_iterations=20),
         ).on("*", print_events)
-        
+
         yield MessagePart(content=response.result.text)
-        
+
+
 if __name__ == "__main__":
     try:
         # Run the ACP server

@@ -27,25 +27,23 @@ documents = reader.load_data("https://arxiv.org/pdf/2408.09869")
 Settings.llm = Ollama("qwen2.5", temperature=0)
 Settings.embed_model = OllamaEmbedding(model_name="nomic-embed-text")
 
-index = VectorStoreIndex.from_documents(
-    documents=documents,
-    transformations=[node_parser]
-)
+index = VectorStoreIndex.from_documents(documents=documents, transformations=[node_parser])
 query_engine = index.as_query_engine()
 
 ## Create the agent
 tools = [
     QueryEngineTool(
-        query_engine = query_engine,
-        metadata = ToolMetadata(
+        query_engine=query_engine,
+        metadata=ToolMetadata(
             name="Docling_Knowledge_Base",
-            description="Use this tool to answer any questions related to the Docling framework"
-        )
+            description="Use this tool to answer any questions related to the Docling framework",
+        ),
     )
 ]
 agent = FunctionAgent(tools=tools, llm=Settings.llm)
 
 server = Server()
+
 
 @server.agent()
 async def llamaindex_rag_agent(input: list[Message]) -> AsyncGenerator:
@@ -59,6 +57,7 @@ async def llamaindex_rag_agent(input: list[Message]) -> AsyncGenerator:
             yield ev.delta
     response = await handler
     yield str(response)
+
 
 if __name__ == "__main__":
     server.run()
