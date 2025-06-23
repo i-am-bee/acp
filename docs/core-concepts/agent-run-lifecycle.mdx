@@ -19,11 +19,9 @@ The run can then result in a several outcomes:
 
 2. **Failed Completion**: The agent encounters an error or fails to complete its task, transitioning to the `failed` state with error details.
 
-3. **Await-based Pause**: Using the Await mechanism, agents can temporarily pause execution in the `awaiting` state to request additional information or actions from the client.
+3. **Cancelled Execution**: The client can request cancellation of a run using the `run/{run_id}/cancel` endpoint, which transitions the run to the `cancelling` state. Once the agent confirms the cancellation, the run moves to the terminal `cancelled` state. This two-step process ensures graceful termination of agent execution.
 
-<Note>
-Some agent implementations may allow continuing from certain terminal states back to `in-progress`.
-</Note>
+4. **Await-based Pause**: Using the Await mechanism, agents can temporarily pause execution in the `awaiting` state to request additional information or actions from the client.
 
 ###  Agent Run Await 
 
@@ -39,7 +37,8 @@ When an agent requires external data to continue its work, it can pause executio
 The paused execution then result in these outcomes:
 
 1. **Resumed Execution**: Once the requested information is provided by the client via the resume endpoint, the agent transitions back to `in-progress` and continues execution.
-2. **Cancelled Execution**: The Await state can also be interrupted by cancellation. If a cancel request is received while an agent is in the `awaiting` state, it will transition to `cancelling` and then eventually move to the `cancelled` terminal state. This allows graceful termination of runs even when they are paused waiting for input.
+2. **Cancelled Execution**: The Await state can also be interrupted by cancellation.
+3. **Timeout**: If the agent remains in the `awaiting` state for too long without receiving a response, it will transition to the `failed` state with a timeout error.
 
 ### Run States
 
@@ -100,7 +99,7 @@ run = await client.run_sync(agent="echo", input=[Message(parts=[MessagePart(cont
 
 ### Asynchronous Execution
 
-A synchronous `POST` request to `/runs` responds with a `run_id`, which can then be queried via `/runs/${run_id}` to obtain the current state of the run. It is the client's responsibility to poll for the terminal state and the result of the run.
+A synchronous `POST` request to `/runs` responds with a `run_id`, which can then be queried via `/runs/{run_id}` to obtain the current state of the run. It is the client's responsibility to poll for the terminal state and the result of the run.
 
 ```python
 run = await client.run_async(agent="echo", input=[Message(parts=[MessagePart(content="Howdy!")])])
