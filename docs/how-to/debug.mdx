@@ -3,24 +3,24 @@ title: "Debug"
 description: "Use OpenTelemetry instrumentation for debugging"
 ---
 
-This guide demonstrates how to use the OpenTelemetry instrumentation for debugging. You'll learn how to enable instrumentation for ACP communication and the custom agent and how to debug data in the [OTLP exporters UI](https://opentelemetry.io/docs/languages/js/exporters/#otlp).
+Debugging distributed agent systems requires visibility into how requests flow between agents, where bottlenecks occur, and how decisions are made. This section will demonstrate how to use the OpenTelemetry instrumentation for debugging. You'll learn how to enable instrumentation for ACP communication and the custom agent and how to debug data in the [OTLP exporters UI](https://opentelemetry.io/docs/languages/js/exporters/#otlp).
 
-## Motivation
+## Why Observability Matters for Agent Systems
 
 Debugging modern agentic systems and distributed applications can be tricky, especially when you're dealing with asynchronous workflows, multiple services, and custom logic layers. OpenTelemetry offers a powerful way to trace and understand these systems in real time. By instrumenting both the ACP communication and agent logic, you gain visibility into how data flows, how decisions are made, and where bottlenecks or errors might occur.
 
-This guide is here to help you set up this instrumentation in practice, showing you how to capture and visualize traces using both general-purpose (Jaeger) and AI-focused (Phoenix) OTLP exporters—so you can debug effectively and with confidence.
+This section demonstrates how to capture and visualize traces using both general-purpose and AI-focused OTLP exporters, so you can debug effectively and with confidence.
 
 ## What is OTLP exporter
 
 In the context of the OpenTelemetry framework, an OTLP exporter acts as both a backend for data collection and a **UI** for data visualisation.
-In this tutorial I will describe 2 OTLP exporters [Jaeger](https://www.jaegertracing.io/) and [Arize Phoenix](https://phoenix.arize.com/).
+We'll review options:
+-  [Jaeger](https://www.jaegertracing.io/):General purpose
+-  [Arize Phoenix](https://phoenix.arize.com/): Optimized for AI workloads
 
 ### Jaeger
 
-> Use for general purpose
-
-Jaeger is Open source, distributed tracing platform OpenTelemetry data visualization. This tool has base UI and it's not so fancy as Phoenix, but you can see data from all spans and it's not limited to agent observability.
+Jaeger is Open source, distributed tracing platform OpenTelemetry data visualization. This tool has a simple base UI and allows you to see data from all spans (not just limited to agent observability).
 
 #### Run Jaeger
 
@@ -38,13 +38,11 @@ docker run --rm \
 
 ### Phoenix
 
-> AI-focused debugging
-
-Phoenix is an open-source AI observability platform designed for experimentation, evaluation, and troubleshooting by Arize AI company that has its own semantic conventions that all supported frameworks must follow. The advantage is defining more custom attributes for trace's well-visualization and evaluation.
+Phoenix is an open-source AI observability platform designed for experimentation, evaluation, and troubleshooting by [Arize AI](https://arize.com/).It has its own semantic conventions that all [supported frameworks](https://arize.com/docs/ax/observe/agents/implementing-agent-metadata-for-arize) must follow. The advantage is defining more custom attributes for trace's well-visualization and evaluation.
 
 Use Phoenix when your primary focus is agent observability. 
 
-The main disadvantage is that the platform truncates the custom data attributes that are not correctly parsed. You cannot debug the ACP, fastify server, etc...
+The main disadvantage is that if the custom data atributes aren't correctly parsed then phoenix truncates them, making it not possible to debug.
 
 > By default, Phoenix runs on port **6006**. You can either map this to the standard OTLP port **4318** or update the `OTEL_EXPORTER_OTLP_ENDPOINT` to point to the correct port.
 
@@ -56,10 +54,9 @@ docker run -p 4318:6006 -i -t arizephoenix/phoenix
 
 > open instance on `http://localhost:4318/projects` in the browser.
 
-## Base ACP communication example
+## Jaeger Example for System Observability
 
-In this example, we will focus only on the communication between the server and client. 
-Let's use the `Jaeger` for this example.
+In this example, we will focus only on the communication between the server and client using `Jaeger`.
 
 <Warning>
 Be sure you have a running Jaeger instance before you start! See the [Run Jaeger](#run-jaeger) section for more details.
@@ -148,7 +145,7 @@ if __name__ == "__main__":
     </Tab>
 </Tabs>
 
-You can see we turned on the instrumentation via `configure_telemetry=True` in the `server.run` function in the **agent.py** file.
+ Instrumentation was turned on by setting `configure_telemetry=True` in the `server.run` function of the **agent.py** file.
 
 ### Run the server
 ```
@@ -167,15 +164,16 @@ You should see your first trace. When you click on the trace, you should see the
 ![title](../images/debug-telemerty-acp-example.png)
 
 
-## Framework Integrations
+## Phonexix Example for Agent Observability
 
-In this section, I will show you how to set up observability for the agentic systems and how to use the OpenInference instrumentation to cover a lot of existing frameworks on the market.
+In this section, we will set up observability for the agents themselves using `Phoenix`.
 
-Let’s use the `Phoenix` for these examples.
+<Warning>
+Be sure you have a running Phoenix instance before you start! See the [Run Phoenix](#run-phoenix) section for more details.
+</Warning>
 
 ### LangGraph Agent
 
-> Be sure you have a running Phoenix instance before you start! See the [Run Phoenix](#run-phoenix) section for more details.
 
 #### Init repository
 
@@ -313,7 +311,7 @@ if __name__ == "__main__":
     </Tab>
 </Tabs>    
 
-Don't miss the `LangChainInstrumentor().instrument()` line when we turn on the LangChain instrumentation (LangGraph included) in the **agent.py** file.
+Notice the `LangChainInstrumentor().instrument()` line when we turn on the LangChain instrumentation (LangGraph included) in the **agent.py** file.
 
 #### Run the server
 ```
