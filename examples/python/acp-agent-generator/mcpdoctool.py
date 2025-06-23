@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from mcpdoc.main import create_server
 
 # This is a simple example of how to use the mcpdoc library to create a server

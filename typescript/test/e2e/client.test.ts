@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { setTimeout } from "node:timers/promises";
 import { spawn } from "node:child_process";
 import { join } from "node:path";

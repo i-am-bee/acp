@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as z from "zod";
 
 export function createSchemaTypePredicate<T>(schema: z.ZodType<T>) {
