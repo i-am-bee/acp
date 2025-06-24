@@ -3,11 +3,13 @@ title: "Discover & Run Agent"
 description: "How to discover and run ACP agents via REST and Python SDK"
 ---
 
-This page shows how you can discover available ACP agents and run them synchronously, asynchronously, or with streaming outputs, using both REST API and Python SDK.
+This guide shows how to discover available ACP agents and execute them using different modes (synchronous, asynchronous, and streaming) through both REST API and Python SDK.
 
 ## Discover available agents
 
-You can discover available agents on your ACP server to know which agents you can run. Use REST for simple interactions or Python SDK for richer, programmatic control.
+Before running agents, you need to know what's available. ACP servers expose agent metadata through a discovery endpoint that lists all registered agents with their capabilities. Use REST for simple interactions or Python SDK for richer, programmatic control.
+
+### Using REST API
 
 Send a GET request to the `/agents` endpoint to list available agents:
 
@@ -26,7 +28,8 @@ curl http://localhost:8000/agents
 
 </CodeGroup>
 
-Use the Python SDK to list agents programmatically:
+### Using Python SDK
+For programmatic access, use the Python client to discover agents:
 
 ```python
 import asyncio
@@ -41,16 +44,33 @@ if __name__ == "__main__":
     asyncio.run(list_agents())
 ```
 
-If you're interested in discovering agents across multiple ACP servers using a registry-based approach, check out the [BeeAI Platform](https://beeai.dev).
+<Note>For discovering agents across multiple servers, consider using a service registry or the [BeeAI Platform](https://beeai.dev) for centralized agent discovery.</Note>
 
 ## Run an agent
+ACP supports three execution modes, each suited for different use cases:
+- **Synchronous**: Best for quick operations where you need immediate results
+- **Asynchronous**: Ideal for long-running tasks that you can check later
+- **Streaming**: Perfect for real-time applications requiring incremental updates
 
-You can run agents synchronously, asynchronously, or stream their outputs.
+### Message Format
+All agent interactions use a standardized message format:
+
+```bash
+{
+  "role": "user",
+  "parts": [
+    {
+      "content_type": "text/plain",
+      "content": "Your message here"
+    }
+  ]
+}
+```
+Learn more about [Message Stucture](/core-concepts/message-structure).
 
 ### Synchronous execution
 
-Synchronous execution waits until the agent completes processing and returns a single response.
-
+Synchronous execution blocks until the agent completes processing and returns the full response.
 <CodeGroup>
 ```bash Request
 curl -X POST http://localhost:8000/runs \
@@ -98,7 +118,8 @@ if __name__ == "__main__":
 
 ### Asynchronous execution
 
-Asynchronous execution returns immediately, and you can ask (poll) for the result later.
+Asynchronous execution returns immediately with a run ID that you can use to check status and retrieve (poll) results later.
+
 
 Start async execution:
 
@@ -155,7 +176,7 @@ if __name__ == "__main__":
 
 ### Streaming execution
 
-Streaming execution provides incremental outputs with SSE (Server-sent Events) as they are generated, ideal for real-time feedback.
+Streaming execution provides real-time updates using Server-Sent Events (SSE). Ideal for applications that need to show progress or partial results as they're generated.
 
 ```bash
 curl -N -H "Accept: text/event-stream" -X POST http://localhost:8000/runs \

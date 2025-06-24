@@ -158,3 +158,23 @@ jobs:
         shell: bash
         working-directory: typescript
         run: pnpm run test:e2e
+  validate-schema:
+    name: OpenAPI Schema
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate OpenAPI schema files
+        run: npm run schema:validate

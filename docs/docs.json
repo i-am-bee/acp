@@ -28,6 +28,7 @@
         "group": "Introduction",
         "pages": [
           "/introduction/welcome",
+          "/introduction/whats-new",
           "/introduction/quickstart",
           "/introduction/example-agents"
         ]
@@ -36,10 +37,12 @@
         "group": "Core Concepts",
         "pages": [
           "/core-concepts/architecture",
-          "/core-concepts/agent-lifecycle",
+          "/core-concepts/agent-run-lifecycle",
           "/core-concepts/agent-manifest",
           "/core-concepts/agent-discovery",
           "/core-concepts/message-structure",
+          "/core-concepts/stateful-agents",
+          "/core-concepts/distributed-sessions",
           "/core-concepts/errors",
           "/core-concepts/production-grade"
         ]
@@ -53,7 +56,8 @@
           "/how-to/generate-artifacts",
           "/how-to/compose-agents",
           "/how-to/debug",
-          "/how-to/await-external-response"
+          "/how-to/await-external-response",
+          "/how-to/high-availability"
         ]
       },
       {

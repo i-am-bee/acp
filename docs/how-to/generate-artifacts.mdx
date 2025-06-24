@@ -3,9 +3,16 @@ title: "Generate Artifacts"
 description: "Learn how to generate and return artifacts like images and structured data."
 ---
 
-Artifacts are specialized message parts used to represent attachments, citations, files, or other named results. They are distinguished from regular message parts by the presence of a `name` field. This allows agentic applications to implement specific semantics for handling these outputs, such as displaying structured metadata, enabling file downloads, or facilitating iterative workflows.
+Artifacts are specialized message parts that represent named outputs like files, images, or structured data. Unlike regular text responses, artifacts have a `name` field that allows consuming applications to implement specific handling semantics—such as offering downloads, displaying rich content, or enabling iterative workflows.
 
-Refer to the [Message Structure](/core-concepts/message-structure#artifact) documentation for more details on the artifact definition.
+Common use cases for artifacts include:
+
+- **Generated files**: Reports, images, or documents created by your agent
+- **Structured data**: JSON, CSV, or XML for programmatic consumption
+- **Rich media**: Images, charts, or visualizations
+- **Download assets**: Files that users can save locally
+
+Refer to the [Message Structure](/core-concepts/message-structure#artifact) documentation for detailed artifact specifications.
 
 This guide demonstrates how to generate common artifact types like images and JSON data within your ACP agent.
 
@@ -50,9 +57,10 @@ server.run()
 ```
 
 Key points:
-- The image is created in memory using Pillow.
-- It's saved to a `BytesIO` buffer.
-- The buffer's content is base64 encoded, which is required for inlined binary data.
+- Images must be base64 encoded for inline transmission
+- Set `content_encoding="base64"` for binary data
+- Always handle potential image generation errors
+- The content is saved to a `BytesIO` buffer
 - An `Artifact` is yielded with `name`, `content` (base64 string), `content_encoding="base64"`, and `content_type="image/png"`.
 
 ## Generating JSON Artifacts

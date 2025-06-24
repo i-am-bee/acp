@@ -5,13 +5,19 @@ description: "Learn how to build common composition patterns"
 
 ACP is designed to be agnostic regarding the internal implementation details of agents. It provides a standardized interface that facilitates communication between agents, enabling seamless composition.
 
-The protocol emphasizes the importance of patterns over frameworks, echoing sentiments expressed in Anthropic's [insightful article](https://www.anthropic.com/engineering/building-effective-agents).
+Rather than prescribing specific frameworks, ACP emphasizes patterns over frameworks, echoing sentiments expressed in Anthropic's [insightful article](https://www.anthropic.com/engineering/building-effective-agents) on building effective agents.
 
 Central to ACP's composability are its message structure and agent execution model. A consistent message format and the capability to invoke agents remotely are crucial for effective composition.
 
-Let's explore the implementation of some patterns using ACP.
+## When to Use Composition Patterns
+- Prompt Chaining: When you need sequential processing where each step builds on the previous output (writing → editing → translation).
+- Routing: When different request types need specialized handling (customer support routing to technical/billing/general agents).
+- Parallelization: When independent tasks can be processed simultaneously for faster results (generating multiple translations or analyses).
+- Hierarchical: When you need coordination between high-level planning and specialized execution agents.
 
-## Example: Prompt Chaining
+Let's explore the implementation of these patterns using ACP.
+
+## Prompt Chaining Example
 
 <Tip>
   See the complete source code on
@@ -79,18 +85,18 @@ Key points:
 
 - While the example uses a single ACP server to expose multiple agents for simplicity, practical implementations may involve distributed architectures.
 - The `run_agent` function enables remote invocation of agents through ACP.
-- While the current example demonstrates agents that only accept and produce text, practical implementations may include more sophisticated use cases involving various types of artifacts.
+- While the current example demonstrates agents that only accept and produce text, practical implementations may include more sophisticated use cases involving various types of [artifacts](/core-concepts/message-structure#artifacts).
 
-## Example: Routing
+## Intelligent Routing Example
 
 <Tip>
   See the complete source code on
   [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/beeai-routing).
 </Tip>
 
-Routing is a concept where a router (often an LLM) determines which agent should handle a particular request.
+Routing enables dynamic agent selection based on request content. A router agent analyzes incoming requests and forwards them to the most appropriate specialist agent.
 
-The following example illustrates routing by exposing ACP agents as tools to a router agent. The router agent evaluates the original request and forwards it to the appropriate agent based on its assessment.
+The following example exposes ACP agents as tools to a router agent. The router agent evaluates the original request and forwards it to the appropriate agent based on its assessment.
 
 <CodeGroup>
 ```python agent.py
@@ -252,16 +258,16 @@ Key points:
 - The router agent is provided with a `TranslationTool`, which can invoke both `translation_french` and `translation_spanish` agents via ACP by using `run_agent`.
 - Based on the user's input, the router decides which agent to invoke to fulfill the user's request.
 
-## Example: Parallelization
+## Parallelization Example
 
 <Tip>
   See the complete source code on
   [GitHub](https://github.com/i-am-bee/acp/tree/main/examples/python/beeai-parallelization).
 </Tip>
 
-Parallelization is conceptually similar to prompt chaining, with one key difference: instead of invoking agents sequentially, they are called in parallel.
+Parallelization executes multiple agents simultaneously to reduce overall processing time. Use this pattern when you need the same input processed by different agents or when tasks are independent.
 
-In practice, this means using `asyncio.gather` to execute multiple remote agent calls concurrently via ACP. The process then awaits both responses, effectively blocking until all agents return their results.
+This example uses `asyncio.gather` to execute multiple remote agent calls concurrently via ACP. The process then awaits both responses, effectively blocking until all agents return their results.
 
 <CodeGroup>
 ```python agent.py

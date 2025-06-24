@@ -1,24 +1,24 @@
 ---
-title: "Wrap Agent"
+title: "Wrap an Agent"
 description: "How to make an existing agent ACP-compatible"
 ---
 
-ACP SDK allows you to wrap an existing agent, regardless of its framework or programming language, into a reusable and interoperable service. By implementing a simple interface, your agent becomes compatible with the ACP protocol. It can communicate over HTTP, interact with other agents in workflows, and exchange structured messages using a shared format.
+The ACP SDK allows you to wrap an existing agent, regardless of its framework or programming language, into a reusable and interoperable service. By implementing a simple interface, your agent becomes compatible with the ACP protocol and can communicate over HTTP, interact with other agents in workflows, and exchange structured messages using a shared format.
 
 Once wrapped, your agent becomes:
 
-- **Remotely callable** over REST
-- **Composable** with other agents in workflows
-- **Discoverable**
-- **Reusable** without modifying its internal logic
+- **Remotely callable** over REST APIs
+- **Composable** in workflows with other agents
+- **Discoverable** by other systems
+- **Reusable** without changing its internal logic
 
 ## Simple agent
 
-<Tip>If you haven’t already, install the SDK: `uv add acp-sdk`</Tip>
+<Tip><Tip>Install the SDK first: `uv add acp-sdk`</Tip></Tip>
 
-Wrapping an agent with ACP is as simple as annotating a Python function.
+Wrap an agent by annotating a Python function with `@server.agent()`. The agent name comes from the function name, and the description comes from the docstring. You can add more metadata like capabilities and dependencies - see the [Agent Manifest](/core-concepts/agent-manifest) section for details.
 
-Use the `@server.agent()` decorator to define your agent. The name is inferred from the function name, and the description is pulled from the docstring:
+This creates an ACP-compliant agent that can receive messages and respond via HTTP using the ACP protocol:
 
 ```python echo.py
 from collections.abc import AsyncGenerator
@@ -38,12 +38,16 @@ async def echo(input: list[Message], context: Context) -> AsyncGenerator[RunYiel
 # Start the ACP server
 server.run()
 ```
-
-This is the minimal structure needed for an ACP-compliant agent. You now have an agent that can receive messages from others, or be called via HTTP, using the ACP protocol.
+What happens here:
+- The `@server.agent()` decorator registers your function as an ACP agent
+- `inputs` contains the messages sent to your agent
+- `context` provides request metadata and utilities
+- `yield` statements send responses back to the caller
+- The server automatically handles HTTP routing and message serialization
 
 ## Simple LLM agent
 
-Let's look at an example of how a simple agent can call an LLM model using the `beeai-framework` and return a response.
+Here's a more sophisticated example that wraps an LLM agent with memory and tools using the `beeai-framework`:
 
 ```python llm.py
 from collections.abc import AsyncGenerator

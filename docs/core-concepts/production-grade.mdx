@@ -54,3 +54,38 @@ ACP is developing support for **User and Client Identity Federation** to enable 
 This functionality is under active development. We welcome your input to help shape the future of identity federation in ACP.
 
 Visit our [Contribute](/about/contribute) page to join the discussion.
+
+## Agents Deployment
+
+### Standalone ASGI Application
+
+For integration with external ASGI servers, the SDK offers application factory functions. This approach separates the agent definition from the server implementation, providing more flexibility for production deployments:
+
+```python standalone.py
+from collections.abc import AsyncGenerator
+
+from acp_sdk.models import (
+    Message,
+)
+from acp_sdk.server import RunYield, RunYieldResume, agent, create_app
+
+# This example demonstrates how to serve agents with you own server
+
+
+@agent()
+async def echo(input: list[Message]) -> AsyncGenerator[RunYield, RunYieldResume]:
+    """Echoes everything"""
+    for message in input:
+        yield message
+
+
+app = create_app(echo)
+
+# The app can now be used with any ASGI server
+
+# Run with
+#   1. fastapi run examples/servers/standalone.py
+#   2. uvicorn examples.servers.standalone:app
+#   ...
+# Source: python/examples/servers/standalone.py
+```
