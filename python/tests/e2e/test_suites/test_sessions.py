@@ -33,7 +33,7 @@ async def test_session_refresh(server: Server, client: Client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_session_reentrance(server: Server, client: Client) -> None:
+async def test_session_multi_client(server: Server, client: Client) -> None:
     session = Session()
 
     async with client.session(session) as session_client:
