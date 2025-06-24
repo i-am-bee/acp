@@ -6,6 +6,7 @@ from acp_sdk.models import (
     Message,
     MessagePart,
 )
+from acp_sdk.models.models import Session
 from acp_sdk.server import Server
 
 agent = "history_echo"
@@ -29,6 +30,20 @@ async def test_session_refresh(server: Server, client: Client) -> None:
         await asyncio.sleep(2)
         sess = await session.refresh_session()
         assert len(sess.history) == len(input) * 2
+
+
+@pytest.mark.asyncio
+async def test_session_reentrance(server: Server, client: Client) -> None:
+    session = Session()
+
+    async with client.session(session) as session_client:
+        run = await session_client.run_sync(input, agent=agent)
+        assert run.output == output
+        print(run.session_id)
+
+    async with client.session(session) as session_client:
+        run = await session_client.run_sync(input, agent=agent)
+        assert run.output == output * 3
 
 
 @pytest.mark.asyncio

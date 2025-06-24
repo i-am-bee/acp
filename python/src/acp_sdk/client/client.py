@@ -254,6 +254,7 @@ class Client:
 
             try:
                 response = await self._client.get(url, timeout=timeout)
+                self._raise_error(response)
                 response = SessionReadResponse.model_validate(response.json())
                 self._session = Session(**response.model_dump())
             except ACPError as e:
@@ -304,18 +305,12 @@ class Client:
 
         target_base_url = self._create_base_url(base_url=base_url)
         try:
-            if not self._session_last_refresh_base_url:
-                return {"session": self._session}
             if self._session_last_refresh_base_url == target_base_url:
                 # Same server, no need to forward session
                 return {"session_id": self._session.id}
 
-            session = await self.refresh_session()
+            session = await self.refresh_session(base_url=self._session_last_refresh_base_url or target_base_url)
             return {"session": session}
-        except ACPError as e:
-            if e.error.code == ErrorCode.NOT_FOUND:
-                return {"session": self._session}
-            raise e
         finally:
             await self._update_session_refresh_url(target_base_url)
 
