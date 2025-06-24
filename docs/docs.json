@@ -37,10 +37,11 @@
         "group": "Core Concepts",
         "pages": [
           "/core-concepts/architecture",
-          "/core-concepts/agent-lifecycle",
+          "/core-concepts/agent-run-lifecycle",
           "/core-concepts/agent-manifest",
           "/core-concepts/agent-discovery",
           "/core-concepts/message-structure",
+          "/core-concepts/stateful-agents",
           "/core-concepts/distributed-sessions",
           "/core-concepts/errors",
           "/core-concepts/production-grade"

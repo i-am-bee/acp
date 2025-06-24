@@ -44,7 +44,7 @@ export class Client {
   #sessionId?: SessionId;
 
   constructor(init?: ClientInit) {
-    this.#fetch = init?.fetch ?? globalThis.fetch;
+    this.#fetch = init?.fetch ?? globalThis.fetch.bind(globalThis);
     this.#baseUrl = normalizeBaseUrl(init?.baseUrl ?? "");
     this.#sessionId = init?.sessionId;
   }

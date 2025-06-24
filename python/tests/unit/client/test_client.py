@@ -176,23 +176,28 @@ async def test_run_events(httpx_mock: HTTPXMock) -> None:
 @pytest.mark.asyncio
 async def test_session(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(url="http://test/runs", method="POST", content=mock_run.model_dump_json(), is_reusable=True)
+    httpx_mock.add_response(
+        url=f"http://test/sessions/{mock_session.id}",
+        method="GET",
+        content=mock_session.model_dump_json(),
+        is_reusable=True,
+    )
 
-    async with Client(base_url="http://test") as client, client.session(Session(id=mock_run.session_id)) as session:
-        assert session._session.id == mock_run.session_id
+    async with Client(base_url="http://test") as client, client.session(mock_session) as session:
         await session.run_sync("Howdy!", agent=mock_run.agent_name)
         await session.run_sync("Howdy!", agent=mock_run.agent_name)
         await client.run_sync("Howdy!", agent=mock_run.agent_name)
 
     requests = httpx_mock.get_requests()
-    body = json.loads(requests[0].content)
+    body = json.loads(requests[1].content)
     # First request gets full session
     assert body["session"]["id"] == str(mock_run.session_id)
 
-    body = json.loads(requests[1].content)
+    body = json.loads(requests[2].content)
     # Second sends just the ID
     assert body["session_id"] == str(mock_run.session_id)
 
-    body = json.loads(requests[2].content)
+    body = json.loads(requests[3].content)
     assert body["session_id"] is None
     assert body["session"] is None
 
