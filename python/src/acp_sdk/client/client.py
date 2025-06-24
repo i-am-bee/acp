@@ -252,16 +252,10 @@ class Client:
                 base_url=base_url or self._session_last_refresh_base_url,
             )
 
-            try:
-                response = await self._client.get(url, timeout=timeout)
-                self._raise_error(response)
-                response = SessionReadResponse.model_validate(response.json())
-                self._session = Session(**response.model_dump())
-            except ACPError as e:
-                if e.error.code == ErrorCode.NOT_FOUND:
-                    pass
-                raise e
-
+            response = await self._client.get(url, timeout=timeout)
+            self._raise_error(response)
+            response = SessionReadResponse.model_validate(response.json())
+            self._session = Session(**response.model_dump())
             return self._session
 
     async def _validate_stream(
@@ -311,6 +305,10 @@ class Client:
 
             session = await self.refresh_session(base_url=self._session_last_refresh_base_url or target_base_url)
             return {"session": session}
+        except ACPError as e:
+            if e.error.code == ErrorCode.NOT_FOUND:
+                return {"session": self._session}
+            raise e
         finally:
             await self._update_session_refresh_url(target_base_url)
 
