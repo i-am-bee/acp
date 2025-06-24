@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic.json_schema import SkipJsonSchema
 
 from acp_sdk.models.errors import ACPError, Error
 from acp_sdk.models.platform import PlatformUIAnnotation
@@ -336,8 +337,8 @@ class Session(BaseModel):
     history: list[ResourceUrl] = Field(default_factory=list)
     state: ResourceUrl | None = None
 
-    loader: ResourceLoader | None = Field(None, exclude=True)
-    store: ResourceStore | None = Field(None, exclude=True)
+    loader: SkipJsonSchema[ResourceLoader | None] = Field(None, exclude=True)
+    store: SkipJsonSchema[ResourceStore | None] = Field(None, exclude=True)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
