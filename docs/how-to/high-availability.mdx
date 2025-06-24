@@ -5,14 +5,14 @@ description: Configure ACP Server for high availability deployments with central
 
 # High Availability Setup
 
-This guide explains how to configure ACP Server for high availability (HA) deployments using centralized storage to share sessions and state across multiple server instances.
+This guide explains how to configure ACP Server for high availability (HA) deployments using centralized storage to share server state across multiple server replicas.
 
 ## Overview
 
-ACP Server supports high availability through centralized storage backends that enable multiple server instances to share session data and state. This allows you to:
+ACP Server supports high availability through centralized storage backends that enable multiple replicas to share server state. This allows you to:
 
-- Run multiple ACP Server instances behind a load balancer
-- Ensure session continuity across server restarts
+- Run multiple ACP Server replicas behind a load balancer
+- Ensure resilience across server restarts
 - Scale horizontally for increased throughput
 - Maintain state consistency across nodes
 
@@ -22,25 +22,25 @@ ACP Server provides three storage options:
 
 ### 1. Memory Store (Default)
 - **Use case**: Single-instance deployments, development
-- **Limitations**: No HA support, data lost on restart
+- **Limitations**: No HA support, data lost on restart, TTL expiration
 - **Configuration**: Used by default, no setup required
 
 ### 2. Redis Store
 - **Use case**: Production HA deployments with fast access
 - **Features**: Pub/Sub notifications, automatic expiration
-- **Requirements**: Redis server accessible by all ACP instances
+- **Requirements**: Redis server accessible by all ACP replicas
 
 ### 3. PostgreSQL Store
 - **Use case**: Production HA deployments with persistence
 - **Features**: ACID compliance, notifications via LISTEN/NOTIFY
-- **Requirements**: PostgreSQL database accessible by all ACP instances
+- **Requirements**: PostgreSQL database accessible by all ACP replicas
 
 ## Configuration Examples
 
 ### Redis Store Setup
 
 ```python
-from acp_sdk.server import RedisStore, agent, create_app
+from acp_sdk.server import RedisStore, Server
 from redis.asyncio import Redis
 
 # Configure Redis connection
@@ -50,20 +50,22 @@ redis = Redis(
     password="your-redis-password",
 )
 
+server = Server()
+
 # Create your agent
-@agent()
+@server.agent()
 async def my_agent(input):
     # Your agent implementation
     pass
 
-# Create app with Redis store
-app = create_app(my_agent, store=RedisStore(redis=redis))
+# Run server with Redis store
+server.run(store=RedisStore(redis=redis))
 ```
 
 ### PostgreSQL Store Setup
 
 ```python
-from acp_sdk.server import PostgreSQLStore, agent, create_app
+from acp_sdk.server import PostgreSQLStore, Server
 from psycopg import AsyncConnection
 
 # Configure PostgreSQL connection
@@ -71,15 +73,16 @@ aconn = await AsyncConnection.connect(
     "postgresql://user:password@host:5432/database",
 )
 
+server = Server()
+
 # Create your agent
-@agent()
+@server.agent()
 async def my_agent(input):
     # Your agent implementation
     pass
 
-# Create app with PostgreSQL store
-app = create_app(
-    my_agent, 
+# Run server with PostgreSQL store
+server.run(
     store=PostgreSQLStore(
         aconn=aconn,
         table="acp_store",      # Optional: custom table name
@@ -90,19 +93,11 @@ app = create_app(
 
 ## ACP-Specific Deployment Considerations
 
-### Session Continuity
-
-ACP maintains session state across multiple server instances through centralized storage. When a client connects to any instance:
-
-1. **Session lookup**: The instance checks the centralized store for existing session data
-2. **State restoration**: If found, the agent's state is restored from storage
-3. **Seamless continuation**: The agent can continue from where it left off
-
 ### Storage Backend Requirements
 
 **Redis Requirements:**
-- Redis 6.0+ with keyspace notifications enabled
-- Configure with: `CONFIG SET notify-keyspace-events KEA`
+- Redis 6.0+
+- ACP will automatically configure keyspace notifications: `CONFIG SET notify-keyspace-events KEA`
 
 **PostgreSQL Requirements:**
 - PostgreSQL 12+ with LISTEN/NOTIFY support
