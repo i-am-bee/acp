@@ -41,6 +41,7 @@
           "/core-concepts/agent-manifest",
           "/core-concepts/agent-discovery",
           "/core-concepts/message-structure",
+          "/core-concepts/message-metadata",
           "/core-concepts/stateful-agents",
           "/core-concepts/distributed-sessions",
           "/core-concepts/errors",
