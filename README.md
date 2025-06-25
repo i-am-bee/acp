@@ -34,7 +34,7 @@ Take the hands-on introduction to ACP in this [DeepLearning.AI short course](htt
 
 <div align="center">
 <a href="https://www.deeplearning.ai/short-courses/acp-agent-communication-protocol/">
-  <img src="docs/images/deeplearning-ai-cover.png" alt="Deep Learning AI Course" width="400">
+  <img src="docs/images/deeplearning-ai-cover.png" alt="Deep Learning AI Course" width="500">
 </a>
 </div>
 
