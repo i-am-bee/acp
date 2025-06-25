@@ -50,7 +50,6 @@
       },
       {
         "group": "How To",
-        "icon": "brackets-curly",
         "pages": [
           "/how-to/wrap-existing-agent",
           "/how-to/discover-and-run-agent",
@@ -63,7 +62,6 @@
       },
       {
         "group": "REST API",
-        "icon": "brackets-curly",
         "pages": [
           "/spec/openapi",
           {
