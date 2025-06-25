@@ -27,6 +27,15 @@ ACP enables agents to:
 - Collaborate on long-running tasks
 - Share state with each other when needed
 
+## Learn ACP
+
+Take the hands-on introduction to ACP in this [DeepLearning.AI short course](https://www.deeplearning.ai/short-courses/acp-agent-communication-protocol/):
+
+
+<a href="https://www.deeplearning.ai/short-courses/acp-agent-communication-protocol/">
+  <img src="docs/images/deeplearning-ai-cover.png" alt="Deep Learning AI Course" width="400">
+</a>
+
 ## What's New
 
 - **🌐 [Distributed Sessions](https://agentcommunicationprotocol.dev/core-concepts/distributed-sessions)** - Session continuity across multiple server instances using URI-based resource sharing
