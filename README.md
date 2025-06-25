@@ -302,12 +302,21 @@ We are grateful for the efforts of our initial contributors, who have played a v
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/Deriverx2">
+                    <img src="https://avatars.githubusercontent.com/u/117281795?v=4" width="100;" alt="Deriverx2"/>
+                    <br />
+                    <sub><b>E B Benson </b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/deanchanter">
                     <img src="https://avatars.githubusercontent.com/u/37911234?v=4" width="100;" alt="deanchanter"/>
                     <br />
                     <sub><b>deanchanter</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/Tomas2D">
                     <img src="https://avatars.githubusercontent.com/u/15633909?v=4" width="100;" alt="Tomas2D"/>
@@ -315,8 +324,6 @@ We are grateful for the efforts of our initial contributors, who have played a v
                     <sub><b>Tomáš Dvořák</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/penge">
                     <img src="https://avatars.githubusercontent.com/u/907255?v=4" width="100;" alt="penge"/>
@@ -350,13 +357,6 @@ We are grateful for the efforts of our initial contributors, who have played a v
                     <img src="https://avatars.githubusercontent.com/u/1254484?v=4" width="100;" alt="gabe-l-hart"/>
                     <br />
                     <sub><b>Gabe Goodhart</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/Deriverx2">
-                    <img src="https://avatars.githubusercontent.com/u/117281795?v=4" width="100;" alt="Deriverx2"/>
-                    <br />
-                    <sub><b>E B Benson </b></sub>
                 </a>
             </td>
 		</tr>
