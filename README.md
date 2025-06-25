@@ -27,7 +27,7 @@ ACP enables agents to:
 - Collaborate on long-running tasks
 - Share state with each other when needed
 
-ACP powers agent communication on the [BeeAI Platform](https://beeai.dev) — making it easy to discover, run, and share agents.
+ACP powers agent communication on the [BeeAI Platform](https://github.com/i-am-bee/beeai-platform) — a place where you can discover, run, and share agents.
 
 ## Learn ACP
 
