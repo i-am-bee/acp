@@ -1,0 +1,110 @@
+---
+title: Message Metadata
+description: "Learn how ACP uses metadata to provide semantic context and additional information for message parts"
+---
+
+Message metadata provides semantic context and additional information for message parts. ACP supports two types: citations for source attribution and trajectory data for transparency into agent operations.
+
+The [BeeAI platform](https://beeai.dev) demonstrates the value of standardized message metadata by exposing these patterns through a clean, intuitive GUI.
+
+## Metadata Types
+
+Each metadata object has a `kind` field that identifies its type.
+
+### Citation Metadata
+
+Citations attribute content to original sources. Essential for research and RAG agents.
+
+```python
+class CitationMetadata(BaseModel):
+    kind: Literal["citation"] = "citation"
+    start_index: Optional[int] = None      # Start of text range
+    end_index: Optional[int] = None        # End of text range  
+    url: Optional[str] = None              # Source URL
+    title: Optional[str] = None            # Source title
+    description: Optional[str] = None      # Source description or snippet
+```
+
+<CodeGroup>
+```json JSON Message
+{
+  "role": "agent/researcher",
+  "parts": [
+    {
+      "content_type": "text/plain", 
+      "content": "According to a recent study, AI adoption has increased by 40% this year.",
+      "metadata": {
+        "kind": "citation",
+        "url": "https://example.com/ai-study-2024",
+        "title": "AI Adoption Report 2024",
+        "description": "Comprehensive analysis of AI adoption trends across industries",
+        "start_index": 15,
+        "end_index": 27
+      }
+    }
+  ]
+}
+```
+
+```python Python SDK
+yield MessagePart(
+    content="According to recent studies, AI adoption has increased by 40% this year.",
+    metadata=CitationMetadata(
+        url="https://example.com/ai-study-2024",
+        title="AI Adoption Report 2024",
+        description="Comprehensive analysis of AI adoption trends across industries",
+        start_index=15,
+        end_index=27
+    )
+)
+```
+</CodeGroup>
+
+### Trajectory Metadata
+
+Trajectory metadata provides transparency into agent decision-making and tool usage.
+
+```python
+class TrajectoryMetadata(BaseModel):
+    kind: Literal["trajectory"] = "trajectory"
+    message: Optional[str] = None               # Internal reasoning or thoughts
+    tool_name: Optional[str] = None             # Name of executed tool
+    tool_input: Optional[dict] = None           # Tool input parameters
+    tool_output: Optional[dict] = None          # Tool output result
+```
+
+<CodeGroup>
+```json JSON Message
+{
+  "role": "agent/assistant",
+  "parts": [
+    {
+      "content_type": "text/plain",
+      "content": "It's currently 72°F and sunny in San Francisco.",
+      "metadata": {
+        "kind": "trajectory",
+        "tool_name": "weather_api",
+        "tool_input": {"location": "San Francisco, CA"},
+        "tool_output": {"temperature": 72, "condition": "sunny"}
+      }
+    }
+  ]
+}
+```
+
+```python Python SDK
+yield MessagePart(
+    content="It's currently 72°F and sunny in San Francisco.",
+    metadata=TrajectoryMetadata(
+        tool_name="weather_api",
+        tool_input={"location": "San Francisco, CA"},
+        tool_output={"temperature": 72, "condition": "sunny"}
+    )
+)
+```
+</CodeGroup>
+
+## Best Practices
+
+- **Metadata is additional data** - Never put conversation content in metadata; it's for context and transparency only
+- Keep metadata focused and purposeful for debugging, attribution, or system information
