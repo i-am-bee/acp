@@ -331,14 +331,14 @@ class Server:
         request_data = {
             "location": f"http://{host}:{self.server.config.port}",
         }
-        await async_request_with_retry(lambda client, data=request_data: client.get(f"{url}/api/v1/providers"))
         try:
+            await async_request_with_retry(lambda client, data=request_data: client.get(f"{url}/api/v1/providers"))
             await async_request_with_retry(
                 lambda client, data=request_data: client.post(
                     f"{url}/api/v1/providers", json=data, params={"auto_remove": True}
                 )
             )
-            logger.info("Agent registered to the beeai server.")
+            logger.debug("Agent registered to the beeai server.")
 
             # check missing env keyes
             envs_request = await async_request_with_retry(lambda client: client.get(f"{url}/api/v1/variables"))
@@ -361,17 +361,17 @@ class Server:
                     elif env.get("required"):
                         missing_keyes.append(env)
                 if len(missing_keyes):
-                    logger.error(f"Can not run agent, missing required env variables: {missing_keyes}")
+                    logger.debug(f"Can not run agent, missing required env variables: {missing_keyes}")
                     raise Exception("Missing env variables")
 
         except requests.exceptions.ConnectionError as e:
-            logger.warning(f"Can not reach server, check if running on {url} : {e}")
+            logger.debug(f"Can not reach server, check if running on {url} : {e}")
         except (requests.exceptions.HTTPError, Exception) as e:
             try:
                 error_message = e.response.json().get("detail")
                 if error_message:
-                    logger.warning(f"Agent can not be registered to beeai server: {error_message}")
+                    logger.debug(f"Agent can not be registered to beeai server: {error_message}")
                 else:
-                    logger.warning(f"Agent can not be registered to beeai server: {e}")
+                    logger.debug(f"Agent can not be registered to beeai server: {e}")
             except Exception:
-                logger.warning(f"Agent can not be registered to beeai server: {e}")
+                logger.debug(f"Agent can not be registered to beeai server: {e}")
