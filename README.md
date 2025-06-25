@@ -32,9 +32,11 @@ ACP enables agents to:
 Take the hands-on introduction to ACP in this [DeepLearning.AI short course](https://www.deeplearning.ai/short-courses/acp-agent-communication-protocol/):
 
 
+<div align="center">
 <a href="https://www.deeplearning.ai/short-courses/acp-agent-communication-protocol/">
   <img src="docs/images/deeplearning-ai-cover.png" alt="Deep Learning AI Course" width="400">
 </a>
+</div>
 
 ## What's New
 
