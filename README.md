@@ -225,7 +225,8 @@ You should see the echoed response printed to your console. 🎉
 
 We are grateful for the efforts of our initial contributors, who have played a vital role in getting ACP off the ground. As we continue to grow and evolve, we invite others to join our vibrant community and contribute to our project's ongoing development. For more information, please visit the [Contribute](https://agentcommunicationprotocol.dev/about/contribute) page of our documentation.
 
-![Contributors list](https://contrib.rocks/image?repo=i-am-bee/acp)
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
 
 ## Maintainers
 
