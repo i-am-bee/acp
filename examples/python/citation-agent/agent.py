@@ -12,7 +12,7 @@ server = Server()
 @server.agent(
     metadata=Metadata(
         annotations=Annotations(
-            beeai_ui=PlatformUIAnnotation(ui_type=PlatformUIType.HANDSOFF, user_greeting="Let's test citations")
+            beeai_ui=PlatformUIAnnotation(ui_type=PlatformUIType.CHAT, user_greeting="Let's test citations")
         )
     )
 )
