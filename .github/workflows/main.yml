@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: mise run --force common:check:nwa
+      - run: mise task run --force common:check:nwa
   python-lint:
     name: Python Lint
     runs-on: ubuntu-latest
