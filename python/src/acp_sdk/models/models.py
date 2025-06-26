@@ -111,11 +111,11 @@ class CitationMetadata(BaseModel):
     """
 
     kind: Literal["citation"] = "citation"
-    start_index: Optional[int]
-    end_index: Optional[int]
-    url: Optional[str]
-    title: Optional[str]
-    description: Optional[str]
+    start_index: Optional[int] = None
+    end_index: Optional[int] = None
+    url: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
 
 
 class TrajectoryMetadata(BaseModel):

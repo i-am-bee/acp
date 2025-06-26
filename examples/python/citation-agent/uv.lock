@@ -4,8 +4,8 @@ requires-python = ">=3.11, <4.0"
 
 [[package]]
 name = "acp-sdk"
-version = "0.10.1"
-source = { directory = "../../../python" }
+version = "0.13.0"
+source = { editable = "../../../python" }
 dependencies = [
     { name = "cachetools" },
     { name = "fastapi", extra = ["standard"] },
@@ -166,7 +166,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acp-sdk", directory = "../../../python" },
+    { name = "acp-sdk", editable = "../../../python" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
 ]
 
