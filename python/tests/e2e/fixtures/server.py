@@ -112,7 +112,7 @@ def server(request: pytest.FixtureRequest, store: Store) -> Generator[None]:
 
         yield MessagePart(content=str(context.session.id), content_type="text/plain")
 
-    @server.agent()
+    @server.agent(input_content_types=["text/plain", "application/json"], output_content_types=["text/html", "application/json", "application/javascript", "text/css"])
     async def mime_types(input: list[Message], context: Context) -> AsyncIterator[Message]:
         yield MessagePart(content="<h1>HTML Content</h1>", content_type="text/html")
         yield MessagePart(content='{"key": "value"}', content_type="application/json")
