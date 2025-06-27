@@ -7,12 +7,32 @@ uv = "0.6.16"
 experimental = true # for python.uv_venv_auto
 python.uv_venv_auto = true
 
+## grouped tasks
+
+[tasks."check"]
+depends = ["*:check"]
+
+[tasks."fix"]
+depends = ["*:fix"]
+
+## common tasks
+
+### check
+
+[tasks."common:check"]
+depends = ["common:check:*"]
+
 [tasks."common:check:nwa"]
 dir = "{{config_root}}"
-run = """
-nwa check -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}'
-"""
+run = "nwa check -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}'"
+# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
+sources = ["*/src/**/*.py", "*/src/**/*.js", "*/src/**/*.jsx", "*/src/**/*.ts", "*/src/**/*.tsx", "*/src/**/*.html", "*/src/**/*.css", "*/src/**/*.scss"]
 outputs = { auto = true }
+
+### fix
+
+[tasks."common:fix"]
+depends = ["common:fix:*"]
 
 [tasks."common:fix:nwa"]
 dir = "{{config_root}}"
@@ -20,4 +40,6 @@ run = """
 nwa update -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
 nwa add    -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
 """
+# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
+sources = ["examples", "*/src/**/*.py", "*/src/**/*.js", "*/src/**/*.jsx", "*/src/**/*.ts", "*/src/**/*.tsx", "*/src/**/*.html", "*/src/**/*.css", "*/src/**/*.scss"]
 outputs = { auto = true }
