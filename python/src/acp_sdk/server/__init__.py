@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from acp_sdk.server.agent import AgentManifest as AgentManifest
 from acp_sdk.server.agent import agent as agent
 from acp_sdk.server.app import create_app as create_app

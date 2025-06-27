@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from enum import Enum
 import asyncio
 
@@ -73,10 +76,6 @@ class TranslationTool(Tool[TranslateToolInput, ToolRunOptions, TranslateToolOutp
             result = await run_agent(f"translation_{lang.value}", input.text)
             return TranslationResult(text=str(result[0]), language=lang)
 
-        translations = await asyncio.gather(
-            *[translate_to_language(lang) for lang in input.languages]
-        )
+        translations = await asyncio.gather(*[translate_to_language(lang) for lang in input.languages])
 
-        return TranslateToolOutput(
-            result=TranslateToolResult(translations=translations)
-        )
+        return TranslateToolOutput(result=TranslateToolResult(translations=translations))

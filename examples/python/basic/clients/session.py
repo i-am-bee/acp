@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import asyncio
 from functools import reduce
 
@@ -24,8 +27,7 @@ async def example() -> None:
         )
         print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(
-            agent="chat_agent",
-            input=[Message(parts=[MessagePart(content="What is my favourite fruit?")])]
+            agent="chat_agent", input=[Message(parts=[MessagePart(content="What is my favourite fruit?")])]
         )
         print(str(reduce(lambda x, y: x + y, run.output)))
         run = await session.run_sync(

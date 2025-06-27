@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from collections.abc import AsyncGenerator
 from functools import reduce
 
@@ -11,6 +14,7 @@ from beeai_framework.utils.dicts import exclude_none
 from translation_tool import TranslationTool
 
 server = Server()
+
 
 @server.agent()
 async def translation_spanish(input: list[Message]) -> AsyncGenerator:

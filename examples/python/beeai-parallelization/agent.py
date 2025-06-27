@@ -1,3 +1,6 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from collections.abc import AsyncGenerator
 
 from acp_sdk import Message
@@ -15,9 +18,7 @@ server = Server()
 
 async def run_agent(agent: str, input: str) -> list[Message]:
     async with Client(base_url="http://localhost:8000") as client:
-        run = await client.run_sync(
-            agent=agent, input=input
-        )
+        run = await client.run_sync(agent=agent, input=input)
 
     return run.output
 
