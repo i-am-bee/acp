@@ -675,9 +675,9 @@ components:
           example: Conversational agent with memory, supporting real-time search, Wikipedia lookups, and weather updates through integrated tools
         input_content_types:
           type: array
+          minItems: 1
           description: >
             List of supported MIME content types for input Messages. Defines what formats of content the agent can consume.
-            Defaults to ["text/plain"] if not specified.
           items:
             type: string
             examples:
@@ -686,9 +686,9 @@ components:
               - image/png
         output_content_types:
           type: array
+          minItems: 1
           description: >
             List of supported MIME content types for output Messages. Defines what formats of content the agent can produce.
-            Defaults to ["text/plain"] if not specified.
           items:
             type: string
             examples:
@@ -702,6 +702,8 @@ components:
       required:
         - name
         - description
+        - input_content_types
+        - output_content_types
     Status:
       type: object
       properties:

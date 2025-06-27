@@ -18,6 +18,14 @@ class AgentManifest(abc.ABC):
         return ""
 
     @property
+    def input_content_types(self) -> list[str]:
+        return []
+
+    @property
+    def output_content_types(self) -> list[str]:
+        return []
+
+    @property
     def metadata(self) -> Metadata:
         return Metadata()
 
@@ -38,6 +46,8 @@ def agent(
     description: str | None = None,
     *,
     metadata: Metadata | None = None,
+    input_content_types: list[str] | None = None,
+    output_content_types: list[str] | None = None,
 ) -> Callable[[Callable], AgentManifest]:
     """Decorator to create an agent."""
 
@@ -66,6 +76,14 @@ def agent(
             @property
             def metadata(self) -> Metadata:
                 return metadata or Metadata()
+
+            @property
+            def input_content_types(self) -> list[str]:
+                return input_content_types or ["text/plain"]
+
+            @property
+            def output_content_types(self) -> list[str]:
+                return output_content_types or ["text/plain"]
 
         agent: AgentManifest
         if inspect.isasyncgenfunction(fn):
