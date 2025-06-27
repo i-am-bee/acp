@@ -141,7 +141,13 @@ def create_app(
     async def list_agents() -> AgentsListResponse:
         return AgentsListResponse(
             agents=[
-                AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
+                AgentModel(
+                    name=agent.name,
+                    description=agent.description,
+                    metadata=agent.metadata,
+                    input_content_types=agent.input_content_types,
+                    output_content_types=agent.output_content_types,
+                )
                 for agent in agents.values()
             ]
         )
@@ -149,7 +155,13 @@ def create_app(
     @app.get("/agents/{name}")
     async def read_agent(name: AgentName) -> AgentReadResponse:
         agent = find_agent(name)
-        return AgentModel(name=agent.name, description=agent.description, metadata=agent.metadata)
+        return AgentModel(
+            name=agent.name,
+            description=agent.description,
+            metadata=agent.metadata,
+            input_content_types=agent.input_content_types,
+            output_content_types=agent.output_content_types,
+        )
 
     @app.get("/ping")
     async def ping() -> PingResponse:

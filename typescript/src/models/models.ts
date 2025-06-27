@@ -289,6 +289,8 @@ export function throwForRunStatus(run: Run) {
 export const AgentManifest = z.object({
   name: AgentName,
   description: z.string().nullish(),
+  input_content_types: z.array(z.string()).min(1),
+  output_content_types: z.array(z.string()).min(1),
   metadata: Metadata.default({}),
 });
 
