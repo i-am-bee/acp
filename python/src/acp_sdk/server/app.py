@@ -71,6 +71,7 @@ def create_app(
     forward_base_url: AnyHttpUrl | str | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
+    default_middleware: bool = True,
 ) -> FastAPI:
     if not forward_resources and (
         resource_store is None
@@ -104,13 +105,15 @@ def create_app(
         dependencies=dependencies,
     )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["https://agentcommunicationprotocol.dev"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-        allow_credentials=True,
-    )
+    if default_middleware:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["https://agentcommunicationprotocol.dev"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+            allow_credentials=True,
+        )
+    
 
     agents: dict[AgentName, AgentManifest] = {agent.name: agent for agent in agents}
 
