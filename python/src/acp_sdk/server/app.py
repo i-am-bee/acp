@@ -71,7 +71,7 @@ def create_app(
     forward_base_url: AnyHttpUrl | str | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
-    default_middleware: bool = True,
+    enable_playground_cors: bool = True,
 ) -> FastAPI:
     if not forward_resources and (
         resource_store is None
@@ -105,7 +105,7 @@ def create_app(
         dependencies=dependencies,
     )
 
-    if default_middleware:
+    if enable_playground_cors:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["https://agentcommunicationprotocol.dev"],
