@@ -50,8 +50,13 @@ export async function createEventSource({
         for await (const message of stream) {
           yield message;
         }
-      } catch (err) {
-        throw new SSEError((err as Error).message, response, { cause: err });
+      } catch (e) {
+        const err = e as Error;
+        if (err.name !== 'AbortError') {
+          throw new SSEError(err.message, response, { cause: err });
+        } else {
+          throw err;
+        }
       }
     },
   };

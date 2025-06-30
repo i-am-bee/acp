@@ -9,6 +9,7 @@ import {
   Message,
   MessageAwaitResume,
   Event,
+  RunId,
 } from "../../src/models/models";
 
 describe("client", () => {
@@ -56,7 +57,9 @@ describe("client", () => {
       expect(agents.length).toBeGreaterThan(0);
 
       for (const agent of agents) {
-        expect(agent).toSatisfy((agent) => AgentManifest.safeParse(agent).success);
+        expect(agent).toSatisfy(
+          (agent) => AgentManifest.safeParse(agent).success
+        );
       }
     });
 
@@ -66,7 +69,9 @@ describe("client", () => {
 
       const agent = await client.agent(agentName);
 
-      expect(agent).toSatisfy((agent) => AgentManifest.safeParse(agent).success);
+      expect(agent).toSatisfy(
+        (agent) => AgentManifest.safeParse(agent).success
+      );
       expect(agent.name).toBe(agentName);
     });
   });
@@ -125,6 +130,32 @@ describe("client", () => {
 
       expect(events.at(0)?.type).toBe("run.created");
       expect(events.at(-1)?.type).toBe("run.completed");
+    });
+
+    test("stream run can be aborted via signal", async () => {
+      const client = createClient();
+
+      const controller = new AbortController();
+      let run_id: RunId | undefined;
+      await expect(
+        (async () => {
+          for await (const event of client.runStream(
+            "slow_echo",
+            input,
+            controller.signal
+          )) {
+            if (event.type === "run.created") {
+              run_id = event.run.run_id;
+              controller.abort();
+            }
+          }
+        })()
+      ).rejects.toThrow(expect.objectContaining({ name: "AbortError" }));
+  
+      expect(run_id).toBeDefined();
+
+      const run = await client.runStatus(run_id!);
+      expect(run.status).toBe("in-progress");
     });
 
     test("run events contain created and completed", async () => {

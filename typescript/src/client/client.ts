@@ -186,16 +186,20 @@ export class Client {
 
   async *runStream(
     agentName: AgentName,
-    input: Input
+    input: Input,
+    signal?: AbortSignal
   ): AsyncGenerator<Event, void, unknown> {
     const eventSource = await this.#fetchEventSource(
       "/runs",
-      jsonPost<RunCreateRequest>({
-        agent_name: agentName,
-        input: inputToMessages(input),
-        mode: "stream",
-        session_id: this.#sessionId,
-      })
+      jsonPost<RunCreateRequest>(
+        {
+          agent_name: agentName,
+          input: inputToMessages(input),
+          mode: "stream",
+          session_id: this.#sessionId,
+        },
+        { signal }
+      )
     );
     for await (const event of this.#processEventSource(eventSource)) {
       yield event;
@@ -245,14 +249,18 @@ export class Client {
 
   async *runResumeStream(
     runId: RunId,
-    awaitResume: AwaitResume
+    awaitResume: AwaitResume,
+    signal?: AbortSignal
   ): AsyncGenerator<Event, void, unknown> {
     const eventSource = await this.#fetchEventSource(
       `/runs/${runId}`,
-      jsonPost<RunResumeRequest>({
-        await_resume: awaitResume,
-        mode: "stream",
-      })
+      jsonPost<RunResumeRequest>(
+        {
+          await_resume: awaitResume,
+          mode: "stream",
+        },
+        { signal }
+      )
     );
     for await (const event of this.#processEventSource(eventSource)) {
       yield event;
@@ -267,8 +275,12 @@ const normalizeBaseUrl = (url: string) => {
   return url;
 };
 
-const jsonPost = <T>(json: T): RequestInit => {
+const jsonPost = <T>(
+  json: T,
+  init?: Omit<RequestInit, "method" | "headers" | "body">
+): RequestInit => {
   return {
+    ...init,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(json),
