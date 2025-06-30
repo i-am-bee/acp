@@ -7,17 +7,23 @@ import { PlatformUIAnnotation } from "./platform.js";
 
 export const AnyModel = z.record(z.any());
 
+export type AnyModel = z.infer<typeof AnyModel>;
+
 export const Author = z.object({
   name: z.string(),
   email: z.string().nullish(),
   url: z.string().url().nullish(),
 });
 
+export type Author = z.infer<typeof Author>;
+
 export const Contributor = z.object({
   name: z.string(),
   email: z.string().nullish(),
   url: z.string().url().nullish(),
 });
+
+export type Contributor = z.infer<typeof Contributor>;
 
 export const LinkType = z.enum([
   "source-code",
@@ -26,26 +32,38 @@ export const LinkType = z.enum([
   "documentation",
 ]);
 
+export type LinkType = z.infer<typeof LinkType>;
+
 export const Link = z.object({
   type: LinkType,
   url: z.string().url(),
 });
 
+export type Link = z.infer<typeof Link>;
+
 export const DependencyType = z.enum(["agent", "tool", "model"]);
+
+export type DependencyType = z.infer<typeof DependencyType>;
 
 export const Dependency = z.object({
   type: DependencyType,
   name: z.string(),
 });
 
+export type Dependency = z.infer<typeof Dependency>;
+
 export const Capability = z.object({
   name: z.string(),
   description: z.string(),
 });
 
+export type Capability = z.infer<typeof Capability>;
+
 export const Annotations = z.object({
   beeai_ui: PlatformUIAnnotation.nullish(),
 });
+
+export type Annotations = z.infer<typeof Annotations>;
 
 export const Metadata = nullishObject(
   z.object({
@@ -68,6 +86,8 @@ export const Metadata = nullishObject(
   })
 ).passthrough();
 
+export type Metadata = z.infer<typeof Metadata>;
+
 export const CitationMetadata = z.object({
   kind: z.literal("citation").default("citation"),
   start_index: z.number().int().nullish(),
@@ -77,6 +97,8 @@ export const CitationMetadata = z.object({
   description: z.string().nullish(),
 });
 
+export type CitationMetadata = z.infer<typeof CitationMetadata>;
+
 export const TrajectoryMetadata = z.object({
   kind: z.literal("trajectory").default("trajectory"),
   message: z.string().nullish(),
@@ -84,6 +106,8 @@ export const TrajectoryMetadata = z.object({
   tool_input: AnyModel.nullish(),
   tool_output: AnyModel.nullish(),
 });
+
+export type TrajectoryMetadata = z.infer<typeof TrajectoryMetadata>;
 
 const BaseMessagePart = z
   .object({
@@ -118,6 +142,8 @@ export const isMessagePart = createSchemaTypePredicate(MessagePart);
 export const Artifact = BaseMessagePart.required({ name: true }).superRefine(
   refineMessagePart
 );
+
+export type Artifact = Exclude<MessagePart, 'name'> & { name: string };
 
 export const Message = z.object({
   role: z
@@ -301,55 +327,77 @@ export const MessageCreatedEvent = z.object({
   message: Message,
 });
 
+export type MessageCreatedEvent = z.infer<typeof MessageCreatedEvent>;
+
 export const MessagePartEvent = z.object({
   type: z.literal("message.part"),
   part: MessagePart,
 });
+
+export type MessagePartEvent = z.infer<typeof MessagePartEvent>;
 
 export const MessageCompletedEvent = z.object({
   type: z.literal("message.completed"),
   message: Message,
 });
 
+export type MessageCompletedEvent = z.infer<typeof MessageCompletedEvent>;
+
 export const RunAwaitingEvent = z.object({
   type: z.literal("run.awaiting"),
   run: Run,
 });
+
+export type RunAwaitingEvent = z.infer<typeof RunAwaitingEvent>;
 
 export const GenericEvent = z.object({
   type: z.literal("generic"),
   generic: AnyModel,
 });
 
+export type GenericEvent = z.infer<typeof GenericEvent>;
+
 export const RunCreatedEvent = z.object({
   type: z.literal("run.created"),
   run: Run,
 });
+
+export type RunCreatedEvent = z.infer<typeof RunCreatedEvent>;
 
 export const RunInProgressEvent = z.object({
   type: z.literal("run.in-progress"),
   run: Run,
 });
 
+export type RunInProgressEvent = z.infer<typeof RunInProgressEvent>;
+
 export const RunFailedEvent = z.object({
   type: z.literal("run.failed"),
   run: Run,
 });
+
+export type RunFailedEvent = z.infer<typeof RunFailedEvent>;
 
 export const RunCancelledEvent = z.object({
   type: z.literal("run.cancelled"),
   run: Run,
 });
 
+export type RunCancelledEvent = z.infer<typeof RunCancelledEvent>;
+
 export const RunCompletedEvent = z.object({
   type: z.literal("run.completed"),
   run: Run,
 });
 
+export type RunCompletedEvent = z.infer<typeof RunCompletedEvent>;
+
 export const ErrorEvent = z.object({
   type: z.literal("error"),
   error: ErrorModel,
 });
+
+export type ErrorEvent = z.infer<typeof ErrorEvent>;
 
 export const Event = z.discriminatedUnion("type", [
   MessageCreatedEvent,
