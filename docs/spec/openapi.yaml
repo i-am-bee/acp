@@ -681,6 +681,8 @@ components:
           items:
             type: string
             examples:
+              - "*/*"
+              - image/*
               - text/plain
               - application/json
               - image/png
@@ -692,6 +694,8 @@ components:
           items:
             type: string
             examples:
+              - "*/*"
+              - image/*
               - text/plain
               - application/json
               - image/png

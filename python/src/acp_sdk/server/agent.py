@@ -79,11 +79,11 @@ def agent(
 
             @property
             def input_content_types(self) -> list[str]:
-                return input_content_types or ["text/plain"]
+                return input_content_types or ["*/*"]
 
             @property
             def output_content_types(self) -> list[str]:
-                return output_content_types or ["text/plain"]
+                return output_content_types or ["*/*"]
 
         agent: AgentManifest
         if inspect.isasyncgenfunction(fn):
