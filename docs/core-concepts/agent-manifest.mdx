@@ -24,3 +24,42 @@ async def DataAnalyzerAgent():
 ```
 
 ## Parameters
+
+## Content Types
+
+The `input_content_types` and `output_content_types` fields specify the MIME types that an agent can handle. Wildcards are supported.
+
+### Common Content Types
+
+- **`*/*`**: Any content
+- **`image/*`**: Any image
+- **`text/plain`**: Plain text content
+- **`application/json`**: JSON structured data
+- **`image/png`**: PNG image files
+- **`image/jpeg`**: JPEG image files
+- **`application/pdf`**: PDF documents
+
+### Example Usage
+
+```python
+@server.agent(
+    name="image-analyzer",
+    description="Analyzes images and provides text descriptions",
+    input_content_types=["image/png", "image/jpeg"],
+    output_content_types=["text/plain", "application/json"]
+)
+async def ImageAnalyzerAgent(input: list[Message], context: Context):
+    # Process image inputs and return text/json outputs
+    pass
+```
+
+## Default Values
+
+If `input_content_types` and `output_content_types` are not specified in the decorator, they default to `["*/*"]`:
+
+```python
+@server.agent()  # Uses default ["*/*"] for both input and output
+async def SimpleTextAgent(input: list[Message], context: Context):
+    # Agent implementation
+    pass
+```

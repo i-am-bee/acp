@@ -353,10 +353,20 @@ Event = Union[
 ]
 
 
+class InputContentTypes(BaseModel):
+    types: list[str]
+
+
+class OutputContentTypes(BaseModel):
+    types: list[str]
+
+
 class AgentManifest(BaseModel):
     name: str
     description: str | None = None
     metadata: Metadata = Metadata()
+    input_content_types: list[str] = Field(default_factory=lambda: ["*/*"])
+    output_content_types: list[str] = Field(default_factory=lambda: ["*/*"])
 
 
 class Session(BaseModel):

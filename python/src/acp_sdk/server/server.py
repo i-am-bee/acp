@@ -31,13 +31,21 @@ class Server:
         self,
         name: str | None = None,
         description: str | None = None,
+        input_content_types: list[str] | None = None,
+        output_content_types: list[str] | None = None,
         *,
         metadata: Metadata | None = None,
     ) -> Callable:
         """Decorator to register an agent."""
 
         def decorator(fn: Callable) -> Callable:
-            agent = agent_decorator(name=name, description=description, metadata=metadata)(fn)
+            agent = agent_decorator(
+                name=name,
+                description=description,
+                metadata=metadata,
+                input_content_types=input_content_types,
+                output_content_types=output_content_types,
+            )(fn)
             self.register(agent)
             return fn
 

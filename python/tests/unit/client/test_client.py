@@ -19,7 +19,7 @@ from acp_sdk.models import (
 )
 from pytest_httpx import HTTPXMock
 
-mock_agent = AgentManifest(name="mock")
+mock_agent = AgentManifest(name="mock", input_content_types=[], output_content_types=[])
 mock_agents = [mock_agent]
 mock_session = Session()
 mock_run = Run(

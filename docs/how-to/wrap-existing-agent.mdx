@@ -16,7 +16,7 @@ Once wrapped, your agent becomes:
 
 <Tip>Install the SDK first: `uv add acp-sdk`</Tip>
 
-Wrap an agent by annotating a Python function with `@server.agent()`. The agent name comes from the function name, and the description comes from the docstring. You can add more metadata like capabilities and dependencies - see the [Agent Manifest](/core-concepts/agent-manifest) section for details.
+Wrap an agent by annotating a Python function with `@server.agent()`. The agent name comes from the function name, and the description comes from the docstring. You can add more metadata like capabilities, dependencies, and content types - see the [Agent Manifest](/core-concepts/agent-manifest) section for details.
 
 This creates an ACP-compliant agent that can receive messages and respond via HTTP using the ACP protocol:
 
