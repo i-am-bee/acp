@@ -54,6 +54,8 @@ export async function createEventSource({
         const err = e as Error;
         if (err.name !== 'AbortError') {
           throw new SSEError(err.message, response, { cause: err });
+        } else {
+          throw err;
         }
       }
     },
