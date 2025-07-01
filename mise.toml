@@ -20,7 +20,7 @@ depends = ["common:check:*"]
 
 [tasks."common:check:license"]
 dir = "{{config_root}}"
-run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$' scripts)"
+run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$' docs examples python scripts typescript)"
 
 ### fix
 
