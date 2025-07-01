@@ -1,7 +1,8 @@
 [tools]
 python = "3.11"
 uv = "0.6.16"
-"ubi:B1NARY-GR0UP/nwa" = "latest"
+fd = "latest"
+"ubi:google/addlicense" = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto
@@ -22,24 +23,16 @@ depends = ["*:fix"]
 [tasks."common:check"]
 depends = ["common:check:*"]
 
-[tasks."common:check:nwa"]
+[tasks."common:check:license"]
 dir = "{{config_root}}"
-run = "nwa check -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}'"
-# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
-sources = ["*/src/**/*.py", "*/src/**/*.js", "*/src/**/*.jsx", "*/src/**/*.ts", "*/src/**/*.tsx", "*/src/**/*.html", "*/src/**/*.css", "*/src/**/*.scss"]
-outputs = { auto = true }
+run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
 ### fix
 
 [tasks."common:fix"]
 depends = ["common:fix:*"]
 
-[tasks."common:fix:nwa"]
+[tasks."common:fix:license"]
 dir = "{{config_root}}"
-run = """
-nwa update -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-nwa add    -i Apache-2.0 -c '© BeeAI a Series of LF Projects, LLC' '{examples,{python,typescript}/src,python/tests,typescript/test}/**/*.{py,js,jsx,ts,tsx,html,css,scss}' --mute || true
-"""
-# sources don't support {a,b} -- https://github.com/jdx/mise/discussions/4469
-sources = ["examples", "*/src/**/*.py", "*/src/**/*.js", "*/src/**/*.jsx", "*/src/**/*.ts", "*/src/**/*.tsx", "*/src/**/*.html", "*/src/**/*.css", "*/src/**/*.scss"]
-outputs = { auto = true }
+run = "addlicense -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
+
