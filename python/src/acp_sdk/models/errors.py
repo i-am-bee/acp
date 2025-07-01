@@ -1,6 +1,9 @@
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel
+
+from acp_sdk.models.models import AnyModel
 
 
 class ErrorCode(str, Enum):
@@ -10,8 +13,9 @@ class ErrorCode(str, Enum):
 
 
 class Error(BaseModel):
-    code: ErrorCode
+    code: ErrorCode | str  # Allow arbitrary string for backwards compatibility
     message: str
+    data: Optional[AnyModel] = None
 
 
 class ACPError(Exception):

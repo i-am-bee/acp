@@ -252,6 +252,9 @@ components:
             - not_found
         message:
           type: string
+        data:
+          type: object
+          nullable: true
       required:
         - code
         - message
