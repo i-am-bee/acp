@@ -138,9 +138,13 @@ class TrajectoryMetadata(BaseModel):
     kind: Literal["trajectory"] = "trajectory"
     message: Optional[str] = None
     tool_name: Optional[str] = None
-    tool_input: Optional[AnyModel] = None
-    tool_output: Optional[AnyModel] = None
+    tool_input: Optional[AnyModel | str] = None
+    tool_output: Optional[AnyModel | str] = None
 
+class ConfigurationMetadata(BaseModel):
+    kind: Literal["configuration"] = "configuration"
+    key: str
+    value: Any
 
 class MessagePart(BaseModel):
     name: Optional[str] = None
@@ -151,7 +155,7 @@ class MessagePart(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    metadata: Optional[CitationMetadata | TrajectoryMetadata] = Field(discriminator="kind", default=None)
+    metadata: Optional[CitationMetadata | TrajectoryMetadata | ConfigurationMetadata] = Field(discriminator="kind", default=None)
 
     def model_post_init(self, __context: Any) -> None:
         if self.content is not None and self.content_url is not None:
