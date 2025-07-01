@@ -8,14 +8,11 @@ from typing import Any, Literal, Optional, Union
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 from pydantic.json_schema import SkipJsonSchema
 
+from acp_sdk.models.common import AnyModel
 from acp_sdk.models.errors import ACPError, Error
 from acp_sdk.models.platform import PlatformUIAnnotation
 from acp_sdk.models.types import AgentName, ResourceUrl, RunId, SessionId
 from acp_sdk.shared import ResourceLoader, ResourceStore
-
-
-class AnyModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
 
 
 class Author(BaseModel):

@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from acp_sdk.models.models import AnyModel
+from acp_sdk.models.common import AnyModel
 
 
 class ErrorCode(str, Enum):
