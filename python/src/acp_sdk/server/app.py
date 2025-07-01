@@ -113,7 +113,6 @@ def create_app(
             allow_headers=["*"],
             allow_credentials=True,
         )
-    
 
     agents: dict[AgentName, AgentManifest] = {agent.name: agent for agent in agents}
 
