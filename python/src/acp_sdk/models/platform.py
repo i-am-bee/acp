@@ -7,6 +7,7 @@ class PlatformUIType(str, Enum):
     CHAT = "chat"
     HANDSOFF = "hands-off"
 
+
 class ConfigurationField(str, Enum):
     BOOLEAN = "boolean"
 
