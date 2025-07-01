@@ -7,7 +7,7 @@ export type ErrorCode = z.infer<typeof ErrorCode>;
 export const ErrorModel = z.object({
   code: ErrorCode,
   message: z.string(),
+  data: z.unknown().nullish(),
 });
 
 export type ErrorModel = z.infer<typeof ErrorModel>;
-
