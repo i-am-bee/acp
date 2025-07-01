@@ -10,8 +10,8 @@ on:
       - main
 
 jobs:
-  check:
-    name: Check & test
+  check-license:
+    name: License
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,5 +20,4 @@ jobs:
         with:
           experimental: true
           log_level: debug
-
-      - run: mise run --force check
+      - run: mise run --verbose --force check
