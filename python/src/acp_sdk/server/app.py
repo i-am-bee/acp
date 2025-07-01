@@ -13,6 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from obstore.exceptions import NotFoundError
+from pydantic import AnyHttpUrl, ValidationError
 
 from acp_sdk.models import (
     ACPError,
@@ -67,6 +68,7 @@ def create_app(
     resource_store: ResourceStore | None = None,
     resource_loader: ResourceLoader | None = None,
     forward_resources: bool = True,
+    forward_base_url: AnyHttpUrl | str | None = None,
     lifespan: Lifespan[AppType] | None = None,
     dependencies: list[Depends] | None = None,
 ) -> FastAPI:
@@ -75,6 +77,12 @@ def create_app(
         or isinstance(resource_store._store, (obstore.store.MemoryStore, obstore.store.LocalStore))
     ):
         raise ValueError("Resource forwarding must be enabled when resource store does not support HTTP URLs")
+
+    if isinstance(forward_base_url, str):
+        try:
+            forward_base_url = AnyHttpUrl(forward_base_url)
+        except ValidationError:
+            raise ValueError("forward_base_url must be a valid http(s) url")
 
     executor: ThreadPoolExecutor
     client = httpx.AsyncClient()
@@ -177,6 +185,10 @@ def create_app(
         def create_resource_url_forwarded(id: ResourceId) -> ResourceUrl:
             if not forward_resources:
                 raise RuntimeError("Resource forwarding disabled")
+            if forward_base_url:
+                return ResourceUrl(
+                    url=str(app.url_path_for("get_resource", resource_id=id).make_absolute_url(str(forward_base_url)))
+                )
             return ResourceUrl(url=str(req.url_for("get_resource", resource_id=id)))
 
         async def create_resource_url(id: ResourceId) -> ResourceUrl:

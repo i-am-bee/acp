@@ -9,6 +9,7 @@ import requests
 import uvicorn
 import uvicorn.config
 from fastapi import FastAPI
+from pydantic import AnyHttpUrl
 
 from acp_sdk.models import Metadata
 from acp_sdk.server.agent import AgentManifest
@@ -67,6 +68,8 @@ class Server:
         store: Store | None = None,
         resource_store: ResourceStore | None = None,
         resource_loader: ResourceLoader | None = None,
+        forward_resources: bool = True,
+        forward_base_url: AnyHttpUrl | str | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -135,6 +138,8 @@ class Server:
             store=store,
             resource_loader=resource_loader,
             resource_store=resource_store,
+            forward_resources=forward_resources,
+            forward_base_url=forward_base_url,
         )
 
         if configure_logger:
@@ -204,6 +209,8 @@ class Server:
         store: Store | None = None,
         resource_store: ResourceStore | None = None,
         resource_loader: ResourceLoader | None = None,
+        forward_resources: bool = True,
+        forward_base_url: AnyHttpUrl | str | None = None,
         host: str = "127.0.0.1",
         port: int = 8000,
         uds: str | None = None,
@@ -264,6 +271,8 @@ class Server:
                 store=store,
                 resource_store=resource_store,
                 resource_loader=resource_loader,
+                forward_resources=forward_resources,
+                forward_base_url=forward_base_url,
                 host=host,
                 port=port,
                 uds=uds,
