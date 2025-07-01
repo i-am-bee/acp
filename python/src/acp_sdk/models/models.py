@@ -138,10 +138,17 @@ class TrajectoryMetadata(BaseModel):
     kind: Literal["trajectory"] = "trajectory"
     message: Optional[str] = None
     tool_name: Optional[str] = None
-    tool_input: Optional[AnyModel | str] = None
-    tool_output: Optional[AnyModel | str] = None
+    tool_input: Optional[AnyModel] = None
+    tool_output: Optional[AnyModel] = None
 
 class ConfigurationMetadata(BaseModel):
+    """
+    Represents configuration to alter agent's behavior.
+
+    Properties:
+    - key: The name of the configuration setting.
+    - value: The value of the configuration setting.
+    """
     kind: Literal["configuration"] = "configuration"
     key: str
     value: Any
