@@ -1,0 +1,38 @@
+[tools.fd]
+version = "10.2.0"
+backend = "aqua:sharkdp/fd"
+
+[tools.fd.checksums]
+"fd-v10.2.0-aarch64-apple-darwin.tar.gz" = "sha256:ae6327ba8c9a487cd63edd8bddd97da0207887a66d61e067dfe80c1430c5ae36"
+
+[tools.node]
+version = "22.17.0"
+backend = "core:node"
+
+[tools.node.checksums]
+"node-v22.17.0-darwin-arm64.tar.gz" = "sha256:615dda58b5fb41fad2be43940b6398ca56554cbe05800953afadc724729cb09e"
+
+[tools.pnpm]
+version = "10.10.0"
+backend = "aqua:pnpm/pnpm"
+
+[tools.pnpm.checksums]
+pnpm-macos-arm64 = "sha256:01f10b192c4359befb299aa7335dc4dcd3f35d8d763aec60de08ae3b858b4fcf"
+
+[tools.python]
+version = "3.11.13"
+backend = "core:python"
+
+[tools."ubi:google/addlicense"]
+version = "1.1.1"
+backend = "ubi:google/addlicense"
+
+[tools."ubi:google/addlicense".checksums]
+addlicense-macos-aarch64 = "sha256:ce5830d1efd60c71f4b51071c12fa2be927ee13c5058f587a57be69eee1d8ab4"
+
+[tools.uv]
+version = "0.6.12"
+backend = "aqua:astral-sh/uv"
+
+[tools.uv.checksums]
+"uv-aarch64-apple-darwin.tar.gz" = "sha256:fab8db5b62da1e945524b8d1a9d4946fcc6d9b77ec0cab423d953e82159967ac"

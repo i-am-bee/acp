@@ -1,0 +1,64 @@
+# check
+
+["typescript:check"]
+depends = ["typescript:check:*"]
+
+# TODO: fix and enable in separate PR
+# ["typescript:check:prettier"]
+# depends = ["setup:pnpm"]
+# dir = "{{config_root}}/typescript"
+# run = "pnpm prettier --log-level silent --check src"
+# sources = ["src/**/*.ts"]
+# outputs = { auto = true }
+
+# TODO: fix and enable in separate PR
+# ["typescript:check:eslint"]
+# depends = ["setup:pnpm"]
+# dir = "{{config_root}}/typescript"
+# run = "pnpm eslint src"
+# sources = ["src/**/*.ts"]
+# outputs = { auto = true }
+
+["typescript:check:tsc"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm tsc --noEmit"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# fix
+
+["typescript:fix"]
+depends = ["typescript:fix:*"]
+
+["typescript:fix:prettier"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm prettier --log-level silent --write src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+["typescript:fix:eslint"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm eslint --fix src"
+sources = ["src/**/*.ts"]
+outputs = { auto = true }
+
+# test
+
+["typescript:test:unit"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm test:unit"
+
+["typescript:test:e2e"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm test:e2e"
+
+# build
+["typescript:build"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/typescript"
+run = "pnpm build"

@@ -1,15 +1,79 @@
 [tools]
+# Python
 python = "3.11"
+uv = "0.6.12"
+
+# Node.js
+nodejs = "22"
+pnpm = "10.10.0"
+
+# Misc
 fd = "latest"
+yq = "latest"
 "ubi:google/addlicense" = "latest"
 
+[settings]
+experimental = true # for python.uv_venv_auto
+python.uv_venv_auto = true
+raw = true
+node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
+
+[hooks]
+postinstall = "{{ mise_bin }} setup"
+
+# TASKS
+
+[task_config]
+includes = [
+    "python/tasks.toml",
+    "typescript/tasks.toml",
+    "docs/tasks.toml",
+]
+
 ## grouped tasks
+
+[tasks."setup"]
+depends = ["setup:*"]
 
 [tasks."check"]
 depends = ["*:check"]
 
 [tasks."fix"]
 depends = ["*:fix"]
+
+[tasks."test"]
+depends = ["*:test"]
+
+## git hooks
+
+[tasks."git-hooks:pre-commit"]
+hide = true
+depends = ["check"]
+
+## repo setup
+
+[tasks."setup:git-hooks"]
+hide = true
+dir = "{{config_root}}"
+run = """
+test ! -d .git || (printf '#!/bin/sh\n{{ mise_bin }} run git-hooks:pre-commit' >.git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)
+"""
+sources = [".git/hooks/pre-commit"]
+outputs = { auto = true }
+
+[tasks."setup:pnpm"]
+hide = true
+dir = "{{config_root}}"
+run = "pnpm install"
+sources = ["pnpm-lock.yaml", "pnpm-workspace.yaml", "typescript/package.json", "docs/package.json", "examples/typescript/*/package.json"]
+outputs = { auto = true }
+
+[tasks."setup:uv"]
+hide = true
+dir = "{{config_root}}"
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml", "python/pyproject.toml"]
+outputs = { auto = true }
 
 ## common tasks
 
@@ -20,7 +84,7 @@ depends = ["common:check:*"]
 
 [tasks."common:check:license"]
 dir = "{{config_root}}"
-run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$' docs examples python scripts typescript)"
+run = "addlicense -check -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
 ### fix
 
@@ -31,3 +95,25 @@ depends = ["common:fix:*"]
 dir = "{{config_root}}"
 run = "addlicense -l apache -s=only -c '© BeeAI a Series of LF Projects, LLC' $(fd '\\.(py|[jt]sx?|html|s?css)$')"
 
+### check versions
+
+[tasks."common:check-versions"]
+run = """
+#!/usr/bin/env bash
+
+[[ "$GITHUB_REF" == refs/tags/v* ]] || { echo "ERROR: Commit not tagged as v*"; exit 1; }
+
+js_version=$(yq -r '.version' typescript/package.json)
+py_version=$(yq -r '.project.version' python/pyproject.toml)
+ref_version=${GITHUB_REF#refs/tags/v}
+
+if [[ "$js_version" == "$py_version" && "$py_version" == "$ref_version" ]]; then
+  echo "Versions match: $ref_version"
+else
+  echo "ERROR: Version mismatch detected"
+  echo "package.json: $js_version"
+  echo "pyproject.toml: $py_version"
+  echo "git tag: $ref_version"
+  exit 1
+fi
+"""

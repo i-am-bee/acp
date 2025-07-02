@@ -1,0 +1,59 @@
+# check
+
+["python:check"]
+depends = ["python:check:*"]
+
+["python:check:ruff-check"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["python:check:ruff-format"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# fix
+
+["python:fix"]
+depends = ["python:fix:*"]
+
+["python:fix:ruff-check"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+["python:fix:ruff-format"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+# test
+
+["python:test"]
+depends = ["python:test:*"]
+
+["python:test:unit"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run pytest tests/unit"
+
+["python:test:e2e"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv run pytest tests/e2e"
+
+# build
+
+["python:build"]
+depends = ["setup:uv"]
+dir = "{{config_root}}/python"
+run = "uv build --package acp-sdk"

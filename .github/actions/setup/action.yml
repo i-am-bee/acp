@@ -16,8 +16,7 @@ runs:
         key: pnpm-store-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-store-v1-${{ runner.os }}-
     
-    - name: Set environment variables
-      shell: bash
+    - shell: bash
       run: |
         echo "UV_FROZEN=true" >> $GITHUB_ENV
         echo "UV_PYTHON_PREFERENCE=only-system" >> $GITHUB_ENV
@@ -25,4 +24,3 @@ runs:
     - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       with:
         version: 2025.2.6
-

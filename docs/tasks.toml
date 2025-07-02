@@ -1,0 +1,17 @@
+# run
+
+["docs:run"]
+dir = "{{config_root}}/docs"
+run = "pnpm dev"
+
+# check
+
+["docs:check"]
+depends = ["docs:check:*"]
+
+["docs:check:schema"]
+depends = ["setup:pnpm"]
+dir = "{{config_root}}/docs"
+run = "pnpm schema:validate"
+sources = ["spec/openapi.yaml"]
+outputs = { auto = true }
