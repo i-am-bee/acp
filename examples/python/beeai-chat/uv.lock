@@ -4,7 +4,7 @@ requires-python = ">=3.11, <4.0"
 
 [[package]]
 name = "acp-sdk"
-version = "0.10.1"
+version = "1.0.0"
 source = { editable = "../../../python" }
 dependencies = [
     { name = "cachetools" },
