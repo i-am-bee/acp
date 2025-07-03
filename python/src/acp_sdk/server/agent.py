@@ -6,12 +6,17 @@ import inspect
 from collections.abc import AsyncGenerator, Coroutine, Generator
 from typing import Callable
 
-from acp_sdk.models import AgentName, Message, Metadata
+from acp_sdk.models import AgentManifest, AgentName, Message, Metadata
 from acp_sdk.server.context import Context
 from acp_sdk.server.types import RunYield, RunYieldResume
 
 
-class AgentManifest(abc.ABC):
+class Agent(abc.ABC):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.manifest  # noqa: B018 validate manifest
+
     @property
     def name(self) -> AgentName:
         return self.__class__.__name__
@@ -32,6 +37,16 @@ class AgentManifest(abc.ABC):
     def metadata(self) -> Metadata:
         return Metadata()
 
+    @property
+    def manifest(self) -> AgentManifest:
+        return AgentManifest(
+            name=self.name,
+            description=self.description,
+            metadata=self.metadata,
+            input_content_types=self.input_content_types,
+            output_content_types=self.output_content_types,
+        )
+
     @abc.abstractmethod
     def run(
         self, input: list[Message], context: Context
@@ -41,9 +56,6 @@ class AgentManifest(abc.ABC):
         pass
 
 
-Agent = AgentManifest
-
-
 def agent(
     name: str | None = None,
     description: str | None = None,
@@ -51,10 +63,10 @@ def agent(
     metadata: Metadata | None = None,
     input_content_types: list[str] | None = None,
     output_content_types: list[str] | None = None,
-) -> Callable[[Callable], AgentManifest]:
+) -> Callable[[Callable], Agent]:
     """Decorator to create an agent."""
 
-    def decorator(fn: Callable) -> AgentManifest:
+    def decorator(fn: Callable) -> Agent:
         signature = inspect.signature(fn)
         parameters = list(signature.parameters.values())
 
@@ -67,10 +79,10 @@ def agent(
 
         has_context_param = len(parameters) == 2
 
-        class DecoratorAgentBase(AgentManifest):
+        class DecoratorAgentBase(Agent):
             @property
             def name(self) -> str:
-                return name or fn.__name__
+                return name or fn.__name__.replace("_", "-")
 
             @property
             def description(self) -> str:
@@ -88,7 +100,7 @@ def agent(
             def output_content_types(self) -> list[str]:
                 return output_content_types or ["*/*"]
 
-        agent: AgentManifest
+        agent: Agent
         if inspect.isasyncgenfunction(fn):
 
             class AsyncGenDecoratorAgent(DecoratorAgentBase):

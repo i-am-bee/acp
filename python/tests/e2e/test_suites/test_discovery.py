@@ -29,7 +29,7 @@ async def test_agents_manifest(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_input_content_types(server: Server, client: Client) -> None:
-    agent_name = "mime_types"
+    agent_name = "mime-types"
     agent = await client.agent(name=agent_name)
     assert isinstance(agent, AgentManifest)
     assert agent.name == agent_name
@@ -38,7 +38,7 @@ async def test_input_content_types(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_output_content_types(server: Server, client: Client) -> None:
-    agent_name = "mime_types"
+    agent_name = "mime-types"
     agent = await client.agent(name=agent_name)
     assert isinstance(agent, AgentManifest)
     assert agent.name == agent_name

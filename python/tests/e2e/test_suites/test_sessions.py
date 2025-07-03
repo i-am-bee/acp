@@ -12,7 +12,7 @@ from acp_sdk.models import (
 from acp_sdk.models.models import Session
 from acp_sdk.server import Server
 
-agent = "history_echo"
+agent = "history-echo"
 input = [Message(parts=[MessagePart(content="Hello!")])]
 output = [message.model_copy(update={"role": f"agent/{agent}"}) for message in input]
 

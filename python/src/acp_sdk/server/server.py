@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from pydantic import AnyHttpUrl
 
 from acp_sdk.models import Metadata
-from acp_sdk.server.agent import AgentManifest
+from acp_sdk.server.agent import Agent
 from acp_sdk.server.agent import agent as agent_decorator
 from acp_sdk.server.app import create_app
 from acp_sdk.server.logging import configure_logger as configure_logger_func
@@ -28,7 +28,7 @@ from acp_sdk.shared.resources import ResourceLoader, ResourceStore
 
 class Server:
     def __init__(self) -> None:
-        self.agents: list[AgentManifest] = []
+        self.agents: list[Agent] = []
         self.server: uvicorn.Server | None = None
 
     def agent(
@@ -55,7 +55,7 @@ class Server:
 
         return decorator
 
-    def register(self, *agents: AgentManifest) -> None:
+    def register(self, *agents: Agent) -> None:
         self.agents.extend(agents)
 
     @asynccontextmanager
