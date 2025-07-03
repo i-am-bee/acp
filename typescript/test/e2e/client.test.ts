@@ -145,7 +145,7 @@ describe("client", () => {
       await expect(
         (async () => {
           for await (const event of client.runStream(
-            "slow_echo",
+            "slow-echo",
             input,
             controller.signal
           )) {
@@ -183,7 +183,7 @@ describe("client", () => {
       expect(run.error?.code).toBe("invalid_input");
     });
 
-    test.for(["awaiter", "slow_echo"])(
+    test.for(["awaiter", "slow-echo"])(
       "%s run cancel works",
       async (agentName) => {
         const client = createClient();
@@ -204,7 +204,7 @@ describe("client", () => {
       const client = createClient();
 
       let lastEvent: Event | undefined;
-      for await (const event of client.runStream("slow_echo", input)) {
+      for await (const event of client.runStream("slow-echo", input)) {
         lastEvent = event;
         if (event.type === "run.created") {
           const run = await client.runCancel(event.run.run_id);
@@ -263,9 +263,9 @@ describe("client", () => {
       const client = createClient();
 
       await client.withSession(async (session) => {
-        let run = await session.runSync("history_echo", input);
+        let run = await session.runSync("history-echo", input);
         expect(run.output).toHaveLength(1);
-        run = await session.runSync("history_echo", input);
+        run = await session.runSync("history-echo", input);
         expect(run.output).toHaveLength(3);
       });
     });
