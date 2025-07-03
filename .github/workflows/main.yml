@@ -16,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run check
   
   # TODO: un-require and remove, part of `mise run check`
@@ -26,7 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run python:check:ruff-check
   
   # TODO: un-require and remove, part of `mise run check`
@@ -36,7 +34,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run python:check:ruff-format
   
   python-unit:
@@ -46,7 +43,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run python:test:unit
 
   python-e2e:
@@ -79,7 +75,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise python:test:e2e
         env:
           REDIS_HOST: localhost
@@ -95,7 +90,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run typescript:test:unit
 
   typescript-e2e:
@@ -105,5 +99,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - uses: jdx/mise-action@5083fe46898c414b2475087cc79da59e7da859e8
       - run: mise run typescript:test:e2e
