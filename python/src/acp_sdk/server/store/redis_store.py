@@ -40,4 +40,4 @@ class RedisStore(Store[T], Generic[T]):
                     yield await self.get(key)
         finally:
             await pubsub.unsubscribe(channel)
-            await pubsub.close()
+            await pubsub.aclose()
