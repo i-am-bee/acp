@@ -185,7 +185,7 @@ class Client:
                 agent_name=agent,
                 input=input_to_messages(input),
                 mode=RunMode.STREAM,
-                session=await self._prepare_session_for_run(base_url=base_url),
+                **(await self._prepare_session_for_run(base_url=base_url)),
             ).model_dump_json(),
         ) as event_source:
             async for event in self._validate_stream(event_source):
