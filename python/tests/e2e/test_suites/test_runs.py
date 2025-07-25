@@ -84,7 +84,7 @@ async def test_failure(server: Server, client: Client, agent: AgentName) -> None
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("agent", ["awaiter", "slow_echo"])
+@pytest.mark.parametrize("agent", ["awaiter", "slow-echo"])
 async def test_run_cancel(server: Server, client: Client, agent: AgentName) -> None:
     run = await client.run_async(agent=agent, input=input)
     run = await client.run_cancel(run_id=run.run_id)
@@ -95,7 +95,7 @@ async def test_run_cancel(server: Server, client: Client, agent: AgentName) -> N
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("agent", ["slow_echo"])
+@pytest.mark.parametrize("agent", ["slow-echo"])
 async def test_run_cancel_stream(server: Server, client: Client, agent: AgentName) -> None:
     last_event = None
     async for event in client.run_stream(agent=agent, input=input):
@@ -139,7 +139,7 @@ async def test_run_resume_stream(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_mime_types(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="mime_types", input=input)
+    run = await client.run_sync(agent="mime-types", input=input)
     assert run.status == RunStatus.COMPLETED
     assert len(run.output) == 1
 
@@ -160,7 +160,7 @@ async def test_mime_types(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_base64_encoding(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="base64_encoding", input=input)
+    run = await client.run_sync(agent="base64-encoding", input=input)
     assert run.status == RunStatus.COMPLETED
     assert len(run.output) == 1
 
@@ -180,7 +180,7 @@ async def test_base64_encoding(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_artifacts(server: Server, client: Client) -> None:
-    run = await client.run_sync(agent="artifact_producer", input=input)
+    run = await client.run_sync(agent="artifact-producer", input=input)
     assert run.status == RunStatus.COMPLETED
 
     assert len(run.output) == 1
@@ -209,7 +209,7 @@ async def test_artifacts(server: Server, client: Client) -> None:
 
 @pytest.mark.asyncio
 async def test_artifact_streaming(server: Server, client: Client) -> None:
-    events = [event async for event in client.run_stream(agent="artifact_producer", input=input)]
+    events = [event async for event in client.run_stream(agent="artifact-producer", input=input)]
 
     assert isinstance(events[0], RunCreatedEvent)
     assert isinstance(events[-1], RunCompletedEvent)

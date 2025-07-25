@@ -362,7 +362,7 @@ class OutputContentTypes(BaseModel):
 
 
 class AgentManifest(BaseModel):
-    name: str
+    name: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]$")
     description: str | None = None
     metadata: Metadata = Metadata()
     input_content_types: list[str] = Field(default_factory=lambda: ["*/*"])
