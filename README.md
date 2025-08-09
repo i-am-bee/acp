@@ -213,6 +213,7 @@ async def example() -> None:
             agent="echo",
             input=[
                 Message(
+                    role="user",
                     parts=[MessagePart(content="Howdy to echo from client!!", content_type="text/plain")]
                 )
             ],
