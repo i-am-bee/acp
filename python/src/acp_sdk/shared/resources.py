@@ -3,10 +3,9 @@
 
 from datetime import timedelta
 
-import cachetools
-import cachetools.func
 import httpx
 import obstore
+from async_lru import alru_cache
 from obstore.store import AzureStore, GCSStore, HTTPStore, ObjectStore, S3Store
 
 from acp_sdk.models.types import ResourceId, ResourceUrl
@@ -16,7 +15,7 @@ class ResourceLoader:
     def __init__(self, *, client: httpx.AsyncClient | None = None) -> None:
         self._client = client or httpx.AsyncClient(follow_redirects=False)
 
-    @cachetools.func.lfu_cache
+    @alru_cache()
     async def load(self, url: ResourceUrl) -> bytes:
         response = await self._client.get(str(url))
         response.raise_for_status()

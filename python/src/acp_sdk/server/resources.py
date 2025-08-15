@@ -5,7 +5,7 @@ import re
 import uuid
 from typing import Callable
 
-import cachetools
+from async_lru import alru_cache
 
 from acp_sdk.models import ResourceUrl
 from acp_sdk.models.types import ResourceId
@@ -30,7 +30,7 @@ class ServerResourceLoader(ResourceLoader):
             else None
         )
 
-    @cachetools.func.lfu_cache
+    @alru_cache()
     async def load(self, url: ResourceUrl) -> bytes:
         if self._url_pattern:
             match = re.match(self._url_pattern, str(url))
