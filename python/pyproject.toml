@@ -22,6 +22,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "obstore>=0.6",
     "async-lru>=2.0.5",
+    "cachetools>=6.1.0",
 ]
 
 [build-system]
