@@ -42,10 +42,7 @@ from acp_sdk.models import (
     SessionId,
     SessionReadResponse,
 )
-from acp_sdk.models import (
-    AgentManifest as AgentModel,
-)
-from acp_sdk.server.agent import AgentManifest
+from acp_sdk.server.agent import Agent
 from acp_sdk.server.errors import (
     RequestValidationError,
     StarletteHTTPException,
@@ -54,7 +51,8 @@ from acp_sdk.server.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
-from acp_sdk.server.executor import CancelData, Executor, RunData
+from acp_sdk.server.executor import Executor
+from acp_sdk.server.models import CancelData, RunData
 from acp_sdk.server.resources import ServerResourceLoader
 from acp_sdk.server.store import MemoryStore, Store
 from acp_sdk.server.utils import stream_sse, wait_util_stop
@@ -66,7 +64,7 @@ class Headers(str, Enum):
 
 
 def create_app(
-    *agents: AgentManifest,
+    *agents: Agent,
     store: Store | None = None,
     resource_store: ResourceStore | None = None,
     resource_loader: ResourceLoader | None = None,
@@ -117,7 +115,7 @@ def create_app(
             allow_credentials=True,
         )
 
-    agents: dict[AgentName, AgentManifest] = {agent.name: agent for agent in agents}
+    agents: dict[AgentName, Agent] = {agent.name: agent for agent in agents}
 
     store = store or MemoryStore(limit=1000, ttl=timedelta(hours=1))
     run_store = store.as_store(model=RunData, prefix="run_")
@@ -144,7 +142,7 @@ def create_app(
             run_data.run.status = RunStatus.CANCELLING
         return run_data
 
-    def find_agent(agent_name: AgentName) -> AgentManifest:
+    def find_agent(agent_name: AgentName) -> Agent:
         agent = agents.get(agent_name, None)
         if not agent:
             raise HTTPException(status_code=404, detail=f"Agent {agent_name} not found")
@@ -152,29 +150,12 @@ def create_app(
 
     @app.get("/agents")
     async def list_agents() -> AgentsListResponse:
-        return AgentsListResponse(
-            agents=[
-                AgentModel(
-                    name=agent.name,
-                    description=agent.description,
-                    metadata=agent.metadata,
-                    input_content_types=agent.input_content_types,
-                    output_content_types=agent.output_content_types,
-                )
-                for agent in agents.values()
-            ]
-        )
+        return AgentsListResponse(agents=[agent.manifest for agent in agents.values()])
 
     @app.get("/agents/{name}")
     async def read_agent(name: AgentName) -> AgentReadResponse:
         agent = find_agent(name)
-        return AgentModel(
-            name=agent.name,
-            description=agent.description,
-            metadata=agent.metadata,
-            input_content_types=agent.input_content_types,
-            output_content_types=agent.output_content_types,
-        )
+        return agent.manifest
 
     @app.get("/ping")
     async def ping() -> PingResponse:

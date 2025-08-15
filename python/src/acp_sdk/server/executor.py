@@ -5,10 +5,10 @@ import asyncio
 import inspect
 import logging
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Generator
+from collections.abc import AsyncGenerator, Awaitable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Callable, Self
+from typing import Callable
 
 import janus
 from fastapi import Request
@@ -31,7 +31,6 @@ from acp_sdk.models import (
     MessagePartEvent,
     ResourceId,
     ResourceUrl,
-    Run,
     RunAwaitingEvent,
     RunCancelledEvent,
     RunCompletedEvent,
@@ -41,40 +40,21 @@ from acp_sdk.models import (
     RunStatus,
     Session,
 )
-from acp_sdk.server.agent import AgentManifest
+from acp_sdk.server.agent import Agent
 from acp_sdk.server.context import Context
 from acp_sdk.server.logging import logger
+from acp_sdk.server.models import CancelData, RunData
 from acp_sdk.server.store import Store
 from acp_sdk.server.types import RunYield, RunYieldResume
+from acp_sdk.server.utils import agent_name_to_message_role
 from acp_sdk.shared import ResourceLoader, ResourceStore
-
-
-class RunData(BaseModel):
-    run: Run
-    events: list[Event] = []
-
-    @property
-    def key(self) -> str:
-        return str(self.run.run_id)
-
-    async def watch(self, store: Store[Self], *, ready: asyncio.Event | None = None) -> AsyncIterator[Self]:
-        async for data in store.watch(self.key, ready=ready):
-            if data is None:
-                raise RuntimeError("Missing data")
-            yield data
-            if data.run.status.is_terminal:
-                break
-
-
-class CancelData(BaseModel):
-    pass
 
 
 class Executor:
     def __init__(
         self,
         *,
-        agent: AgentManifest,
+        agent: Agent,
         run_data: RunData,
         session: Session,
         executor: ThreadPoolExecutor,
@@ -181,7 +161,7 @@ class Executor:
                             next = MessagePart(content=next)
                         if not in_message:
                             run_data.run.output.append(
-                                Message(role=f"agent/{self.agent.name}", parts=[], completed_at=None)
+                                Message(role=agent_name_to_message_role(self.agent.name), parts=[], completed_at=None)
                             )
                             in_message = True
                             await self._emit(MessageCreatedEvent(message=run_data.run.output[-1]))
@@ -189,7 +169,9 @@ class Executor:
                         await self._emit(MessagePartEvent(part=next))
                     elif isinstance(next, Message):
                         await flush_message()
-                        run_data.run.output.append(next.model_copy(update={"role": f"agent/{self.agent.name}"}))
+                        run_data.run.output.append(
+                            next.model_copy(update={"role": agent_name_to_message_role(self.agent.name)})
+                        )
                         await self._emit(MessageCreatedEvent(message=next))
                         for part in next.parts:
                             await self._emit(MessagePartEvent(part=part))

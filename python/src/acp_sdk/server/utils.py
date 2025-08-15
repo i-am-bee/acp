@@ -7,11 +7,11 @@ from typing import Any, Callable
 
 import httpx
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
-from acp_sdk.models import RunStatus
-from acp_sdk.server.executor import RunData
+from acp_sdk.models import Message, RunStatus
 from acp_sdk.server.logging import logger
+from acp_sdk.server.models import RunData
 from acp_sdk.server.store import Store
 
 
@@ -74,3 +74,12 @@ async def async_request_with_retry(
                 await asyncio.sleep(backoff)
 
         raise requests.exceptions.ConnectionError(f"Request failed after {max_retries} retries.")
+
+
+def agent_name_to_message_role(name: str) -> str:
+    try:
+        role = f"agent/{name}"
+        Message(role=role, parts=[])  # Validate role
+        return role
+    except ValidationError:
+        return "agent"
