@@ -145,6 +145,20 @@ class TrajectoryMetadata(BaseModel):
     tool_output: Optional[AnyModel] = None
 
 
+class ConfigurationMetadata(BaseModel):
+    """
+    Represents configuration to alter agent's behavior.
+
+    Properties:
+    - key: The name of the configuration setting.
+    - value: The value of the configuration setting.
+    """
+
+    kind: Literal["configuration"] = "configuration"
+    key: str
+    value: Any
+
+
 class MessagePart(BaseModel):
     name: Optional[str] = None
     content_type: Optional[str] = "text/plain"
@@ -154,7 +168,9 @@ class MessagePart(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    metadata: Optional[CitationMetadata | TrajectoryMetadata] = Field(discriminator="kind", default=None)
+    metadata: Optional[CitationMetadata | TrajectoryMetadata | ConfigurationMetadata] = Field(
+        discriminator="kind", default=None
+    )
 
     def model_post_init(self, __context: Any) -> None:
         if self.content is not None and self.content_url is not None:
