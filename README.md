@@ -20,7 +20,7 @@
 
 ---------------------------
 
-## 🚀 IMPORTANT UPDATE!
+## 🚀 IMPORTANT UPDATE
 
 **ACP is now part of A2A under the Linux Foundation!**  
 <br>
