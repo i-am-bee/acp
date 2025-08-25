@@ -14,6 +14,24 @@
 
 <br>
 
+<div align="center">
+
+<div style="width:100%; border:2px solid #FFAA00; padding: 10px; margin: 10px 0;">
+
+---------------------------
+
+## 🚀 IMPORTANT UPDATE
+
+**ACP is now part of A2A under the Linux Foundation!**  
+<br>
+👉 [Learn more](https://github.com/orgs/i-am-bee/discussions/5) | 🛠️ [Migration Guide](https://github.com/i-am-bee/beeai-platform/blob/main/docs/community-and-support/acp-a2a-migration-guide.mdx)
+
+---------------------------
+
+</div>
+</div>
+
+
 **ACP is an open protocol for communication between AI agents, applications, and humans.**
 
 Modern AI agents are often built in isolation, across different frameworks, teams, and infrastructures.
